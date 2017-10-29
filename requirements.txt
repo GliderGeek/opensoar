@@ -1,0 +1,2 @@
+pygeodesy==17.9.22
+aerofiles==0.4

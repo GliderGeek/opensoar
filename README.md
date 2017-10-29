@@ -9,7 +9,7 @@ thermal detection to competition scoring.
 
 ![https://github.com/Turbo87/aerofiles](https://raw.githubusercontent.com/Turbo87/aerofiles/master/img/logo.png)
 
-OpenSoar only performs analyses after the files have been read in. The aerofiles library provides the functionality
+OpenSoar only performs analyses after the files have been read in. The [aerofiles library](https://github.com/Turbo87/aerofiles) provides the functionality
 to read the files.
 
 # Plan

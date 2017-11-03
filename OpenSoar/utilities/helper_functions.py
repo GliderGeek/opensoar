@@ -5,6 +5,15 @@ import datetime
 from pygeodesy.ellipsoidalVincenty import LatLon
 
 
+def double_iterator(lst):
+    """Create iterator with two values. E.g.: current, plus1 in a for loop"""
+    a = iter(lst)
+    b = copy(a)
+
+    next(b, None)
+    return zip(a, b)
+
+
 def triple_iterator(lst):
     """Create iterator with three values. E.g.: current, plus1, plus2 in a for loop"""
 

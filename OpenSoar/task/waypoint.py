@@ -1,7 +1,9 @@
 from math import pi
 
-from OpenSoar.utilities.helper_functions import calculate_distance, calculate_bearing, calculate_bearing_difference, \
-    calculate_average_bearing
+from OpenSoar.utilities.helper_functions import calculate_distance
+from OpenSoar.utilities.helper_functions import calculate_bearing
+from OpenSoar.utilities.helper_functions import calculate_bearing_difference
+from OpenSoar.utilities.helper_functions import calculate_average_bearing
 
 
 class Waypoint(object):  # startpoint, turnpoints and finish
@@ -28,52 +30,6 @@ class Waypoint(object):  # startpoint, turnpoints and finish
     def fix(self):
         return dict(lat=self.lat, lon=self.lon)
 
-    @staticmethod
-    def cuc_fixed_orientation_angle(LSEEYOU_line):
-        components = LSEEYOU_line.rstrip().split(",")
-        for component in components:
-            if component.startswith("A12="):
-                return float(component.split("=")[1])
-
-    @staticmethod
-    def cuc_sector_orientation(LSEEYOU_line):
-        components = LSEEYOU_line.rstrip().split(",")
-        for component in components:
-            if component.startswith("Style="):
-                style = int(component.split("=")[1])
-                if style == 0:
-                    return "fixed"
-                elif style == 1:
-                    return "symmetrical"
-                elif style == 2:
-                    return "next"
-                elif style == 3:
-                    return "previous"
-                elif style == 4:
-                    return "start"
-                else:
-                    raise ValueError("Unknown waypoin style: {}".format(style))
-
-    @staticmethod
-    def cuc_distance_correction(LSEEYOU_line):
-        components = LSEEYOU_line.rstrip().split(",")
-        reduce = False
-        move = False
-        for component in components:
-            if component.startswith("Reduce="):
-                reduce = bool(component.split("=")[1])
-            elif component.startswith("Move="):
-                move = bool(component.split("=")[1])
-
-        if reduce and move:
-            return "shorten_legs"
-        elif reduce:
-            return "shorten_legs"
-        elif move:
-            return "move_tp"
-        else:
-            return None
-
     def set_orientation_angle(self, angle_start=None, angle_previous=None, angle_next=None):
         # Fixed orientation is skipped as that has already been set
 
@@ -87,24 +43,6 @@ class Waypoint(object):  # startpoint, turnpoints and finish
             self.orientation_angle = angle_start
         else:
             raise ValueError("Unknown sector orientation: %s " % self.sector_orientation)
-
-    @staticmethod
-    def cuc_sector_dimensions(LSEEYOU_line):
-        components = LSEEYOU_line.rstrip().split(",")
-        r_min = None
-        angle_min = None
-        r_max = None
-        angle_max = None
-        for component in components:
-            if component.startswith("R1="):
-                r_max = int(component.split("=")[1][:-1])
-            elif component.startswith("A1="):
-                angle_max = int(component.split("=")[1])
-            elif component.startswith("R2="):
-                r_min = int(component.split("=")[1][:-1])
-            elif component.startswith("A2="):
-                angle_min = int(component.split("=")[1])
-        return r_min, angle_min, r_max, angle_max
 
     def inside_sector(self, fix):
 
@@ -157,4 +95,24 @@ class Waypoint(object):  # startpoint, turnpoints and finish
     @classmethod
     def from_cuc(cls):
         # todo: implement cuc helper class
+        pass
+
+    @staticmethod
+    def cuc_fixed_orientation_angle(LSEEYOU_line):
+        # todo
+        pass
+
+    @staticmethod
+    def cuc_sector_orientation(LSEEYOU_line):
+        # todo
+        pass
+
+    @staticmethod
+    def cuc_distance_correction(LSEEYOU_line):
+        # todo
+        pass
+
+    @staticmethod
+    def cuc_sector_dimensions(LSEEYOU_line):
+        # todo
         pass

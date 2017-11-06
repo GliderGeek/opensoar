@@ -4,9 +4,7 @@ from math import isclose, pi, sin, cos, atan2
 import datetime
 from typing import List
 
-from io import BytesIO
 from pygeodesy.ellipsoidalVincenty import LatLon
-from aerofiles.igc.writer import Writer
 
 
 def double_iterator(lst):

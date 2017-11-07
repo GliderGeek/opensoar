@@ -174,3 +174,8 @@ def interpolate_fixes(fix1, fix2, interval=1):
         fixes.append(dict(time=time, lat=lat, lon=lon))
 
     return fixes
+
+
+def calculate_destination(start_fix, distance, bearing):
+    destination_latlon = LatLon(start_fix['lat'], start_fix['lon']).destination(distance, bearing)
+    return dict(lat=destination_latlon.lat, lon=destination_latlon.lon)

@@ -2,11 +2,13 @@ from OpenSoar.utilities.helper_functions import calculate_bearing, calculate_dis
     interpolate_fixes
 
 
-class Task(object):
+class Task:
 
-    def __init__(self, task_points, aat, multi_start, start_opening, utc_diff):
+    ENL_VALUE_THRESHOLD = 500
+    ENL_TIME_THRESHOLD = 30
 
-        self.aat = aat
+    def __init__(self, task_points, multi_start, start_opening, utc_diff):
+
         self.multi_start = multi_start
         self.start_opening = start_opening
         self.utc_diff = utc_diff
@@ -24,13 +26,13 @@ class Task(object):
 
     @staticmethod
     def waypoints_from_cuc():
-        # todo
         pass
+        # todo
 
     @staticmethod
     def waypoints_from_scs(lscs_lines):
-        # todo
         pass
+        # todo
 
     @staticmethod
     def set_orientation_angles(waypoints):
@@ -118,3 +120,10 @@ class Task(object):
             if self.started(fixes[i], fixes[i + 1]):
                 trip.refined_start_time = fix['time']
                 break
+
+    def enl_value_exceeded(self, fix, enl_indices):
+        enl_value = int(fix[enl_indices[0] - 1:enl_indices[1]])
+        return enl_value > self.ENL_VALUE_THRESHOLD
+
+    def enl_time_exceeded(self, enl_time):
+        return enl_time >= self.ENL_TIME_THRESHOLD

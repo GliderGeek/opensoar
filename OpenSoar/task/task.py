@@ -1,5 +1,5 @@
 from OpenSoar.utilities.helper_functions import calculate_bearing, calculate_distance, calculate_bearing_difference, \
-    interpolate_fixes
+    interpolate_fixes, double_iterator
 
 
 class Task:
@@ -7,13 +7,17 @@ class Task:
     ENL_VALUE_THRESHOLD = 500
     ENL_TIME_THRESHOLD = 30
 
-    def __init__(self, task_points, multi_start, start_opening, utc_diff):
+    def __init__(self, waypoints, start_opening, start_time_buffer):
+        """
+        :param waypoints: 
+        :param start_opening: 
+        :param start_time_buffer: in seconds
+        """
 
-        self.multi_start = multi_start
+        self.waypoints = waypoints
         self.start_opening = start_opening
-        self.utc_diff = utc_diff
+        self.start_time_buffer = start_time_buffer
 
-        self.waypoints = task_points
         self.set_orientation_angles(self.waypoints)
 
     @property
@@ -23,16 +27,6 @@ class Task:
     @property
     def no_legs(self):
         return self.no_tps + 1
-
-    @staticmethod
-    def waypoints_from_cuc():
-        pass
-        # todo
-
-    @staticmethod
-    def waypoints_from_scs(lscs_lines):
-        pass
-        # todo
 
     @staticmethod
     def set_orientation_angles(waypoints):
@@ -100,7 +94,7 @@ class Task:
 
     def started(self, fix1, fix2):
         start = self.waypoints[0]
-        if start.line:
+        if start.is_line:
             return start.crossed_line(fix1, fix2)
         else:
             return start.inside_sector(fix1) and start.outside_sector(fix2)
@@ -112,14 +106,15 @@ class Task:
         else:
             return finish.outside_sector(fix1) and finish.inside_sector(fix2)
 
-    def refine_start(self, trip, trace):
-        start_i = trace.index(trip.fixes[0])
-        fixes = interpolate_fixes(trace[start_i-1], trace[start_i])
+    def determine_refined_start(self, trace, fixes):
+        start_i = trace.index(fixes[0])
+        interpolated_fixes = interpolate_fixes(trace[start_i-1], trace[start_i])
 
-        for i, fix in enumerate(fixes[:-1]):
-            if self.started(fixes[i], fixes[i + 1]):
-                trip.refined_start_time = fix['time']
-                break
+        for fix, next_fix in double_iterator(interpolated_fixes):
+            if self.started(fix, next_fix):
+                return fix['time']
+
+        raise ValueError('Start should have been determined')
 
     def enl_value_exceeded(self, fix, enl_indices):
         enl_value = int(fix[enl_indices[0] - 1:enl_indices[1]])

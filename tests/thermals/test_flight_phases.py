@@ -1,26 +1,18 @@
 import os
 import unittest
-
 import datetime
-from aerofiles.igc.reader import Reader
 
 from OpenSoar.thermals.flight_phases import FlightPhases
 from OpenSoar.utilities.helper_functions import double_iterator, seconds_time_difference
+
+from tests.task.helper_functions import get_trace
 
 
 class TestFlightPhases(unittest.TestCase):
 
     def test_all_phases(self):
 
-        reader = Reader()
-
-        cwd = os.path.dirname(__file__)
-        file_path = os.path.join(cwd, '..', 'example.igc')
-
-        with open(file_path, 'r') as f:
-            parsed_igc_file = reader.read(f)
-
-        trace_errors, trace = parsed_igc_file['fix_records']
+        trace = get_trace(os.path.join('tests', 'example.igc'))
 
         start_index = 1168
         last_tp_index = 3240

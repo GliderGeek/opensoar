@@ -179,3 +179,10 @@ def interpolate_fixes(fix1, fix2, interval=1):
 def calculate_destination(start_fix, distance, bearing):
     destination_latlon = LatLon(start_fix['lat'], start_fix['lon']).destination(distance, bearing)
     return dict(lat=destination_latlon.lat, lon=destination_latlon.lon)
+
+
+def dms2dd(degrees, minutes, seconds, cardinal):
+    dd = degrees + (minutes + seconds / 1000.0) / 60.0
+    if cardinal in ('S', 'W'):
+        dd *= -1
+    return dd

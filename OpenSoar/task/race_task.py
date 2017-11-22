@@ -1,11 +1,13 @@
+from datetime import timedelta
+
 from OpenSoar.task.task import Task
 from OpenSoar.utilities.helper_functions import calculate_distance, seconds_time_difference, double_iterator
 
 
 class RaceTask(Task):
 
-    def __init__(self, waypoints, multi_start, start_opening, utc_diff):
-        super().__init__(waypoints, multi_start, start_opening, utc_diff)
+    def __init__(self, waypoints, start_opening=None, start_time_buffer=0):
+        super().__init__(waypoints, start_opening, start_time_buffer)
 
         self.distances = self.calculate_task_distances()
 
@@ -15,8 +17,7 @@ class RaceTask(Task):
 
     def calculate_task_distances(self):
 
-        distances = []
-
+        distances = list()
         for leg in range(self.no_legs):
 
             begin = self.waypoints[leg]
@@ -64,26 +65,36 @@ class RaceTask(Task):
 
         return distances
 
-    def apply_rules(self, trace, trip, trace_settings):
+    def apply_rules(self, trace, trip, enl_indices):
 
-        self.determine_trip_fixes(trip, trace, trace_settings)
-        self.determine_trip_distances(trip)
-        self.refine_start(trip, trace)
+        fixes, start_fixes, outlanding_fix = self.determine_trip_fixes(trace, enl_indices)
+        distances = self.determine_trip_distances(fixes, outlanding_fix)
+        refined_start = self.determine_refined_start(trace, fixes)
 
-    def determine_trip_fixes(self, trip, trace, trace_settings):
+        trip.fixes = fixes
+        trip.start_fixes = start_fixes
+        trip.outlanding_fix = outlanding_fix
+        trip.distances = distances
+        trip.refined_start_time = refined_start
+
+    def determine_trip_fixes(self, trace, enl_indices):
+
+        # todo: currently three variables for enl. can this be reduced?
 
         leg = -1
         enl_time = 0
         enl_first_fix = None
         enl_registered = False
 
+        fixes = list()
+        start_fixes = list()
         for fix_minus1, fix in double_iterator(trace):
 
             t = fix['time']
 
-            if trace_settings['enl_indices'] is not None \
+            if enl_indices is not None \
                     and not enl_registered \
-                    and self.enl_value_exceeded(fix, trace_settings['enl_indices']):
+                    and self.enl_value_exceeded(fix, enl_indices):
 
                 if enl_time == 0:
                     enl_first_fix = fix_minus1
@@ -93,12 +104,16 @@ class RaceTask(Task):
                 enl_time = 0
                 enl_first_fix = None
 
-            start_time_buffer = 15
-            if leg == -1 and t + start_time_buffer > self.start_opening:
+            if self.start_opening is None:
+                after_start_opening = True
+            else:
+                after_start_opening = t + timedelta(seconds=self.start_time_buffer) > self.start_opening
+
+            if leg == -1 and after_start_opening:
                 if self.started(fix_minus1, fix):
                     start_fix = fix
-                    trip.fixes.append(start_fix)
-                    trip.start_fixes.append(start_fix)
+                    fixes.append(start_fix)
+                    start_fixes.append(start_fix)
                     leg += 1
                     enl_time = 0
                     enl_first_fix = None
@@ -106,75 +121,87 @@ class RaceTask(Task):
             elif leg == 0:
                 if self.started(fix_minus1, fix):  # restart
                     start_fix = fix
-                    trip.fixes[0] = start_fix
-                    trip.start_fixes.append(start_fix)
+                    fixes[0] = start_fix
+                    start_fixes.append(start_fix)
                     enl_time = 0
                     enl_first_fix = None
                     enl_registered = False
                 if self.finished_leg(leg, fix_minus1, fix) and not enl_registered:
-                    trip.fixes.append(fix)
+                    fixes.append(fix)
                     leg += 1
             elif 0 < leg < self.no_legs:
                 if self.finished_leg(leg, fix_minus1, fix) and not enl_registered:
-                    trip.fixes.append(fix)
+                    fixes.append(fix)
                     leg += 1
 
-        if enl_registered:
-            trip.enl_fix = enl_first_fix
+        enl_fix = enl_first_fix if enl_registered else None
 
-        if len(trip.fixes) is not len(self.waypoints):
-            self.determine_outlanding_fix(trip, trace)
+        outlanding_fix = None
+        if len(fixes) is not len(self.waypoints):
+            outlanding_fix = self.determine_outlanding_fix(trace, fixes, start_fixes, enl_fix)
 
-    def determine_outlanding_fix(self, trip, trace):
+        return fixes, start_fixes, outlanding_fix
 
-        last_tp_i = trace.index(trip.fixes[-1]) if trip.outlanding_leg() != 0 else trace.index(trip.start_fixes[0])
-        if trip.enl_fix is not None:
-            enl_i = trace.index(trip.enl_fix)
+    def determine_outlanding_fix(self, trace, fixes, start_fixes, enl_fix):
 
+        if len(fixes) == len(self.waypoints):
+            raise None
+
+        outlanding_leg = len(fixes) - 1
+        last_tp_i = trace.index(fixes[-1]) if outlanding_leg != 0 else trace.index(start_fixes[0])
+        if enl_fix is not None:
+            enl_i = trace.index(enl_fix)
+            last_index = enl_i
+        else:
+            last_index = len(trace) - 1
+
+        # todo: is it possible to simplify these max function? with lambda?
         max_dist = 0
         outlanding_fix = None
-        for i, fix in enumerate(trace):
 
-            if (trip.enl_fix is None and last_tp_i < i) or (trip.enl_fix is not None and last_tp_i < i < enl_i):
+        for fix in trace[last_tp_i:last_index + 1]:
+            outlanding_dist = self.determine_outlanding_distance(outlanding_leg, fix)
 
-                outlanding_dist = self.determine_outlanding_distance(trip.outlanding_leg(), fix)
-
-                if outlanding_dist > max_dist:
-                    max_dist = outlanding_dist
-                    outlanding_fix = fix
+            if outlanding_dist > max_dist:
+                max_dist = outlanding_dist
+                outlanding_fix = fix
 
         if outlanding_fix is None:  # no out-landing fix that improves the distance
-            if trip.enl_fix is not None:
-                trip.outlanding_fix = trip.enl_fix
+            if enl_fix is not None:
+                outlanding_fix = enl_fix
             else:
-                trip.outlanding_fix = trace[-1]
-        else:
-            trip.outlanding_fix = outlanding_fix
+                outlanding_fix = trace[-1]
+
+        return outlanding_fix
 
     def determine_outlanding_distance(self, outlanding_leg, fix):
 
-        task_pointM1 = self.waypoints[outlanding_leg]
-        task_point = self.waypoints[outlanding_leg + 1]
+        previous_waypoint = self.waypoints[outlanding_leg]
+        next_waypoint = self.waypoints[outlanding_leg + 1]
 
         # outlanding distance = distance between tps minus distance from next tp to outlanding
-        outlanding_dist = calculate_distance(task_pointM1.fix, task_point.fix)
-        outlanding_dist -= calculate_distance(task_point.fix, fix)
+        outlanding_dist = calculate_distance(previous_waypoint.fix, next_waypoint.fix)
+        outlanding_dist -= calculate_distance(next_waypoint.fix, fix)
 
         return outlanding_dist if outlanding_dist > 0 else 0
 
-    def determine_trip_distances(self, trip):
+    def determine_trip_distances(self, fixes, outlanding_fix):
 
-        for leg, fix in enumerate(trip.fixes[1:]):
-            trip.distances.append(self.distances[leg])
+        distances = list()
+        for leg, fix in enumerate(fixes[1:]):
+            distances.append(self.distances[leg])
 
-        if trip.outlanding_fix is not None:
-            trip.distances.append(self.determine_outlanding_distance(trip.outlanding_leg(), trip.outlanding_fix))
+        if outlanding_fix is not None:
+            outlanding_leg = len(fixes) - 1
+            distances.append(self.determine_outlanding_distance(outlanding_leg, outlanding_fix))
+
+        return distances
 
     def finished_leg(self, leg, fix1, fix2):
         """Determines whether leg is finished."""
 
         next_waypoint = self.waypoints[leg + 1]
-        if next_waypoint.line:
+        if next_waypoint.is_line:
             return next_waypoint.crossed_line(fix1, fix2)
         else:
             return next_waypoint.outside_sector(fix1) and next_waypoint.inside_sector(fix2)

@@ -6,10 +6,12 @@ class FlightPhases:
     def __init__(self, classification_method, trace, trip=None):
         """
         Container to combine the different flight phases (thermal and cruise) with helper methods for easy access.
-        :param classification_method:
+        :param classification_method: currently only 'pysoar' supported
         :param trace: 
-        :param trip: 
+        :param trip: optional parameter for obtain thermals per leg
         """
+
+        # todo: implement all trip dependencies
 
         if classification_method == 'pysoar':
             self._thermal_detector = PySoarThermalDetector()
@@ -26,6 +28,7 @@ class FlightPhases:
         if leg is not None:
             self._check_leg(leg)
 
+        # todo: implement this: only return thermals
         pass
 
     def cruises(self, leg=None):
@@ -34,6 +37,7 @@ class FlightPhases:
         if leg is not None:
             self._check_leg(leg)
 
+        # todo: implement this: only return cruises
         pass
 
     def all_phases(self, leg=None):
@@ -50,6 +54,7 @@ class FlightPhases:
         if leg is not None:
             self._check_leg(leg)
 
+        # todo: implement this
         pass
 
     def cruise_fixes(self, leg=None):
@@ -58,11 +63,12 @@ class FlightPhases:
         if leg is not None:
             self._check_leg(leg)
 
+        # todo: implement this
         pass
 
     def _check_leg(self, leg):
         if self._trip is None:
-            raise ValueError('No trip information present')
+            raise ValueError('No trip specified')
         else:
             if leg >= self._trip.completed_legs:
                 raise ValueError('Trip only contains {} legs'.format(self._trip.completed_legs))

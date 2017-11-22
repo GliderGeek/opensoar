@@ -6,15 +6,29 @@ from OpenSoar.utilities.helper_functions import calculate_bearing_difference
 from OpenSoar.utilities.helper_functions import calculate_average_bearing
 
 
-class Waypoint(object):  # startpoint, turnpoints and finish
+class Waypoint(object):
 
-    def __init__(self, name, lat, lon, r_min, angle_min, r_max, angle_max, orientation_angle,
-                 line, sector_orientation, distance_correction):
+    def __init__(self, name, latitude, longitude, r_min, angle_min, r_max, angle_max, is_line, sector_orientation,
+                 distance_correction=None, orientation_angle=None):
+        """
+        Waypoint is either the start point, one of the turn points or the finish point of a task.
+        :param name: 
+        :param latitude: latitude in degrees
+        :param longitude: in degrees
+        :param r_min: in m
+        :param angle_min: in degrees
+        :param r_max: in m
+        :param angle_max: in degrees
+        :param is_line: boolean denoting whether waypoint is a line
+        :param sector_orientation: in degrees. valid values: 'fixed', 'symmetrical', 'next', 'previous', 'start'
+        :param distance_correction: optional argument. valid values: 'displace_tp', 'shorten_legs'
+        :param orientation_angle: optional argument. Should only be set when sector_orientation='fixed'.
+        """
 
         self.name = name
 
-        self.lat = lat
-        self.lon = lon
+        self.latitude = latitude
+        self.longitude = longitude
 
         self.r_min = r_min
         self.angle_min = angle_min
@@ -22,13 +36,13 @@ class Waypoint(object):  # startpoint, turnpoints and finish
         self.angle_max = angle_max
         self.orientation_angle = orientation_angle
 
-        self.line = line
-        self.sector_orientation = sector_orientation  # fixed, symmetrical, next, previous, start
-        self.distance_correction = distance_correction  # None, displace_tp, shorten_legs
+        self.is_line = is_line
+        self.sector_orientation = sector_orientation
+        self.distance_correction = distance_correction
 
     @property
     def fix(self):
-        return dict(lat=self.lat, lon=self.lon)
+        return dict(lat=self.latitude, lon=self.longitude)
 
     def set_orientation_angle(self, angle_start=None, angle_previous=None, angle_next=None):
         # Fixed orientation is skipped as that has already been set
@@ -51,7 +65,7 @@ class Waypoint(object):  # startpoint, turnpoints and finish
 
         angle_wrt_orientation = abs(calculate_bearing_difference(self.orientation_angle, bearing))
 
-        if self.line:
+        if self.is_line:
             raise ValueError('Calling inside_sector on a line')
         elif self.r_min is not None:
             inside_outer_sector = self.r_min < distance < self.r_max and angle_wrt_orientation < self.angle_max
@@ -68,7 +82,7 @@ class Waypoint(object):  # startpoint, turnpoints and finish
         distance1 = calculate_distance(fix1, self.fix)
         distance2 = calculate_distance(fix2, self.fix)
 
-        if not self.line:
+        if not self.is_line:
             raise ValueError('Calling crossed_line on a sector!')
         else:
             if distance2 > self.r_max and distance1 > self.r_max:
@@ -86,33 +100,3 @@ class Waypoint(object):  # startpoint, turnpoints and finish
                     return angle_wrt_orientation2 < 90 < angle_wrt_orientation1
                 else:
                     raise ValueError("A line with this orientation is not implemented!")
-
-    @classmethod
-    def from_scs(cls):
-        # todo: implement scs helper class
-        pass
-
-    @classmethod
-    def from_cuc(cls):
-        # todo: implement cuc helper class
-        pass
-
-    @staticmethod
-    def cuc_fixed_orientation_angle(LSEEYOU_line):
-        # todo
-        pass
-
-    @staticmethod
-    def cuc_sector_orientation(LSEEYOU_line):
-        # todo
-        pass
-
-    @staticmethod
-    def cuc_distance_correction(LSEEYOU_line):
-        # todo
-        pass
-
-    @staticmethod
-    def cuc_sector_dimensions(LSEEYOU_line):
-        # todo
-        pass

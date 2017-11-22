@@ -34,7 +34,7 @@ class PySoarThermalDetector:
             bearing_change = calculate_bearing_change(fix_minus2, fix_minus1, fix)
             delta_t = (0.5 * seconds_time_difference(time_minus1, time) +
                        0.5 * seconds_time_difference(time_minus2, time))
-            bearing_change_rate = bearing_change / delta_t  # todo: investigate this approximation.
+            bearing_change_rate = bearing_change / delta_t
 
             if cruise:
 

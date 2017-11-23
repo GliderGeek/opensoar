@@ -15,7 +15,7 @@ class TestTrip(unittest.TestCase):
     igc_path = os.path.join('tests', 'example.igc')
     race_task = get_race_task(igc_path)
     trace = get_trace(igc_path)
-    trip = Trip(race_task, trace, list())
+    trip = Trip(race_task, trace)
 
     def test_number_of_fixes(self):
         self.assertEqual(len(self.trip.fixes), 5)
@@ -35,3 +35,6 @@ class TestTrip(unittest.TestCase):
     def test_finish_time(self):
         finish_fix = self.trip.fixes[-1]
         self.assertEqual(finish_fix['time'], datetime.time(13, 21, 58))
+
+    # todo: add 'normal' outlanding on race_task
+    # todo: add enl-outlanding on race_task

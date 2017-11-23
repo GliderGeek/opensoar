@@ -1,16 +1,6 @@
 class Trip(object):
 
-    def __init__(self, task, trace, enl_indices):
-        # why enl_indices? isn't this captured inside aerofiles highlevel reader?
-        # todo: check in aerofiles with enl plane where enl info in stored
-        # todo: determine information flow of these values. probably not enl_indices
-
-
-        """
-        :param task: 
-        :param trace: 
-        :param enl_indices: 
-        """
+    def __init__(self, task, trace):
 
         # to be filled inside task.apply_rules
         self.fixes = list()
@@ -19,7 +9,7 @@ class Trip(object):
         self.refined_start_time = None
         self.distances = list()
 
-        task.apply_rules(trace, self, enl_indices)
+        task.apply_rules(trace, self)
 
     def outlanding_leg(self):
         if self.outlanded():

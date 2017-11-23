@@ -65,9 +65,9 @@ class RaceTask(Task):
 
         return distances
 
-    def apply_rules(self, trace, trip, enl_indices):
+    def apply_rules(self, trace, trip):
 
-        fixes, start_fixes, outlanding_fix = self.determine_trip_fixes(trace, enl_indices)
+        fixes, start_fixes, outlanding_fix = self.determine_trip_fixes(trace)
         distances = self.determine_trip_distances(fixes, outlanding_fix)
         refined_start = self.determine_refined_start(trace, fixes)
 
@@ -77,7 +77,7 @@ class RaceTask(Task):
         trip.distances = distances
         trip.refined_start_time = refined_start
 
-    def determine_trip_fixes(self, trace, enl_indices):
+    def determine_trip_fixes(self, trace):
 
         leg = -1
         enl_first_fix = None
@@ -87,14 +87,11 @@ class RaceTask(Task):
         start_fixes = list()
         for fix_minus1, fix in double_iterator(trace):
 
-            t = fix['time']
-
-            if enl_indices is not None \
-                    and not enl_registered \
-                    and self.enl_value_exceeded(fix, enl_indices):
+            if 'ENL' in fix and not enl_registered and self.enl_value_exceeded(fix['ENL']):
 
                 if enl_first_fix is None:
                     enl_first_fix = fix_minus1
+
                 enl_time = seconds_time_difference(enl_first_fix, fix)
                 enl_registered = enl_registered or self.enl_time_exceeded(enl_time)
             elif not enl_registered:
@@ -103,7 +100,7 @@ class RaceTask(Task):
             if self.start_opening is None:
                 after_start_opening = True
             else:
-                after_start_opening = t + timedelta(seconds=self.start_time_buffer) > self.start_opening
+                after_start_opening = fix['time'] + timedelta(seconds=self.start_time_buffer) > self.start_opening
 
             if leg == -1 and after_start_opening:
                 if self.started(fix_minus1, fix):

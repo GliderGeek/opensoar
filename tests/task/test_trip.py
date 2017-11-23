@@ -27,8 +27,10 @@ class TestTrip(unittest.TestCase):
         self.assertFalse(self.trip.outlanded())
 
     def test_start_time(self):
-        # todo: confirm with seeyou that this is the incorrect start-time
         # todo: check why this value is different
+        # seeyou and pysoar give 12, 12, 55
+        # - difference in interpolation of start time?
+        # - difference in bearing / dist calculation / line cross?
         start_fix = self.trip.fixes[0]
         self.assertEqual(start_fix['time'], datetime.time(12, 12, 55))
 

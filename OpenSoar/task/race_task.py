@@ -138,29 +138,25 @@ class RaceTask(Task):
 
     def determine_outlanding_fix(self, trace, fixes, start_fixes, enl_fix):
 
-        if len(fixes) == len(self.waypoints):
-            raise None
-
         outlanding_leg = len(fixes) - 1
+
+        # check if there is an actual outlanding
+        if len(fixes) == len(self.waypoints):
+            return None
+
+        # determine range within trace to be examined for outlanding fix
         last_tp_i = trace.index(fixes[-1]) if outlanding_leg != 0 else trace.index(start_fixes[0])
         if enl_fix is not None:
-            enl_i = trace.index(enl_fix)
-            last_index = enl_i
+            last_index = trace.index(enl_fix)
         else:
             last_index = len(trace) - 1
 
-        # todo: is it possible to simplify these max function? with lambda?
-        max_dist = 0
-        outlanding_fix = None
+        # find fix which maximizes the distance
+        outlanding_fix = max(trace[last_tp_i:last_index + 1],
+                             key=lambda x: self.determine_outlanding_distance(outlanding_leg, x))
 
-        for fix in trace[last_tp_i:last_index + 1]:
-            outlanding_dist = self.determine_outlanding_distance(outlanding_leg, fix)
-
-            if outlanding_dist > max_dist:
-                max_dist = outlanding_dist
-                outlanding_fix = fix
-
-        if outlanding_fix is None:  # no out-landing fix that improves the distance
+        max_distance = self.determine_outlanding_distance(outlanding_leg, outlanding_fix)
+        if max_distance < 0:  # no out-landing fix that improves the distance
             if enl_fix is not None:
                 outlanding_fix = enl_fix
             else:

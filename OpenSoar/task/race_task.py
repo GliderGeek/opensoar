@@ -79,10 +79,7 @@ class RaceTask(Task):
 
     def determine_trip_fixes(self, trace, enl_indices):
 
-        # todo: currently three variables for enl. can this be reduced?
-
         leg = -1
-        enl_time = 0
         enl_first_fix = None
         enl_registered = False
 
@@ -96,12 +93,11 @@ class RaceTask(Task):
                     and not enl_registered \
                     and self.enl_value_exceeded(fix, enl_indices):
 
-                if enl_time == 0:
+                if enl_first_fix is None:
                     enl_first_fix = fix_minus1
-                enl_time += seconds_time_difference(fix_minus1, fix)
+                enl_time = seconds_time_difference(enl_first_fix, fix)
                 enl_registered = enl_registered or self.enl_time_exceeded(enl_time)
             elif not enl_registered:
-                enl_time = 0
                 enl_first_fix = None
 
             if self.start_opening is None:
@@ -115,7 +111,6 @@ class RaceTask(Task):
                     fixes.append(start_fix)
                     start_fixes.append(start_fix)
                     leg += 1
-                    enl_time = 0
                     enl_first_fix = None
                     enl_registered = False
             elif leg == 0:
@@ -123,7 +118,6 @@ class RaceTask(Task):
                     start_fix = fix
                     fixes[0] = start_fix
                     start_fixes.append(start_fix)
-                    enl_time = 0
                     enl_first_fix = None
                     enl_registered = False
                 if self.finished_leg(leg, fix_minus1, fix) and not enl_registered:

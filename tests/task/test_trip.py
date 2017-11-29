@@ -27,12 +27,10 @@ class TestTrip(unittest.TestCase):
         self.assertFalse(self.trip.outlanded())
 
     def test_start_time(self):
-        # todo: check why this value is different
-        # seeyou and pysoar give 12, 12, 55
-        # - difference in interpolation of start time?
-        # - difference in bearing / dist calculation / line cross?
         start_fix = self.trip.fixes[0]
-        self.assertEqual(start_fix['time'], datetime.time(12, 12, 55))
+        refined_start_time = self.trip.refined_start_time
+        self.assertEqual(start_fix['time'], datetime.time(12, 12, 54))
+        self.assertEqual(refined_start_time, datetime.time(12, 12, 55))
 
     def test_finish_time(self):
         finish_fix = self.trip.fixes[-1]

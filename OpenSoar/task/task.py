@@ -108,7 +108,7 @@ class Task:
 
     def determine_refined_start(self, trace, fixes):
         start_i = trace.index(fixes[0])
-        interpolated_fixes = interpolate_fixes(trace[start_i-1], trace[start_i])
+        interpolated_fixes = interpolate_fixes(trace[start_i], trace[start_i+1])
 
         for fix, next_fix in double_iterator(interpolated_fixes):
             if self.started(fix, next_fix):

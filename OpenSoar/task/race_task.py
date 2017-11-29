@@ -104,17 +104,15 @@ class RaceTask(Task):
 
             if leg == -1 and after_start_opening:
                 if self.started(fix_minus1, fix):
-                    start_fix = fix
-                    fixes.append(start_fix)
-                    start_fixes.append(start_fix)
+                    fixes.append(fix_minus1)
+                    start_fixes.append(fix_minus1)
                     leg += 1
                     enl_first_fix = None
                     enl_registered = False
             elif leg == 0:
                 if self.started(fix_minus1, fix):  # restart
-                    start_fix = fix
-                    fixes[0] = start_fix
-                    start_fixes.append(start_fix)
+                    fixes[0] = fix_minus1
+                    start_fixes.append(fix_minus1)
                     enl_first_fix = None
                     enl_registered = False
                 if self.finished_leg(leg, fix_minus1, fix) and not enl_registered:

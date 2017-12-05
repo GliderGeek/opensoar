@@ -1,5 +1,8 @@
 from OpenSoar.utilities.helper_functions import triple_iterator, calculate_bearing_change, calculate_distance, \
     seconds_time_difference
+from collections import namedtuple
+
+Phase = namedtuple('Phase', 'is_cruise fixes')
 
 
 class PySoarThermalDetector:
@@ -17,13 +20,14 @@ class PySoarThermalDetector:
     def analyse(self, trace):
 
         cruise = True
-        possible_thermal_start = None
-        possible_cruise_start = None
+        possible_thermal_fixes = list()
+        possible_cruise_fixes = list()
         sharp_thermal_entry_found = False
-        turn_direction = 'left'
+        turning_left = True
         total_bearing_change = 0
 
-        phases = [dict(start_fix=trace[0], end_fix=None, cruise=cruise)]
+        # Start with first phase
+        phases = [Phase(cruise, trace[0:2])]
 
         for fix_minus2, fix_minus1, fix in triple_iterator(trace):
 
@@ -38,58 +42,81 @@ class PySoarThermalDetector:
 
             if cruise:
 
-                continuing_left = turn_direction == 'left' and bearing_change_rate < self.MINIMUM_BEARING_CHANGE_RATE
-                continuing_right = turn_direction == 'right' and bearing_change_rate > -self.MINIMUM_BEARING_CHANGE_RATE
+                continuing_left = turning_left and bearing_change_rate < self.MINIMUM_BEARING_CHANGE_RATE
+                continuing_right = not turning_left and bearing_change_rate > -self.MINIMUM_BEARING_CHANGE_RATE
 
                 if continuing_left or continuing_right:
 
                     total_bearing_change += bearing_change
 
-                    if possible_thermal_start is None:
-                        possible_thermal_start = fix
-                    elif (not sharp_thermal_entry_found) and abs(
-                            bearing_change_rate) > self.CRUISE_THRESHOLD_BEARINGRATE:
-                        sharp_thermal_entry_found = True
-                        possible_thermal_start = fix
+                    if len(possible_thermal_fixes) == 0:
+                        possible_thermal_fixes = [fix]
+                    else:
+                        if not sharp_thermal_entry_found and abs(bearing_change_rate) > self.CRUISE_THRESHOLD_BEARINGRATE:
+                            sharp_thermal_entry_found = True
+                            phases[-1].fixes.extend(possible_thermal_fixes)
+                            possible_thermal_fixes = [fix]
+                        else:
+                            possible_thermal_fixes.append(fix)
 
                 else:  # sign change
                     total_bearing_change = bearing_change
                     sharp_thermal_entry_found = False
-                    possible_thermal_start = None
-                    turn_direction = 'left' if bearing_change_rate < 0 else 'right'
+
+                    if len(possible_thermal_fixes) == 0:
+                        phases[-1].fixes.append(fix)
+                    else:
+                        phases[-1].fixes.extend([*possible_thermal_fixes, fix])
+                        possible_thermal_fixes = list()
+
+                    turning_left = bearing_change_rate < 0
 
                 if abs(total_bearing_change) > self.CRUISE_THRESHOLD_BEARINGTOT:
                     cruise = False
-                    phases[-1]['end_fix'] = possible_thermal_start
-                    phases.append(dict(start_fix=possible_thermal_start, end_fix=None, cruise=False))
-                    possible_thermal_start = None
+                    phases[-1].fixes.append(possible_thermal_fixes[0])
+                    phases.append(Phase(cruise, possible_thermal_fixes))
+
+                    possible_thermal_fixes = list()
                     sharp_thermal_entry_found = False
                     total_bearing_change = 0
 
             else:  # thermal
+
                 if abs(bearing_change_rate) > self.THERMAL_THRESHOLD_BEARINGRATE:
-                    if possible_cruise_start is not None:
-                        possible_cruise_start = None
+                    if len(possible_cruise_fixes) != 0:
+                        phases[-1].fixes.extend([*possible_cruise_fixes, fix])
+                        possible_cruise_fixes = list()
+                    else:
+                        phases[-1].fixes.append(fix)
+
                 else:  # possible cruise
-                    if possible_cruise_start is None:
-                        possible_cruise_start = fix
+
+                    if len(possible_cruise_fixes) == 0:
+                        possible_cruise_fixes = [fix]
                         total_bearing_change = bearing_change
                     else:
+                        possible_cruise_fixes.append(fix)
                         total_bearing_change += bearing_change
 
-                    delta_t = seconds_time_difference(possible_cruise_start['time'], time)
-                    cruise_distance = calculate_distance(possible_cruise_start, fix)
+                    delta_t = seconds_time_difference(possible_cruise_fixes[0]['time'], time)
+                    cruise_distance = calculate_distance(possible_cruise_fixes[0], fix)
                     temp_bearing_rate_avg = 0 if delta_t == 0 else total_bearing_change / delta_t
 
                     if (cruise_distance > self.THERMAL_THRESHOLD_DISTANCE and
                             abs(temp_bearing_rate_avg) < self.THERMAL_THRESHOLD_BEARINGRATE_AVG):
 
                         cruise = True
-                        phases[-1]['end_fix'] = possible_cruise_start
-                        phases.append(dict(start_fix=possible_cruise_start, end_fix=None, cruise=True))
-
-                        possible_cruise_start = None
+                        phases[-1].fixes.append(possible_cruise_fixes[0])
+                        phases.append(Phase(cruise, possible_cruise_fixes))
+                        possible_cruise_fixes = list()
                         total_bearing_change = 0
 
-        phases[-1]['end_fix'] = trace[-1]
+        # add possible fixes at the end
+        if cruise:
+            if len(possible_thermal_fixes) != 0:
+                phases[-1][1].extend(possible_thermal_fixes)
+        else:
+            if len(possible_cruise_fixes) != 0:
+                phases[-1][1].extend(possible_cruise_fixes)
+
         return phases

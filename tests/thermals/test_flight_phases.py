@@ -10,38 +10,64 @@ from tests.task.helper_functions import get_trace
 
 class TestFlightPhases(unittest.TestCase):
 
+    pysoar_phase_start_times = [
+        datetime.time(12, 12, 52),
+        datetime.time(12, 20, 22),
+        datetime.time(12, 24, 14),
+        datetime.time(12, 29, 22),
+        datetime.time(12, 33, 6),
+        datetime.time(12, 34, 50),
+        datetime.time(12, 37, 42),
+        datetime.time(12, 47, 14),
+        datetime.time(12, 52, 42),
+        datetime.time(13, 1, 0),
+        datetime.time(13, 4, 52),
+    ]
+
+    trace = get_trace(os.path.join('tests', 'example.igc'))
+
+    start_index = 1168
+    last_tp_index = 3240
+    phases = FlightPhases('pysoar', trace[start_index:last_tp_index+1])
+
     def test_all_phases(self):
 
-        trace = get_trace(os.path.join('tests', 'example.igc'))
-
-        start_index = 1168
-        last_tp_index = 3240
-        phases = FlightPhases('pysoar', trace[start_index:last_tp_index+1])
-
-        all_phases = phases.all_phases()
+        all_phases = self.phases.all_phases()
 
         # Check if end fixes are the same as the start fixes of next phase
         for phase, next_phase in double_iterator(all_phases):
-            self.assertEqual(phase['end_fix'], next_phase['start_fix'])
-
-        pysoar_phase_start_times = [
-            datetime.time(12, 12, 52),
-            datetime.time(12, 20, 22),
-            datetime.time(12, 24, 14),
-            datetime.time(12, 29, 22),
-            datetime.time(12, 33, 6),
-            datetime.time(12, 34, 50),
-            datetime.time(12, 37, 42),
-            datetime.time(12, 47, 14),
-            datetime.time(12, 52, 42),
-            datetime.time(13, 1, 0),
-            datetime.time(13, 4, 52),
-        ]
+            self.assertEqual(phase[1][-1], next_phase[1][0])
 
         # check same number of phases
-        self.assertEqual(len(all_phases), len(pysoar_phase_start_times))
+        self.assertEqual(len(all_phases), len(self.pysoar_phase_start_times))
 
         # check if start times of phases are within 2 seconds
-        for phase, pysoar_phase_start_time in zip(all_phases, pysoar_phase_start_times):
-            time_diff = seconds_time_difference(phase['start_fix']['time'], pysoar_phase_start_time)
+        for phase, pysoar_phase_start_time in zip(all_phases, self.pysoar_phase_start_times):
+            time_diff = seconds_time_difference(phase.fixes[0]['time'], pysoar_phase_start_time)
+            self.assertLessEqual(abs(time_diff), 2)
+
+    def test_thermals(self):
+
+        thermals = self.phases.thermals()
+
+        # check if indeed only thermals
+        for thermal in thermals:
+            self.assertFalse(thermal.is_cruise)
+
+        # check if correct phases are classified as thermals
+        for thermal, pysoar_start_time in zip(thermals, self.pysoar_phase_start_times[1::2]):
+            time_diff = seconds_time_difference(thermal.fixes[0]['time'], pysoar_start_time)
+            self.assertLessEqual(abs(time_diff), 2)
+
+    def test_cruises(self):
+
+        cruises = self.phases.cruises()
+
+        # check if indeed only cruises
+        for cruise in cruises:
+            self.assertTrue(cruise.is_cruise)
+
+        # check if correct phases are classified as cruises
+        for cruise, pysoar_start_time in zip(cruises, self.pysoar_phase_start_times[0::2]):
+            time_diff = seconds_time_difference(cruise.fixes[0]['time'], pysoar_start_time)
             self.assertLessEqual(abs(time_diff), 2)

@@ -27,44 +27,24 @@ class FlightPhases:
 
         if leg is not None:
             self._check_leg(leg)
-
-        # todo: implement this: only return thermals
-        pass
+        else:
+            return [phase for phase in self._phases if not phase.is_cruise]
 
     def cruises(self, leg=None):
         """only return cruises"""
 
         if leg is not None:
             self._check_leg(leg)
-
-        # todo: implement this: only return cruises
-        pass
+        else:
+            return [phase for phase in self._phases if phase.is_cruise]
 
     def all_phases(self, leg=None):
         """return complete list with phases"""
 
         if leg is not None:
             self._check_leg(leg)
-
-        return self._phases
-
-    def thermal_fixes(self, leg=None):
-        """return list with thermals. each thermal is a list of GPS fixes"""
-
-        if leg is not None:
-            self._check_leg(leg)
-
-        # todo: implement this
-        pass
-
-    def cruise_fixes(self, leg=None):
-        """return list of cruises. each cruise is a list of GPS fixes"""
-
-        if leg is not None:
-            self._check_leg(leg)
-
-        # todo: implement this
-        pass
+        else:
+            return self._phases
 
     def _check_leg(self, leg):
         if self._trip is None:

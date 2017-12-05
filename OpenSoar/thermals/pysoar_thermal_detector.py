@@ -114,9 +114,9 @@ class PySoarThermalDetector:
         # add possible fixes at the end
         if cruise:
             if len(possible_thermal_fixes) != 0:
-                phases[-1][1].extend(possible_thermal_fixes)
+                phases[-1].fixes.extend(possible_thermal_fixes)
         else:
             if len(possible_cruise_fixes) != 0:
-                phases[-1][1].extend(possible_cruise_fixes)
+                phases[-1].fixes.extend(possible_cruise_fixes)
 
         return phases

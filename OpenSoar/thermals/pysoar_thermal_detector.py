@@ -1,8 +1,5 @@
 from OpenSoar.utilities.helper_functions import triple_iterator, calculate_bearing_change, calculate_distance, \
     seconds_time_difference
-from collections import namedtuple
-
-Phase = namedtuple('Phase', 'is_cruise fixes')
 
 
 class PySoarThermalDetector:
@@ -18,6 +15,9 @@ class PySoarThermalDetector:
         pass
 
     def analyse(self, trace):
+
+        # To prevent circular import with flight_phases
+        from OpenSoar.thermals.flight_phases import Phase
 
         cruise = True
         possible_thermal_fixes = list()

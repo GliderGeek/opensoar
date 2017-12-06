@@ -1,4 +1,8 @@
+from collections import namedtuple
+
 from OpenSoar.thermals.pysoar_thermal_detector import PySoarThermalDetector
+
+Phase = namedtuple('Phase', 'is_cruise fixes')
 
 
 class FlightPhases:
@@ -11,8 +15,6 @@ class FlightPhases:
         :param trip: optional parameter for obtain thermals per leg
         """
 
-        # todo: implement all trip dependencies
-
         if classification_method == 'pysoar':
             self._thermal_detector = PySoarThermalDetector()
         else:
@@ -23,23 +25,41 @@ class FlightPhases:
         self._phases = self._thermal_detector.analyse(self._trace)
 
     def thermals(self, leg=None):
-        """only return thermals"""
-
+        """Only thermals"""
         if leg is not None:
+
             self._check_leg(leg)
+
+            thermals = list()
+            for phase in self._phases:
+                if not phase.is_cruise:
+                    phase_in_leg = self._get_phase_within_leg(phase, leg)
+                    if phase_in_leg is not None:
+                        thermals.append(phase_in_leg)
+
+            return thermals
         else:
             return [phase for phase in self._phases if not phase.is_cruise]
 
     def cruises(self, leg=None):
-        """only return cruises"""
+        """Only cruises"""
 
         if leg is not None:
             self._check_leg(leg)
+
+            cruises = list()
+            for phase in self._phases:
+                if phase.is_cruise:
+                    phase_in_leg = self._get_phase_within_leg(phase, leg)
+                    if phase_in_leg is not None:
+                        cruises.append(phase_in_leg)
+
+            return cruises
         else:
             return [phase for phase in self._phases if phase.is_cruise]
 
     def all_phases(self, leg=None):
-        """return complete list with phases"""
+        """Complete list with phases"""
 
         if leg is not None:
             self._check_leg(leg)
@@ -50,5 +70,28 @@ class FlightPhases:
         if self._trip is None:
             raise ValueError('No trip specified')
         else:
-            if leg >= self._trip.completed_legs:
+            if leg >= self._trip.completed_legs():
                 raise ValueError('Trip only contains {} legs'.format(self._trip.completed_legs))
+
+    def _get_phase_within_leg(self, phase, leg):
+        """
+        Get part of phase that falls within a specified leg
+        :param leg: 
+        :return: 
+        """
+
+        phase_start_in_leg = self._trip.fix_on_leg(phase.fixes[0], leg)
+        phase_end_in_leg = self._trip.fix_on_leg(phase.fixes[-1], leg)
+
+        if not phase_start_in_leg and not phase_end_in_leg:
+            return None
+        elif phase_start_in_leg and phase_end_in_leg:
+            return phase
+        elif phase_start_in_leg and not phase_end_in_leg:
+            end_fix = self._trip.fixes[leg + 1]
+            phase_end_index = phase.fixes.index(end_fix)
+            return Phase(phase.is_cruise, phase.fixes[0:phase_end_index+1])
+        else:  # not phase_start_in_leg and phase_end_in_leg:
+            start_fix = self._trip.fixes[leg]
+            phase_start_index = phase.fixes.index(start_fix)
+            return Phase(phase.is_cruise, phase.fixes[phase_start_index::])

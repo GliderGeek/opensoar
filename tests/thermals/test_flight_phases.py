@@ -2,10 +2,11 @@ import os
 import unittest
 import datetime
 
+from OpenSoar.task.trip import Trip
 from OpenSoar.thermals.flight_phases import FlightPhases
 from OpenSoar.utilities.helper_functions import double_iterator, seconds_time_difference
 
-from tests.task.helper_functions import get_trace
+from tests.task.helper_functions import get_trace, get_race_task
 
 
 class TestFlightPhases(unittest.TestCase):
@@ -25,10 +26,11 @@ class TestFlightPhases(unittest.TestCase):
     ]
 
     trace = get_trace(os.path.join('tests', 'example.igc'))
-
     start_index = 1168
     last_tp_index = 3240
-    phases = FlightPhases('pysoar', trace[start_index:last_tp_index+1])
+    race_task = get_race_task(os.path.join('tests', 'example.igc'))
+    trip = Trip(race_task, trace)
+    phases = FlightPhases('pysoar', trace[start_index:last_tp_index+1], trip)
 
     def test_all_phases(self):
 
@@ -71,3 +73,36 @@ class TestFlightPhases(unittest.TestCase):
         for cruise, pysoar_start_time in zip(cruises, self.pysoar_phase_start_times[0::2]):
             time_diff = seconds_time_difference(cruise.fixes[0]['time'], pysoar_start_time)
             self.assertLessEqual(abs(time_diff), 2)
+
+    def test_thermals_on_leg(self):
+
+        thermals_leg2 = self.phases.thermals(leg=1)
+
+        # check indeed subset of all thermals
+        self.assertTrue(len(thermals_leg2) < len(self.phases.thermals()))
+
+        # check all thermals
+        for thermal in thermals_leg2:
+            self.assertFalse(thermal.is_cruise)
+
+        leg_start_time = self.trip.fixes[1]['time']
+        leg_end_time = self.trip.fixes[2]['time']
+
+        # check starttime of first thermal
+        start_time = thermals_leg2[0].fixes[0]['time']
+        self.assertEqual(seconds_time_difference(start_time, leg_start_time), 0)
+
+        # check endtime of last thermal
+        end_time = thermals_leg2[-1].fixes[-1]['time']
+        self.assertEqual(seconds_time_difference(end_time, leg_end_time), 0)
+
+    def test_cruises_on_leg(self):
+
+        cruises_leg2 = self.phases.cruises(leg=1)
+
+        # check indeed subset of all thermals
+        self.assertTrue(len(cruises_leg2) < len(self.phases.cruises()))
+
+        # check all cruises
+        for cruise in cruises_leg2:
+            self.assertTrue(cruise.is_cruise)

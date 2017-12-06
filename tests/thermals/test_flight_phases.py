@@ -25,10 +25,11 @@ class TestFlightPhases(unittest.TestCase):
         datetime.time(13, 4, 52),
     ]
 
-    trace = get_trace(os.path.join('tests', 'example.igc'))
+    igc_path = os.path.join('tests', 'igc_files', 'race_task_completed.igc')
+    trace = get_trace(igc_path)
     start_index = 1168
     last_tp_index = 3240
-    race_task = get_race_task(os.path.join('tests', 'example.igc'))
+    race_task = get_race_task(igc_path)
     trip = Trip(race_task, trace)
     phases = FlightPhases('pysoar', trace[start_index:last_tp_index+1], trip)
 

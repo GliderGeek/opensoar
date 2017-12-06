@@ -9,10 +9,11 @@ from tests.task.helper_functions import get_race_task, get_trace
 
 class TestTrip(unittest.TestCase):
     """
-    This testcase covers a completed race task.
+    This testcase covers a completed race task. number 2, comp id HS:
+    https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily
     """
 
-    igc_path = os.path.join('tests', 'example.igc')
+    igc_path = os.path.join('tests', 'igc_files', 'race_task_completed.igc')
     race_task = get_race_task(igc_path)
     trace = get_trace(igc_path)
     trip = Trip(race_task, trace)
@@ -36,12 +37,11 @@ class TestTrip(unittest.TestCase):
         finish_fix = self.trip.fixes[-1]
         self.assertEqual(finish_fix['time'], datetime.time(13, 21, 58))
 
-    # todo: add enl-outlanding on race_task (new test class?)
-
 
 class TestOutlandingTrip(unittest.TestCase):
     """
-    This testcase covers an outlanding on a race task
+    This testcase covers an outlanding on a race task. number 7, comp id SU:
+    https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily
     """
 
     igc_path = os.path.join('tests', 'igc_files', 'outlanding_race_task.igc')
@@ -55,6 +55,20 @@ class TestOutlandingTrip(unittest.TestCase):
     def test_completed_legs(self):
         self.assertEqual(self.trip.completed_legs(), 2)
 
-    def test_number_of_fixes(self):
-        self.assertEqual(len(self.trip.fixes), 3)
 
+class TestEnlOutlandingTrip(unittest.TestCase):
+    """
+    This testcase covers an ENL outlanding on a race task. number 5, comp id A2:
+    https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/18-meter/task-1-on-2014-06-21/daily
+    """
+
+    igc_path = os.path.join('tests', 'igc_files', 'outlanding_race_task_enl.igc')
+    race_task = get_race_task(igc_path)
+    trace = get_trace(igc_path)
+    trip = Trip(race_task, trace)
+
+    def test_total_distance(self):
+        self.assertAlmostEqual(sum(self.trip.distances) / 1000, 121.18, places=2)
+
+    def test_completed_legs(self):
+        self.assertEqual(self.trip.completed_legs(), 2)

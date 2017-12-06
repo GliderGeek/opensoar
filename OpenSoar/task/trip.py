@@ -5,16 +5,13 @@ class Trip(object):
 
     def __init__(self, task, trace):
 
-        # to be filled inside task.apply_rules
-        self.fixes = list()
-        self.start_fixes = list()
-        self.outlanding_fix = None
-        self.refined_start_time = None
-        self.distances = list()
+        task_result = task.apply_rules(trace)
 
-        # todo: do not change trip inside task
-
-        task.apply_rules(trace, self)
+        self.fixes = task_result[0]
+        self.start_fixes = task_result[1]
+        self.refined_start_time = task_result[2]
+        self.outlanding_fix = task_result[3]
+        self.distances = task_result[4]
 
     def completed_legs(self):
         return len(self.fixes) - 1

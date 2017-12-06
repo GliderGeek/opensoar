@@ -65,17 +65,13 @@ class RaceTask(Task):
 
         return distances
 
-    def apply_rules(self, trace, trip):
+    def apply_rules(self, trace):
 
         fixes, start_fixes, outlanding_fix = self.determine_trip_fixes(trace)
         distances = self.determine_trip_distances(fixes, outlanding_fix)
         refined_start = self.determine_refined_start(trace, fixes)
 
-        trip.fixes = fixes
-        trip.start_fixes = start_fixes
-        trip.outlanding_fix = outlanding_fix
-        trip.distances = distances
-        trip.refined_start_time = refined_start
+        return fixes, start_fixes, refined_start, outlanding_fix, distances
 
     def determine_trip_fixes(self, trace):
 

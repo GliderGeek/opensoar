@@ -20,9 +20,8 @@ class FlightPhases:
         else:
             raise ValueError('Classification method {} not supported'.format(classification_method))
 
-        self._trace = trace
         self._trip = trip
-        self._phases = self._thermal_detector.analyse(self._trace)
+        self._phases = self._thermal_detector.analyse(trace)
 
     def thermals(self, leg=None):
         """Only thermals"""

@@ -36,5 +36,25 @@ class TestTrip(unittest.TestCase):
         finish_fix = self.trip.fixes[-1]
         self.assertEqual(finish_fix['time'], datetime.time(13, 21, 58))
 
-    # todo: add 'normal' outlanding on race_task
-    # todo: add enl-outlanding on race_task
+    # todo: add enl-outlanding on race_task (new test class?)
+
+
+class TestOutlandingTrip(unittest.TestCase):
+    """
+    This testcase covers an outlanding on a race task
+    """
+
+    igc_path = os.path.join('tests', 'igc_files', 'outlanding_race_task.igc')
+    race_task = get_race_task(igc_path)
+    trace = get_trace(igc_path)
+    trip = Trip(race_task, trace)
+
+    def test_total_distance(self):
+        self.assertAlmostEqual(sum(self.trip.distances) / 1000, 89.99, places=2)
+
+    def test_completed_legs(self):
+        self.assertEqual(self.trip.completed_legs(), 2)
+
+    def test_number_of_fixes(self):
+        self.assertEqual(len(self.trip.fixes), 3)
+

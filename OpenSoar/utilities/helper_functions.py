@@ -126,6 +126,8 @@ def seconds_time_difference(time1: datetime.time, time2: datetime.time):
     :param time2: 
     :return: time difference in seconds
     """
+
+    # todo: make version with fixes as input.
     today = datetime.date.today()
     time_diff = datetime.datetime.combine(today, time2) - datetime.datetime.combine(today, time1)
     return time_diff.total_seconds()

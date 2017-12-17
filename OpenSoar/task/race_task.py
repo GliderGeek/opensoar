@@ -67,11 +67,11 @@ class RaceTask(Task):
 
     def apply_rules(self, trace):
 
-        fixes, start_fixes, outlanding_fix = self.determine_trip_fixes(trace)
+        fixes, outlanding_fix = self.determine_trip_fixes(trace)
         distances = self.determine_trip_distances(fixes, outlanding_fix)
         refined_start = self.determine_refined_start(trace, fixes)
 
-        return fixes, start_fixes, refined_start, outlanding_fix, distances
+        return fixes, refined_start, outlanding_fix, distances
 
     def determine_trip_fixes(self, trace):
 
@@ -83,11 +83,13 @@ class RaceTask(Task):
         start_fixes = list()
         for fix_minus1, fix in double_iterator(trace):
 
+            # todo: move logic 'ENL' in fix to function enl_value_exceeded
             if 'ENL' in fix and not enl_registered and self.enl_value_exceeded(fix['ENL']):
 
                 if enl_first_fix is None:
                     enl_first_fix = fix_minus1
 
+                # todo: does this not break? seems to be wrong (fixes instead of time instances)
                 enl_time = seconds_time_difference(enl_first_fix, fix)
                 enl_registered = enl_registered or self.enl_time_exceeded(enl_time)
             elif not enl_registered:
@@ -125,7 +127,7 @@ class RaceTask(Task):
         if len(fixes) is not len(self.waypoints):
             outlanding_fix = self.determine_outlanding_fix(trace, fixes, start_fixes, enl_fix)
 
-        return fixes, start_fixes, outlanding_fix
+        return fixes, outlanding_fix
 
     def determine_outlanding_fix(self, trace, fixes, start_fixes, enl_fix):
 

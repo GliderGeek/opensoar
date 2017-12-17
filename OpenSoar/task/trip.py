@@ -8,10 +8,9 @@ class Trip(object):
         task_result = task.apply_rules(trace)
 
         self.fixes = task_result[0]
-        self.start_fixes = task_result[1]
-        self.refined_start_time = task_result[2]
-        self.outlanding_fix = task_result[3]
-        self.distances = task_result[4]
+        self.refined_start_time = task_result[1]
+        self.outlanding_fix = task_result[2]
+        self.distances = task_result[3]
 
     def completed_legs(self):
         return len(self.fixes) - 1

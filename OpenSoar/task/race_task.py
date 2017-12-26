@@ -1,7 +1,8 @@
 from datetime import timedelta
 
 from OpenSoar.task.task import Task
-from OpenSoar.utilities.helper_functions import calculate_distance, seconds_time_difference, double_iterator
+from OpenSoar.utilities.helper_functions import calculate_distance, double_iterator, \
+    seconds_time_difference_fixes
 
 
 class RaceTask(Task):
@@ -70,8 +71,9 @@ class RaceTask(Task):
         fixes, outlanding_fix = self.determine_trip_fixes(trace)
         distances = self.determine_trip_distances(fixes, outlanding_fix)
         refined_start = self.determine_refined_start(trace, fixes)
+        finish_time = fixes[-1]['time']
 
-        return fixes, refined_start, outlanding_fix, distances
+        return fixes, refined_start, outlanding_fix, distances, finish_time
 
     def determine_trip_fixes(self, trace):
 
@@ -85,12 +87,11 @@ class RaceTask(Task):
 
             # todo: move logic 'ENL' in fix to function enl_value_exceeded
             if 'ENL' in fix and not enl_registered and self.enl_value_exceeded(fix['ENL']):
-
                 if enl_first_fix is None:
                     enl_first_fix = fix_minus1
 
                 # todo: does this not break? seems to be wrong (fixes instead of time instances)
-                enl_time = seconds_time_difference(enl_first_fix, fix)
+                enl_time = seconds_time_difference_fixes(enl_first_fix, fix)
                 enl_registered = enl_registered or self.enl_time_exceeded(enl_time)
             elif not enl_registered:
                 enl_first_fix = None

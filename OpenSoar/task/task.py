@@ -28,6 +28,14 @@ class Task:
     def no_legs(self):
         return self.no_tps + 1
 
+    @property
+    def start(self):
+        return self.waypoints[0]
+
+    @property
+    def finish(self):
+        return self.waypoints[-1]
+
     @staticmethod
     def set_orientation_angles(waypoints):
         # sector orientations and angles
@@ -101,7 +109,7 @@ class Task:
 
     def finished(self, fix1, fix2):
         finish = self.waypoints[-1]
-        if finish.line:
+        if finish.is_line:
             return finish.crossed_line(fix1, fix2)
         else:
             return finish.outside_sector(fix1) and finish.inside_sector(fix2)

@@ -1,7 +1,7 @@
 from OpenSoar.utilities.helper_functions import seconds_time_difference
 
 
-class Trip(object):
+class Trip:
 
     def __init__(self, task, trace):
 
@@ -11,6 +11,7 @@ class Trip(object):
         self.refined_start_time = task_result[1]
         self.outlanding_fix = task_result[2]
         self.distances = task_result[3]
+        self.finish_time = task_result[4]
 
     def completed_legs(self):
         return len(self.fixes) - 1

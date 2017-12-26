@@ -118,6 +118,10 @@ def calculate_average_bearing(bearing1, bearing2):
     return (avg_bearing + 360) % 360
 
 
+def seconds_time_difference_fixes(fix1, fix2):
+    return seconds_time_difference(fix1['time'], fix2['time'])
+
+
 def seconds_time_difference(time1: datetime.time, time2: datetime.time):
     """
     Determines the time difference between to datetime.time instances, mocking the operation time2 - time1
@@ -127,16 +131,28 @@ def seconds_time_difference(time1: datetime.time, time2: datetime.time):
     :return: time difference in seconds
     """
 
-    # todo: make version with fixes as input.
     today = datetime.date.today()
     time_diff = datetime.datetime.combine(today, time2) - datetime.datetime.combine(today, time1)
     return time_diff.total_seconds()
 
 
+def add_times(start_time: datetime.time, delta_time: datetime.time):
+    """
+    Helper to circumvent problem that normal datetime.time instances can not be added.
+    :param start_time:
+    :param delta_time:
+    :return:
+    """
+    full_datetime_start = datetime.datetime.combine(datetime.date.today(), start_time)
+
+    full_datetime_result = full_datetime_start + datetime.timedelta(
+        hours=delta_time.hour, minutes=delta_time.minute, seconds=delta_time.second)
+
+    return full_datetime_result.time()
+
+
 def add_seconds(time, seconds):
-    full_date = datetime.datetime(100, 1, 1, time.hour, time.minute, time.second)
-    full_date = full_date + datetime.timedelta(seconds=seconds)
-    return full_date.time()
+    return add_times(time, datetime.time(0, 0, seconds))
 
 
 def range_with_bounds(start: int, stop: int, interval: int) -> List[int]:

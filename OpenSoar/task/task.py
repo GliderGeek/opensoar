@@ -124,7 +124,12 @@ class Task:
 
         raise ValueError('Start should have been determined')
 
-    def enl_value_exceeded(self, fix):
+    def enl_value_exceeded(self, fix) -> bool:
+        """
+        Check whether ENL value is exceeded.
+        :param fix:
+        :return: returns False when not exceeded or when ENL information is not present in fix
+        """
         return 'ENL' in fix and fix['ENL'] > self.ENL_VALUE_THRESHOLD
 
     def enl_time_exceeded(self, enl_time):

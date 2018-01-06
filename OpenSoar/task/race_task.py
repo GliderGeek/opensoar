@@ -89,7 +89,6 @@ class RaceTask(Task):
                 if enl_first_fix is None:
                     enl_first_fix = fix_minus1
 
-                # todo: does this not break? seems to be wrong (fixes instead of time instances)
                 enl_time = seconds_time_difference_fixes(enl_first_fix, fix)
                 enl_registered = enl_registered or self.enl_time_exceeded(enl_time)
             elif not enl_registered:

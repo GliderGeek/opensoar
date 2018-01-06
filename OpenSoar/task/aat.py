@@ -48,15 +48,19 @@ class AAT(Task):
             reduced_outside_sector_fixes = self._reduce_fixes(outside_sector_fixes, max_fixes=300)
 
             max_distance_fixes = self._compute_max_distance_fixes(reduced_sector_fixes, outlanded, reduced_outside_sector_fixes)
-            refined_fixes = self._refine_max_distance_fixes(sector_fixes, max_distance_fixes, outlanded, outside_sector_fixes)
 
-            fixes = refined_fixes[:-1]
-            outlanding_fix = refined_fixes[-1]
+            refined_sector_fixes, refined_outside_sector_fixes = self._refine_max_distance_fixes(sector_fixes, max_distance_fixes, outlanded, outside_sector_fixes)
+            max_distance_fixes = self._compute_max_distance_fixes(refined_sector_fixes, outlanded, refined_outside_sector_fixes)
+
+            fixes = max_distance_fixes[:-1]
+            outlanding_fix = max_distance_fixes[-1]
         else:
             max_distance_fixes = self._compute_max_distance_fixes(reduced_sector_fixes, outlanded)
-            refined_fixes = self._refine_max_distance_fixes(sector_fixes, max_distance_fixes, outlanded)
+            refined_sector_fixes, _ = self._refine_max_distance_fixes(sector_fixes, max_distance_fixes, outlanded)
 
-            fixes = refined_fixes
+            max_distance_fixes = self._compute_max_distance_fixes(refined_sector_fixes, outlanded)
+
+            fixes = max_distance_fixes
             outlanding_fix = None
 
         return fixes, outlanding_fix
@@ -242,51 +246,54 @@ class AAT(Task):
         return distances
 
     def _refine_max_distance_fixes(self, sector_fixes, max_distance_fixes, outlanded, outside_sector_fixes=None):
-        # look around fixes whether more precise fixes can be found, increasing the distance
+        """look around fixes whether more precise fixes can be found, increasing the distance"""
 
         if outside_sector_fixes is None:
             outside_sector_fixes = []
 
-        refinement_fixes = 10  # this amount before and this amount after the provided fix
+        refinement_fixes = 10
         refined_sector_fixes = [[max_distance_fixes[0]]]  # already include start fix
         refined_outside_sector_fixes = []
         successfull_legs = len(sector_fixes) - 1
 
         for leg in range(len(max_distance_fixes) - 1):
-            if outlanded and leg > successfull_legs - 1:
+
+            on_outlanding_leg = outlanded and leg > successfull_legs - 1
+
+            if on_outlanding_leg:
                 if outside_sector_fixes:
-                    max_distance_index = outside_sector_fixes.index(max_distance_fixes[leg+1])
-
-                    if max_distance_index + refinement_fixes + 1 <= len(outside_sector_fixes):
-                        refinement_end = max_distance_index + refinement_fixes + 1
-                    else:
-                        refinement_end = len(outside_sector_fixes) + 1
+                    fix = max_distance_fixes[leg+1]
+                    fixes = outside_sector_fixes
                 else:
-                    max_distance_index = sector_fixes[leg].index(max_distance_fixes[leg])
+                    fix = max_distance_fixes[leg]
+                    fixes = sector_fixes[leg]
 
-                    if max_distance_index + refinement_fixes + 1 <= len(sector_fixes[leg]):
-                        refinement_end = max_distance_index + refinement_fixes + 1
-                    else:
-                        refinement_end = len(sector_fixes[leg]) + 1
+                refinement_end, refinement_start = self._get_refinement_bounds(fix, fixes, refinement_fixes)
+                refined_outside_sector_fixes = outside_sector_fixes[refinement_start:refinement_end]
+
             else:
-                max_distance_index = sector_fixes[leg+1].index(max_distance_fixes[leg+1])
-                if max_distance_index + refinement_fixes + 1 <= len(sector_fixes[leg + 1]):
-                    refinement_end = max_distance_index + refinement_fixes + 1
-                else:
-                    refinement_end = len(sector_fixes[leg + 1]) + 1
+                fixes = sector_fixes[leg+1]
+                fix = max_distance_fixes[leg + 1]
 
-            refinement_start = max_distance_index - refinement_fixes if max_distance_index >= refinement_fixes else 0
+                refinement_end, refinement_start = self._get_refinement_bounds(fix, fixes, refinement_fixes)
+                refined_sector_fixes.append(fixes[refinement_start:refinement_end])
 
-            if outlanded and leg > successfull_legs - 1:
-                if outside_sector_fixes:
-                    refined_outside_sector_fixes = outside_sector_fixes[refinement_start:refinement_end]
-                else:
-                    refined_outside_sector_fixes = outside_sector_fixes[refinement_start:refinement_end]
-                    # todo: these are not really outside sector fixes. should variable be renamed?
-            else:
-                refined_sector_fixes.append(sector_fixes[leg + 1][refinement_start:refinement_end])
+        return refined_sector_fixes, refined_outside_sector_fixes
 
-        return self._compute_max_distance_fixes(refined_sector_fixes, outlanded, refined_outside_sector_fixes)
+    def _get_refinement_bounds(self, fix, fixes, refinement_fixes):
+        """
+        :param fix:
+        :param fixes:
+        :param refinement_fixes: this number of fixes before and after each fix
+        :return:
+        """
+        max_distance_index = fixes.index(fix)
+        refinement_start = max_distance_index - refinement_fixes if max_distance_index >= refinement_fixes else 0
+        if max_distance_index + refinement_fixes + 1 <= len(fixes):
+            refinement_end = max_distance_index + refinement_fixes + 1
+        else:
+            refinement_end = len(fixes) + 1
+        return refinement_end, refinement_start
 
     def _calculate_distance_outlanding_leg(self, leg, start_tp_fix, outlanding_fix):
         if leg == 0:

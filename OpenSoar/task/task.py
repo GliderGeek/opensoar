@@ -124,8 +124,8 @@ class Task:
 
         raise ValueError('Start should have been determined')
 
-    def enl_value_exceeded(self, enl_value):
-        return enl_value > self.ENL_VALUE_THRESHOLD
+    def enl_value_exceeded(self, fix):
+        return 'ENL' in fix and fix['ENL'] > self.ENL_VALUE_THRESHOLD
 
     def enl_time_exceeded(self, enl_time):
         return enl_time >= self.ENL_TIME_THRESHOLD

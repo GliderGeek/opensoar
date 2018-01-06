@@ -93,11 +93,11 @@ class AAT(Task):
         for fix_minus1, fix in double_iterator(trace):
 
             # check ENL when aircraft logs ENL and no ENL outlanding has taken place
-            if 'ENL' in fix and not enl_registered and self.enl_value_exceeded(fix['ENL']):
+            if not enl_registered and self.enl_value_exceeded(fix):
                 if enl_first_fix is None:
                     enl_first_fix = fix
 
-                enl_time = seconds_time_difference(enl_first_fix['time'], fix['time'])
+                enl_time = seconds_time_difference_fixes(enl_first_fix, fix)
                 if self.enl_time_exceeded(enl_time):
                     enl_registered = True
                     if current_leg > 0:

@@ -85,8 +85,7 @@ class RaceTask(Task):
         start_fixes = list()
         for fix_minus1, fix in double_iterator(trace):
 
-            # todo: move logic 'ENL' in fix to function enl_value_exceeded
-            if 'ENL' in fix and not enl_registered and self.enl_value_exceeded(fix['ENL']):
+            if not enl_registered and self.enl_value_exceeded(fix):
                 if enl_first_fix is None:
                     enl_first_fix = fix_minus1
 

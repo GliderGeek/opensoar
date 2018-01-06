@@ -6,6 +6,20 @@ from OpenSoar.task.waypoint import Waypoint
 from OpenSoar.utilities.helper_functions import dms2dd
 
 
+def get_waypoints_from_parsed_file(parsed_igc_file):
+    lcu_lines = list()
+    lseeyou_lines = list()
+    for comment_record in parsed_igc_file['comment_records'][1]:
+        line = 'L{}{}'.format(comment_record['source'], comment_record['comment'])
+        if line.startswith('LCU::C'):
+            lcu_lines.append(line)
+        elif line.startswith('LSEEYOU OZ'):
+            lseeyou_lines.append(line)
+
+    waypoints = get_waypoints(lcu_lines, lseeyou_lines)
+    return waypoints
+
+
 def get_waypoints(lcu_lines, lseeyou_lines):
     """
     :param lcu_lines: lines in soaringspot igc file starting with 'LCU::C'

@@ -1,7 +1,7 @@
 import datetime
 from typing import List
 
-from OpenSoar.task.competitor import Competitor
+from OpenSoar.competition.competitor import Competitor
 from OpenSoar.task.task import Task
 
 

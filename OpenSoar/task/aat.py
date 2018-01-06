@@ -1,4 +1,5 @@
 import datetime
+from copy import deepcopy
 
 from OpenSoar.task.task import Task
 from OpenSoar.utilities.helper_functions import double_iterator, calculate_distance, seconds_time_difference, \
@@ -47,23 +48,24 @@ class AAT(Task):
             outside_sector_fixes = self._get_outside_sector_fixes(trace, sector_fixes, enl_outlanding_fix)
             reduced_outside_sector_fixes = self._reduce_fixes(outside_sector_fixes, max_fixes=300)
 
-            max_distance_fixes = self._compute_max_distance_fixes(reduced_sector_fixes, outlanded, reduced_outside_sector_fixes)
+            waypoint_fixes = self._get_waypoint_fixes(outlanded, reduced_sector_fixes, reduced_outside_sector_fixes)
+            max_distance_fixes = self._compute_max_distance_fixes(outlanded, waypoint_fixes)
 
-            refined_sector_fixes, refined_outside_sector_fixes = self._refine_max_distance_fixes(sector_fixes, max_distance_fixes, outlanded, outside_sector_fixes)
-            max_distance_fixes = self._compute_max_distance_fixes(refined_sector_fixes, outlanded, refined_outside_sector_fixes)
+            waypoint_fixes = self._refine_max_distance_fixes(outlanded, max_distance_fixes, sector_fixes, reduced_outside_sector_fixes)
+            max_distance_fixes = self._compute_max_distance_fixes(outlanded, waypoint_fixes)
 
-            fixes = max_distance_fixes[:-1]
+            trip_fixes = max_distance_fixes[:-1]
             outlanding_fix = max_distance_fixes[-1]
         else:
-            max_distance_fixes = self._compute_max_distance_fixes(reduced_sector_fixes, outlanded)
-            refined_sector_fixes, _ = self._refine_max_distance_fixes(sector_fixes, max_distance_fixes, outlanded)
+            max_distance_fixes = self._compute_max_distance_fixes(outlanded, reduced_sector_fixes)
+            waypoint_fixes = self._refine_max_distance_fixes(outlanded, max_distance_fixes, sector_fixes)
 
-            max_distance_fixes = self._compute_max_distance_fixes(refined_sector_fixes, outlanded)
+            max_distance_fixes = self._compute_max_distance_fixes(outlanded, waypoint_fixes)
 
-            fixes = max_distance_fixes
+            trip_fixes = max_distance_fixes
             outlanding_fix = None
 
-        return fixes, outlanding_fix
+        return trip_fixes, outlanding_fix
 
     def _determine_trip_distances(self, fixes, outlanding_fix):
 
@@ -80,10 +82,6 @@ class AAT(Task):
         return distances
 
     def _get_sector_fixes(self, trace):
-
-        # following assumptions are currently in place
-        # - outlanding inside sector leads to wrong distance
-        # todo: fix this
 
         current_leg = -1  # not yet started
         sector_fixes = list()
@@ -135,6 +133,11 @@ class AAT(Task):
                     sector_fixes.append([fix])  # at task finish point
                     break
 
+        # add last fix to sector if not already present
+        last_fix = trace[-1]
+        if self.waypoints[current_leg].inside_sector(last_fix) and last_fix is not sector_fixes[-1][-1]:
+            sector_fixes[-1].append(last_fix)
+
         if enl_registered:
             return sector_fixes, enl_first_fix
         else:
@@ -153,7 +156,6 @@ class AAT(Task):
         return reduced_sector_fixes
 
     def _get_outside_sector_fixes(self, trace, sector_fixes, enl_outlanding_fix):
-        # todo: review whether this correctly returns empty list when outlanding inside aat sector
         last_sector_fix = sector_fixes[-1][-1]
         last_sector_index = trace.index(last_sector_fix)
 
@@ -174,15 +176,9 @@ class AAT(Task):
         else:
             sector_fixes[taskpoint_index].append(fix)
 
-    def _compute_max_distance_fixes(self, sector_fixes, outlanded, outside_sector_fixes=None):
+    def _compute_max_distance_fixes(self, outlanded, waypoint_fixes):
 
-        # to prevent problems with mutable default argument
-        if outside_sector_fixes is None:
-            outside_sector_fixes = []
-
-        completed_legs = len(sector_fixes) - 1
-        distances = self._calculate_distances_between_sector_fixes(completed_legs, outlanded, outside_sector_fixes,
-                                                                   sector_fixes)
+        distances = self._calculate_distances_between_sector_fixes(outlanded, waypoint_fixes)
 
         # determine index on last sector/outlanding-group with maximum distance
         max_dist = 0
@@ -192,52 +188,43 @@ class AAT(Task):
                 max_dist = distance[0]
                 maximized_dist_index = index
 
-        if not outlanded:
-            last_fix = sector_fixes[-1][maximized_dist_index]
-        elif outlanded and outside_sector_fixes:  # outlanding outside aat sector
-            last_fix = outside_sector_fixes[maximized_dist_index]
-        else:  # outlanding inside aat sector
-            last_fix = sector_fixes[-1][maximized_dist_index]
+        last_fix = waypoint_fixes[-1][maximized_dist_index]
         max_distance_fixes = [last_fix]
 
         index = maximized_dist_index
 
-        legs = completed_legs if not outlanded else completed_legs + 1
+        legs = len(waypoint_fixes) - 1
         for leg in list(reversed(range(legs))):
             index = distances[leg + 1][index][1]
-            max_distance_fixes.insert(0, sector_fixes[leg][index])
+            max_distance_fix = waypoint_fixes[leg][index]
+            max_distance_fixes.insert(0, max_distance_fix)
 
         return max_distance_fixes
 
-    def _calculate_distances_between_sector_fixes(self, completed_legs, outlanded, outside_sector_fixes, sector_fixes):
-        distances = [[]] * len(sector_fixes) if not outlanded else [[]] * (len(sector_fixes) + 1)
-        distances[0] = [[0, 0]] * len(sector_fixes[0])
+    def _calculate_distances_between_sector_fixes(self, outlanded, waypoint_fixes):
+
+        distances = [[]] * len(waypoint_fixes)
+        distances[0] = [[0, 0]] * len(waypoint_fixes[0])
+
+        completed_legs = len(waypoint_fixes) - 1
+        if outlanded:
+            completed_legs -= 1
+
         for leg in range(completed_legs):  # successful legs
 
-            distances[leg + 1] = [[0, 0] for _ in range(len(sector_fixes[leg + 1]))]
+            distances[leg + 1] = [[0, 0] for _ in range(len(waypoint_fixes[leg + 1]))]
 
-            for fix2_index, fix2 in enumerate(sector_fixes[leg + 1]):
-                for fix1_index, fix1 in enumerate(sector_fixes[leg]):
+            for fix2_index, fix2 in enumerate(waypoint_fixes[leg + 1]):
+                for fix1_index, fix1 in enumerate(waypoint_fixes[leg]):
                     distance = self._calculate_distance_completed_leg(leg, fix1, fix2)
                     total_distance = distances[leg][fix1_index][0] + distance
                     if total_distance > distances[leg + 1][fix2_index][0]:
                         distances[leg + 1][fix2_index] = [total_distance, fix1_index]
-        if outlanded and outside_sector_fixes:  # outlanding outside AAT sector
-
+        if outlanded:
             leg = completed_legs
-            distances[leg + 1] = [[0, 0] for _ in range(len(outside_sector_fixes))]
-            for fix2_index, fix2 in enumerate(outside_sector_fixes):
-                for fix1_index, fix1 in enumerate(sector_fixes[leg]):
-                    distance = self._calculate_distance_outlanding_leg(leg, fix1, fix2)
-                    total_distance = distances[leg][fix1_index][0] + distance
-                    if total_distance > distances[leg + 1][fix2_index][0]:
-                        distances[leg + 1][fix2_index] = [total_distance, fix1_index]
-
-        elif outlanded and not outside_sector_fixes:  # outlanding inside AAT sector
-            leg = completed_legs
-            distances[leg + 1] = [[0, 0] for _ in range(len(sector_fixes[leg]))]
-            for fix2_index, fix2 in enumerate(sector_fixes[leg]):
-                for fix1_index, fix1 in enumerate(sector_fixes[leg][0:fix2_index]):
+            distances[leg + 1] = [[0, 0] for _ in range(len(waypoint_fixes[leg + 1]))]
+            for fix2_index, fix2 in enumerate(waypoint_fixes[leg + 1]):
+                for fix1_index, fix1 in enumerate(waypoint_fixes[leg][0:fix2_index+1]):
                     distance = self._calculate_distance_outlanding_leg(leg, fix1, fix2)
                     total_distance = distances[leg][fix1_index][0] + distance
                     if total_distance > distances[leg + 1][fix2_index][0]:
@@ -245,40 +232,35 @@ class AAT(Task):
 
         return distances
 
-    def _refine_max_distance_fixes(self, sector_fixes, max_distance_fixes, outlanded, outside_sector_fixes=None):
+    def _refine_max_distance_fixes(self, outlanded, max_distance_fixes, sector_fixes, outside_sector_fixes=None):
         """look around fixes whether more precise fixes can be found, increasing the distance"""
 
         if outside_sector_fixes is None:
             outside_sector_fixes = []
 
         refinement_fixes = 10
-        refined_sector_fixes = [[max_distance_fixes[0]]]  # already include start fix
-        refined_outside_sector_fixes = []
-        successfull_legs = len(sector_fixes) - 1
+        waypoint_fixes = [[max_distance_fixes[0]]]  # already include start fix
+        successfull_legs = len(max_distance_fixes) - 1
+        if outlanded:
+            successfull_legs -= 1
 
         for leg in range(len(max_distance_fixes) - 1):
 
             on_outlanding_leg = outlanded and leg > successfull_legs - 1
 
+            fix = max_distance_fixes[leg+1]
             if on_outlanding_leg:
                 if outside_sector_fixes:
-                    fix = max_distance_fixes[leg+1]
                     fixes = outside_sector_fixes
                 else:
-                    fix = max_distance_fixes[leg]
                     fixes = sector_fixes[leg]
-
-                refinement_end, refinement_start = self._get_refinement_bounds(fix, fixes, refinement_fixes)
-                refined_outside_sector_fixes = outside_sector_fixes[refinement_start:refinement_end]
-
             else:
-                fixes = sector_fixes[leg+1]
-                fix = max_distance_fixes[leg + 1]
+                fixes = sector_fixes[leg + 1]
 
-                refinement_end, refinement_start = self._get_refinement_bounds(fix, fixes, refinement_fixes)
-                refined_sector_fixes.append(fixes[refinement_start:refinement_end])
+            refinement_end, refinement_start = self._get_refinement_bounds(fix, fixes, refinement_fixes)
+            waypoint_fixes.append(fixes[refinement_start:refinement_end])
 
-        return refined_sector_fixes, refined_outside_sector_fixes
+        return waypoint_fixes
 
     def _get_refinement_bounds(self, fix, fixes, refinement_fixes):
         """
@@ -288,11 +270,8 @@ class AAT(Task):
         :return:
         """
         max_distance_index = fixes.index(fix)
-        refinement_start = max_distance_index - refinement_fixes if max_distance_index >= refinement_fixes else 0
-        if max_distance_index + refinement_fixes + 1 <= len(fixes):
-            refinement_end = max_distance_index + refinement_fixes + 1
-        else:
-            refinement_end = len(fixes) + 1
+        refinement_start = max(max_distance_index - refinement_fixes, 0)
+        refinement_end = min(len(fixes) + 1, max_distance_index + refinement_fixes + 1)
         return refinement_end, refinement_start
 
     def _calculate_distance_outlanding_leg(self, leg, start_tp_fix, outlanding_fix):
@@ -340,3 +319,24 @@ class AAT(Task):
             distance = calculate_distance(start_tp_fix, end_tp_fix)
 
         return distance
+
+    def _get_waypoint_fixes(self, outlanded, sector_fixes, outside_sector_fixes=None):
+        """
+        Waypoint fixes are fixes which can be used for the distance optimisation. They are grouped per waypoint. In
+        case of an outlanding, the last sector waypoints are duplicated at the enable optimisation inside the sector.
+        Optional fixes outside the sector on the outlanding leg are also added in the last list.
+        :param outlanded:
+        :param sector_fixes:
+        :param outside_sector_fixes:
+        :return:
+        """
+
+        if outside_sector_fixes is None:
+            outside_sector_fixes = list()
+
+        waypoint_fixes = deepcopy(sector_fixes)
+        if outlanded:
+            waypoint_fixes.append(sector_fixes[-1])
+            waypoint_fixes[-1].extend(outside_sector_fixes)
+
+        return waypoint_fixes

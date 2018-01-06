@@ -16,8 +16,6 @@ class Competitor:
         # to be set by analyse method
         self._trip = None
         self._phases = None
-        # todo: should this also contain performance?
-        # for comparison reasons it would make more sense to store this on comp level
 
     def analyse(self, task):
         self._trip = Trip(task, self._trace)

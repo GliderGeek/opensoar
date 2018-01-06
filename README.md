@@ -11,14 +11,14 @@ thermal detection to competition scoring.
 OpenSoar only performs analyses after the files have been read in. The [aerofiles library](https://github.com/Turbo87/aerofiles) provides the functionality
 to read the files.
 
-# Example race_task
+# Example race task
 ```python
 from aerofiles.igc import Reader
 from OpenSoar.competition.soaringspot import get_waypoints_from_parsed_file
 from OpenSoar.task.race_task import RaceTask
 from OpenSoar.task.trip import Trip
 
-with open('igc_file', 'r') as f:
+with open('example.igc', 'r') as f:
     parsed_igc_file = Reader().read(f)
 
 waypoints = get_waypoints_from_parsed_file(parsed_igc_file)

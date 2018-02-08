@@ -1,7 +1,7 @@
 import unittest
 
 from OpenSoar.competition.soaringspot import dms2dd, get_lat_long, get_fixed_orientation_angle, get_sector_orientation, \
-    get_sector_dimensions, get_waypoint, get_waypoints
+    get_sector_dimensions, get_waypoint, get_waypoints, SoaringSpotDaily
 from OpenSoar.task.waypoint import Waypoint
 
 
@@ -81,3 +81,15 @@ class TestSoaringspot(unittest.TestCase):
             self.assertTrue(isinstance(waypoint, Waypoint))
 
         self.assertEqual(waypoints[2].name, 'Ruurlo')
+
+    def test_get_competitors(self):
+        soaringspot_page = SoaringSpotDaily(
+            'https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily', '')
+
+        competitor_pk = soaringspot_page.get_competitors()[2]
+        self.assertEqual(competitor_pk.competition_id, 'PK')
+
+        self.assertEqual(competitor_pk.ranking, 3)
+
+        expected_igc_url = 'https://archive.soaringspot.com/contest/013/1323/flights/2477/2597322754.igc'
+        self.assertEqual(competitor_pk.igc_url, expected_igc_url)

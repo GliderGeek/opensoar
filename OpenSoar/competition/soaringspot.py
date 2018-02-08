@@ -2,8 +2,15 @@
 File with helper functions for soaringspot competitions:
 - reading waypoints from soaringspot igc
 """
+from typing import List
+
+import datetime
+
+from OpenSoar.competition.competition_day import CompetitionDay
+from OpenSoar.competition.competitor import Competitor
 from OpenSoar.task.waypoint import Waypoint
 from OpenSoar.utilities.helper_functions import dms2dd
+from OpenSoar.competition.daily_results_page import DailyResultsPage
 
 
 def get_waypoints_from_parsed_file(parsed_igc_file):
@@ -147,3 +154,48 @@ def get_sector_dimensions(lseeyou_line):
             angle_min = int(component.split("=")[1])
 
     return r_min, angle_min, r_max, angle_max
+
+
+class SoaringSpotDaily(DailyResultsPage):
+
+    def __init__(self, url, target_directory):
+        DailyResultsPage.__init__(self, url, target_directory)
+
+    def get_competitors(self) -> List[Competitor]:
+        base_url = "https://www.soaringspot.com"
+        competitors = list()
+
+        table = self._get_html_soup().find("table")
+        for row in table.findAll('tr')[1:]:
+            if row.findAll('td')[0].text not in ["DNS", "DNF", "HC"]:
+
+                ranking = int(row.findAll('td')[0].text[0:-1])
+
+                igc_url = None
+                competition_id = None
+                for link in row.findAll('a'):
+                    if link.get('href').startswith("http://") or link.get('href').startswith("https://"):
+                        igc_url = link.get('href')
+                    elif link.get('href').split('/')[2] == "download-contest-flight":
+                        igc_url = base_url + link.get('href')
+
+                    competition_id = link.text
+
+                competitor = Competitor(trace=list(), ranking=ranking, competition_id=competition_id, igc_url=igc_url)
+                competitors.append(competitor)
+
+        return competitors
+
+    def get_competition_day(self) -> CompetitionDay:
+        if self.url.startswith('https://') or self.url.startswith('http://'):
+            _, _, _, _, name, _, plane_class, date_description, _ = self.url.split('/')
+        else:
+            _, _, name, _, plane_class, date_description, _ = self.url.split('/')
+
+        date_us = date_description[-10::]
+
+        print(date_us)
+
+        date = datetime.date(int(date_us[0:4]), int(date_us[5:7]), int(date_us[-2::]))
+
+        return CompetitionDay(name, date, plane_class, competitors=list())

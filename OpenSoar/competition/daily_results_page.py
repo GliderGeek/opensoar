@@ -43,7 +43,7 @@ class DailyResultsPage(ABC):
         # get entire html of page
         html = urlopen(self.url).read()
 
-        return BeautifulSoup(html)
+        return BeautifulSoup(html, "html.parser")
 
     def download_flights(self, download_progress):
 

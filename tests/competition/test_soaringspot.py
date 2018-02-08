@@ -105,3 +105,4 @@ class TestSoaringspot(unittest.TestCase):
         self.assertEqual(competitionday.name, 'sallandse-tweedaagse-2014')
         self.assertEqual(competitionday.plane_class, 'club')
         self.assertEqual(competitionday.date, datetime.date(2014, 6, 21))
+        self.assertEqual(len(competitionday.competitors), 8)

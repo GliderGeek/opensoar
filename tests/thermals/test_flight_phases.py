@@ -25,7 +25,7 @@ class TestFlightPhases(unittest.TestCase):
         datetime.time(13, 4, 52),
     ]
 
-    igc_path = os.path.join('..', 'tests', 'igc_files', 'race_task_completed.igc')
+    igc_path = os.path.join('tests', 'igc_files', 'race_task_completed.igc')
     trace = get_trace(igc_path)
     start_index = 1168
     last_tp_index = 3240

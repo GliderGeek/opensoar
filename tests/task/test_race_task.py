@@ -6,7 +6,7 @@ from tests.task.helper_functions import get_race_task
 
 class TestRaceTask(unittest.TestCase):
 
-    race_task = get_race_task(os.path.join('..', 'tests', 'igc_files', 'race_task_completed.igc'))
+    race_task = get_race_task(os.path.join('tests', 'igc_files', 'race_task_completed.igc'))
 
     def test_number_of_legs(self):
         self.assertEqual(self.race_task.no_legs, 4)

@@ -13,7 +13,7 @@ class TestTrip(unittest.TestCase):
     https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily
     """
 
-    igc_path = os.path.join('..', 'tests', 'igc_files', 'race_task_completed.igc')
+    igc_path = os.path.join('tests', 'igc_files', 'race_task_completed.igc')
     race_task = get_race_task(igc_path)
     trace = get_trace(igc_path)
     trip = Trip(race_task, trace)
@@ -44,7 +44,7 @@ class TestOutlandingTrip(unittest.TestCase):
     https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily
     """
 
-    igc_path = os.path.join('..', 'tests', 'igc_files', 'outlanding_race_task.igc')
+    igc_path = os.path.join('tests', 'igc_files', 'outlanding_race_task.igc')
     race_task = get_race_task(igc_path)
     trace = get_trace(igc_path)
     trip = Trip(race_task, trace)
@@ -62,7 +62,7 @@ class TestEnlOutlandingTrip(unittest.TestCase):
     https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/18-meter/task-1-on-2014-06-21/daily
     """
 
-    igc_path = os.path.join('..', 'tests', 'igc_files', 'outlanding_race_task_enl.igc')
+    igc_path = os.path.join('tests', 'igc_files', 'outlanding_race_task_enl.igc')
     race_task = get_race_task(igc_path)
     trace = get_trace(igc_path)
     trip = Trip(race_task, trace)

@@ -193,9 +193,6 @@ class SoaringSpotDaily(DailyResultsPage):
             _, _, name, _, plane_class, date_description, _ = self.url.split('/')
 
         date_us = date_description[-10::]
-
-        print(date_us)
-
         date = datetime.date(int(date_us[0:4]), int(date_us[5:7]), int(date_us[-2::]))
 
         return CompetitionDay(name, date, plane_class, competitors=list())

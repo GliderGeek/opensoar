@@ -75,7 +75,7 @@ def get_lat_long(lcu_line):
     :return: latitude, longitude in degrees
     """
 
-    lat_degrees,  = float(lcu_line[6:8])
+    lat_degrees = float(lcu_line[6:8])
     lat_minutes = float(lcu_line[8:10]) + float(lcu_line[10:13]) / 1000
     lat_cardinal = lcu_line[13]
 

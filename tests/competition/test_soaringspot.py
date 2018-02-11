@@ -2,25 +2,12 @@ import unittest
 
 import datetime
 
-from OpenSoar.competition.soaringspot import dms2dd, get_lat_long, get_fixed_orientation_angle, get_sector_orientation, \
+from OpenSoar.competition.soaringspot import get_lat_long, get_fixed_orientation_angle, get_sector_orientation, \
     get_sector_dimensions, get_waypoint, get_waypoints, SoaringSpotDaily
 from OpenSoar.task.waypoint import Waypoint
 
 
 class TestSoaringspot(unittest.TestCase):
-
-    def test_dms2dd(self):
-
-        dms_dd = [
-            (52, 15, 0, 'N', 52.25),
-            (52, 15, 0, 'S', -52.25),
-            (6, 9, 500, 'E', 6.1583333),
-            (6, 9, 500, 'W', -6.1583333),
-        ]
-
-        for degrees, minutes, seconds, cardinal, expected_dd in dms_dd:
-            dd = dms2dd(degrees, minutes, seconds, cardinal)
-            self.assertAlmostEqual(dd, expected_dd)
 
     def test_get_lat_long(self):
         lcu_line = 'LCU::C5215000N00609500EDeventer'

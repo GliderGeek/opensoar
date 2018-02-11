@@ -9,7 +9,7 @@ import datetime
 from OpenSoar.competition.competition_day import CompetitionDay
 from OpenSoar.competition.competitor import Competitor
 from OpenSoar.task.waypoint import Waypoint
-from OpenSoar.utilities.helper_functions import dms2dd
+from OpenSoar.utilities.helper_functions import dm2dd
 from OpenSoar.competition.daily_results_page import DailyResultsPage
 
 
@@ -75,18 +75,16 @@ def get_lat_long(lcu_line):
     :return: latitude, longitude in degrees
     """
 
-    latitude_degrees = float(lcu_line[6:8])
-    latitude_minutes = float(lcu_line[8:10])
-    latitude_seconds = float(lcu_line[10:13])
-    latitude_cardinal = lcu_line[13]
+    lat_degrees = float(lcu_line[6:8])
+    lat_minutes = float(lcu_line[8:10]) + float(lcu_line[10:13]) / 1000
+    lat_cardinal = lcu_line[13]
 
-    longitude_degrees = float(lcu_line[14:17])
-    longitude_minutes = float(lcu_line[17:19])
-    longitude_seconds = float(lcu_line[19:22])
-    longitude_cardinal = lcu_line[22]
+    long_degrees = float(lcu_line[14:17])
+    long_minutes = float(lcu_line[17:19]) + float(lcu_line[19:22]) / 1000
+    long_cardinal = lcu_line[22]
 
-    latitude = dms2dd(latitude_degrees, latitude_minutes, latitude_seconds, latitude_cardinal)
-    longitude = dms2dd(longitude_degrees, longitude_minutes, longitude_seconds, longitude_cardinal)
+    latitude = dm2dd(lat_degrees, lat_minutes, lat_cardinal)
+    longitude = dm2dd(long_degrees, long_minutes, long_cardinal)
 
     return latitude, longitude
 

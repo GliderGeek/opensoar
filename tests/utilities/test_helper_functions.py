@@ -2,7 +2,7 @@ import unittest
 
 import datetime
 
-from OpenSoar.utilities.helper_functions import seconds_time_difference, interpolate_fixes
+from OpenSoar.utilities.helper_functions import seconds_time_difference, interpolate_fixes, dm2dd, dms2dd
 from OpenSoar.utilities.helper_functions import double_iterator
 from OpenSoar.utilities.helper_functions import triple_iterator
 from OpenSoar.utilities.helper_functions import calculate_distance
@@ -87,3 +87,19 @@ class TestHelperFunctions(unittest.TestCase):
             self.assertEqual(interpolated_fix['time'], time)
             self.assertEqual(interpolated_fix['lat'], lat)
             self.assertEqual(interpolated_fix['lon'], lon)
+
+    def test_dm2dd(self):
+        """Test conversion between coordinate units"""
+        dd = dm2dd(degrees=49.0, minutes=59.700, cardinal='N')
+        self.assertAlmostEqual(dd, 49.9950, places=4)
+
+        dd = dm2dd(degrees=9.0, minutes=34.900, cardinal='E')
+        self.assertAlmostEqual(dd, 9.5817, places=4)
+
+    def test_dms2dd(self):
+        """Test conversion between coordinate units"""
+        dd = dms2dd(degrees=49.0, minutes=59, seconds=42, cardinal='N')
+        self.assertAlmostEqual(dd, 49.9950, places=4)
+
+        dd = dms2dd(degrees=9.0, minutes=34, seconds=54, cardinal='E')
+        self.assertAlmostEqual(dd, 9.5817, places=4)

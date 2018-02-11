@@ -200,7 +200,16 @@ def calculate_destination(start_fix, distance, bearing):
 
 
 def dms2dd(degrees, minutes, seconds, cardinal):
-    dd = degrees + (minutes + seconds / 1000.0) / 60.0
+    """convert coordinate format with degrees, minutes and second to degrees"""
+    dd = degrees + minutes / 60.0 + seconds / 3600.0
+    if cardinal in ('S', 'W'):
+        dd *= -1
+    return dd
+
+
+def dm2dd(degrees, minutes, cardinal):
+    """convert coordinate format with degrees and minutes to degrees"""
+    dd = degrees + minutes / 60.0
     if cardinal in ('S', 'W'):
         dd *= -1
     return dd

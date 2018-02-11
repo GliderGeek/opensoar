@@ -1,5 +1,3 @@
-from math import pi
-
 from OpenSoar.utilities.helper_functions import calculate_distance
 from OpenSoar.utilities.helper_functions import calculate_bearing
 from OpenSoar.utilities.helper_functions import calculate_bearing_difference

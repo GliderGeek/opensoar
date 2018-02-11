@@ -8,6 +8,7 @@ class TestAAT(unittest.TestCase):
 
     # https://www.soaringspot.com/en_gb/cae-nls-nederlandse-kampioenschappen-zweefvliegen-2012/results/club/task-10-on-2012-05-26/daily
     # competitor 3, SP
+
     aat = get_aat(os.path.join('tests', 'igc_files', 'aat_completed.igc'))
 
     def test_number_of_legs(self):

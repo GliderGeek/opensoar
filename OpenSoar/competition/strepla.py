@@ -5,10 +5,10 @@ from OpenSoar.competition.competition_day import CompetitionDay
 from OpenSoar.competition.competitor import Competitor
 from OpenSoar.competition.daily_results_page import DailyResultsPage
 from OpenSoar.task.waypoint import Waypoint
-from OpenSoar.utilities.helper_functions import dms2dd, dm2dd
+from OpenSoar.utilities.helper_functions import dm2dd
 
 
-def get_task_info(lscs_lines):
+def get_task_info(lscsd_lines, lscsr_lines):
     task_info = {
         'tp': [],
         's_line_rad': None,
@@ -25,10 +25,8 @@ def get_task_info(lscs_lines):
         'aat': False
     }
 
-    for line in lscs_lines:
-        if line.startswith('LSCSC'):
-            task_info['tp'].append(line)
-        elif line.startswith('LSCSRSLINE'):
+    for line in [*lscsd_lines, *lscsr_lines]:
+        if line.startswith('LSCSRSLINE'):
             task_info['s_line_rad'] = int((line.split(':'))[1]) / 2
         elif line.startswith('LSCSRFLINE'):
             task_info['f_line'] = True
@@ -119,26 +117,37 @@ def get_waypoint(lscs_line_tp, task_info, n, n_tp):
             angle_max = 90
             line = True
 
-    return Waypoint(name, lat, lon, r_min, angle_min, r_max, angle_max, orientation_angle,
-                    line, sector_orientation, distance_correction)
+    return Waypoint(name, lat, lon, r_min, angle_min, r_max, angle_max, line, sector_orientation, distance_correction,
+                    orientation_angle)
 
 
-def get_waypoints(lscs_lines_tp, lscs_lines):
-    task_info = get_task_info(lscs_lines)
-    task_scs_tps = task_info['tp']
+def get_waypoints(lscsc_lines, lscsd_lines, lscsr_lines):
+    task_info = get_task_info(lscsd_lines, lscsr_lines)
 
     waypoints = list()
-    for n, scs_task_tp in enumerate(task_scs_tps):
-        waypoint = get_waypoint(lscs_lines_tp, task_info, n, len(task_scs_tps))
+    for n, lscsc_line in enumerate(lscsc_lines):
+        waypoint = get_waypoint(lscsc_line, task_info, n, len(lscsc_lines))
         waypoints.append(waypoint)
 
     return waypoints
 
 
 def get_waypoints_from_parsed_file(parsed_igc_file):
-    lscs_lines_tp = parsed_igc_file['lscs_lines_tp']
-    lscs_lines = parsed_igc_file['lscs_lines']
-    return get_waypoints(lscs_lines_tp, lscs_lines)
+    lscsd_lines = list()
+    lscsr_lines = list()
+    lscsc_lines = list()
+
+    for comment_record in parsed_igc_file['comment_records'][1]:
+        line = 'L{}{}'.format(comment_record['source'], comment_record['comment'])
+
+        if line.startswith('LSCSD'):
+            lscsd_lines.append(line)
+        elif line.startswith('LSCSC'):
+            lscsc_lines.append(line)
+        elif line.startswith('LSCSR'):
+            lscsr_lines.append(line)
+
+    return get_waypoints(lscsc_lines, lscsd_lines, lscsr_lines)
 
 
 class StreplaDaily(DailyResultsPage):

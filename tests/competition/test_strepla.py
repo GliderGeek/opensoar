@@ -1,6 +1,9 @@
 import unittest
 
-from OpenSoar.competition.strepla import get_waypoint_name_lat_long, get_waypoints, get_waypoint, get_task_info
+import datetime
+
+from OpenSoar.competition.strepla import get_waypoint_name_lat_long, get_waypoints, get_waypoint, get_task_info, \
+    StreplaDaily
 
 
 class TestStrepla(unittest.TestCase):
@@ -55,3 +58,19 @@ class TestStrepla(unittest.TestCase):
 
         self.assertEqual(waypoint.name, 'AP4 Fronhofen Strassen-T')
         self.assertTrue(waypoint.is_line)
+
+
+class TestStreplaDaily(unittest.TestCase):
+
+    daily_page = StreplaDaily("http://www.strepla.de/scs/public/scoreDay.aspx?cId=222&idDay=2388", '')
+
+    def test_get_competitors(self):
+        competitors = self.daily_page.get_competitors()
+        self.assertTrue(len(competitors), 10)
+
+    def test_get_competitionday(self):
+        competition_day = self.daily_page.get_competition_day()
+        self.assertEqual(competition_day.name, 'Reinheim_Cup')
+        self.assertEqual(competition_day.plane_class, 'Standard')
+        self.assertEqual(competition_day.date, datetime.date(2013, 8, 5))
+        self.assertEqual(len(competition_day.competitors), 10)

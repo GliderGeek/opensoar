@@ -1,11 +1,11 @@
 import datetime
 from typing import List
 
-from OpenSoar.competition.competition_day import CompetitionDay
-from OpenSoar.competition.competitor import Competitor
-from OpenSoar.competition.daily_results_page import DailyResultsPage
-from OpenSoar.task.waypoint import Waypoint
-from OpenSoar.utilities.helper_functions import dm2dd
+from opensoar.competition.competition_day import CompetitionDay
+from opensoar.competition.competitor import Competitor
+from opensoar.competition.daily_results_page import DailyResultsPage
+from opensoar.task.waypoint import Waypoint
+from opensoar.utilities.helper_functions import dm2dd
 
 
 def get_task_info(lscsd_lines, lscsr_lines):

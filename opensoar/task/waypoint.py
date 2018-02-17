@@ -10,7 +10,7 @@ class Waypoint(object):
                  distance_correction=None, orientation_angle=None):
         """
         Waypoint is either the start point, one of the turn points or the finish point of a task.
-        :param name: 
+        :param name:
         :param latitude: latitude in degrees
         :param longitude: in degrees
         :param r_min: in m

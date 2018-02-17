@@ -2,9 +2,9 @@ import os
 import unittest
 import datetime
 
-from OpenSoar.task.trip import Trip
-from OpenSoar.thermals.flight_phases import FlightPhases
-from OpenSoar.utilities.helper_functions import double_iterator, seconds_time_difference
+from opensoar.task.trip import Trip
+from opensoar.thermals.flight_phases import FlightPhases
+from opensoar.utilities.helper_functions import double_iterator, seconds_time_difference
 
 from tests.task.helper_functions import get_trace, get_race_task
 

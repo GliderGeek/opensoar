@@ -1,9 +1,9 @@
 import datetime
 from aerofiles.igc import Reader
 
-from OpenSoar.competition.soaringspot import get_waypoints_from_parsed_file
-from OpenSoar.task.aat import AAT
-from OpenSoar.task.race_task import RaceTask
+from opensoar.competition.soaringspot import get_waypoints_from_parsed_file
+from opensoar.task.aat import AAT
+from opensoar.task.race_task import RaceTask
 
 
 def get_trace(igc_path):

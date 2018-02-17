@@ -6,11 +6,11 @@ from typing import List
 
 import datetime
 
-from OpenSoar.competition.competition_day import CompetitionDay
-from OpenSoar.competition.competitor import Competitor
-from OpenSoar.task.waypoint import Waypoint
-from OpenSoar.utilities.helper_functions import dm2dd
-from OpenSoar.competition.daily_results_page import DailyResultsPage
+from opensoar.competition.competition_day import CompetitionDay
+from opensoar.competition.competitor import Competitor
+from opensoar.task.waypoint import Waypoint
+from opensoar.utilities.helper_functions import dm2dd
+from opensoar.competition.daily_results_page import DailyResultsPage
 
 
 def get_waypoints_from_parsed_file(parsed_igc_file):

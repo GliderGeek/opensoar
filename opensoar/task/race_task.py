@@ -1,7 +1,7 @@
 from datetime import timedelta
 
-from OpenSoar.task.task import Task
-from OpenSoar.utilities.helper_functions import calculate_distance, double_iterator, \
+from opensoar.task.task import Task
+from opensoar.utilities.helper_functions import calculate_distance, double_iterator, \
     seconds_time_difference_fixes
 
 

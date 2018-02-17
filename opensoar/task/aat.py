@@ -1,8 +1,8 @@
 import datetime
 from copy import deepcopy
 
-from OpenSoar.task.task import Task
-from OpenSoar.utilities.helper_functions import double_iterator, calculate_distance, seconds_time_difference, \
+from opensoar.task.task import Task
+from opensoar.utilities.helper_functions import double_iterator, calculate_distance, seconds_time_difference, \
     calculate_bearing, calculate_destination, seconds_time_difference_fixes, add_times
 
 

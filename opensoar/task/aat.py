@@ -51,7 +51,8 @@ class AAT(Task):
             waypoint_fixes = self._get_waypoint_fixes(outlanded, reduced_sector_fixes, reduced_outside_sector_fixes)
             max_distance_fixes = self._compute_max_distance_fixes(outlanded, waypoint_fixes)
 
-            waypoint_fixes = self._refine_max_distance_fixes(outlanded, max_distance_fixes, sector_fixes, reduced_outside_sector_fixes)
+            waypoint_fixes = self._refine_max_distance_fixes(outlanded, max_distance_fixes, sector_fixes,
+                                                             reduced_outside_sector_fixes)
             max_distance_fixes = self._compute_max_distance_fixes(outlanded, waypoint_fixes)
 
             trip_fixes = max_distance_fixes[:-1]

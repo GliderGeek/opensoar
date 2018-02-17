@@ -1,6 +1,6 @@
 import unittest
 
-from OpenSoar.task.waypoint import Waypoint
+from opensoar.task.waypoint import Waypoint
 
 
 class TestWaypoint(unittest.TestCase):

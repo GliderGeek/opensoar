@@ -1,8 +1,8 @@
 import datetime
 from typing import List
 
-from OpenSoar.competition.competitor import Competitor
-from OpenSoar.task.task import Task
+from opensoar.competition.competitor import Competitor
+from opensoar.task.task import Task
 
 
 class CompetitionDay:

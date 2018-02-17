@@ -1,4 +1,4 @@
-from OpenSoar.utilities.helper_functions import calculate_bearing, calculate_distance, calculate_bearing_difference, \
+from opensoar.utilities.helper_functions import calculate_bearing, calculate_distance, calculate_bearing_difference, \
     interpolate_fixes, double_iterator
 
 

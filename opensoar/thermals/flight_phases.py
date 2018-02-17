@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from OpenSoar.thermals.pysoar_thermal_detector import PySoarThermalDetector
+from opensoar.thermals.pysoar_thermal_detector import PySoarThermalDetector
 
 Phase = namedtuple('Phase', 'is_cruise fixes')
 

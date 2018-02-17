@@ -2,9 +2,9 @@ import unittest
 
 import datetime
 
-from OpenSoar.competition.soaringspot import get_lat_long, get_fixed_orientation_angle, get_sector_orientation, \
+from opensoar.competition.soaringspot import get_lat_long, get_fixed_orientation_angle, get_sector_orientation, \
     get_sector_dimensions, get_waypoint, get_waypoints, SoaringSpotDaily
-from OpenSoar.task.waypoint import Waypoint
+from opensoar.task.waypoint import Waypoint
 
 
 class TestSoaringspot(unittest.TestCase):

@@ -2,13 +2,13 @@ import unittest
 
 import datetime
 
-from OpenSoar.utilities.helper_functions import seconds_time_difference, interpolate_fixes, dm2dd, dms2dd
-from OpenSoar.utilities.helper_functions import double_iterator
-from OpenSoar.utilities.helper_functions import triple_iterator
-from OpenSoar.utilities.helper_functions import calculate_distance
-from OpenSoar.utilities.helper_functions import add_seconds
-from OpenSoar.utilities.helper_functions import range_with_bounds
-from OpenSoar.utilities.helper_functions import calculate_time_differences
+from opensoar.utilities.helper_functions import seconds_time_difference, interpolate_fixes, dm2dd
+from opensoar.utilities.helper_functions import double_iterator
+from opensoar.utilities.helper_functions import triple_iterator
+from opensoar.utilities.helper_functions import calculate_distance
+from opensoar.utilities.helper_functions import add_seconds
+from opensoar.utilities.helper_functions import range_with_bounds
+from opensoar.utilities.helper_functions import calculate_time_differences
 
 
 class TestHelperFunctions(unittest.TestCase):

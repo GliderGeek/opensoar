@@ -1,7 +1,7 @@
 from typing import List
 
-from OpenSoar.task.trip import Trip
-from OpenSoar.thermals.flight_phases import FlightPhases
+from opensoar.task.trip import Trip
+from opensoar.thermals.flight_phases import FlightPhases
 
 
 class Competitor:

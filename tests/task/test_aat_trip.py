@@ -3,7 +3,7 @@ import unittest
 
 import os
 
-from OpenSoar.task.trip import Trip
+from opensoar.task.trip import Trip
 from tests.task.helper_functions import get_aat, get_trace
 
 
@@ -50,7 +50,7 @@ class TestAATTripOutlandingOutside(unittest.TestCase):
 
         # assert if opensoar finds same fixes as seeyou, based on time
         fix_times = [
-            # tuple with (OpenSoar time, SeeYou time)
+            # tuple with (opensoar time, SeeYou time)
             (self.trip.refined_start_time, datetime.time(12, 14, 21)),
             (self.trip.fixes[1]['time'], datetime.time(12, 49, 22)),
             (self.trip.fixes[2]['time'], datetime.time(13, 26, 14)),
@@ -85,7 +85,7 @@ class TestAATTripOutlandingInside(unittest.TestCase):
 
         # assert if opensoar finds same fixes as seeyou, based on time
         fix_times = [
-            # tuple with (OpenSoar time, SeeYou time)
+            # tuple with (opensoar time, SeeYou time)
             (self.trip.refined_start_time, datetime.time(12, 24, 14)),
             (self.trip.fixes[1]['time'], datetime.time(12, 57, 53)),
             (self.trip.fixes[2]['time'], datetime.time(13, 42, 31)),

@@ -1,4 +1,4 @@
-from OpenSoar.utilities.helper_functions import triple_iterator, calculate_bearing_change, calculate_distance, \
+from opensoar.utilities.helper_functions import triple_iterator, calculate_bearing_change, calculate_distance, \
     seconds_time_difference
 
 
@@ -17,7 +17,7 @@ class PySoarThermalDetector:
     def analyse(self, trace):
 
         # To prevent circular import with flight_phases
-        from OpenSoar.thermals.flight_phases import Phase
+        from opensoar.thermals.flight_phases import Phase
 
         cruise = True
         possible_thermal_fixes = list()

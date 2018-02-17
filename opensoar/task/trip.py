@@ -1,4 +1,4 @@
-from OpenSoar.utilities.helper_functions import seconds_time_difference
+from opensoar.utilities.helper_functions import seconds_time_difference
 
 
 class Trip:

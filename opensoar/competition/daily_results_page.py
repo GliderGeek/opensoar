@@ -7,8 +7,8 @@ import time
 
 from bs4 import BeautifulSoup
 
-from OpenSoar.competition.competition_day import CompetitionDay
-from OpenSoar.competition.competitor import Competitor
+from opensoar.competition.competition_day import CompetitionDay
+from opensoar.competition.competitor import Competitor
 
 
 class DailyResultsPage(ABC):

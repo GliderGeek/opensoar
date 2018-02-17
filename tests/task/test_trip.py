@@ -3,7 +3,7 @@ import unittest
 
 import datetime
 
-from OpenSoar.task.trip import Trip
+from opensoar.task.trip import Trip
 from tests.task.helper_functions import get_race_task, get_trace
 
 

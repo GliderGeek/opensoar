@@ -2,7 +2,7 @@ import unittest
 
 import datetime
 
-from OpenSoar.competition.strepla import get_waypoint_name_lat_long, get_waypoints, get_waypoint, get_task_info, \
+from opensoar.competition.strepla import get_waypoint_name_lat_long, get_waypoints, get_waypoint, get_task_info, \
     StreplaDaily
 
 

@@ -20,6 +20,8 @@ class Competitor:
         self._trip = None
         self._phases = None
 
+        self.file_path = None
+
     def analyse(self, task):
 
         if self.trace is None or len(self.trace) == 0:

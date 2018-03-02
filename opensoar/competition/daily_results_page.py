@@ -46,6 +46,14 @@ class DailyResultsPage(ABC):
         return BeautifulSoup(html, "html.parser")
 
     def download_flights(self, download_progress):
+        """
+
+        Download from igc_url property inside each entry in competitors list.
+        Adds the file location as a property to the competitor
+
+        :param download_progress:
+        :return:
+        """
 
         # make directory if necessary
         if not os.path.exists(self.igc_directory):
@@ -58,6 +66,7 @@ class DailyResultsPage(ABC):
             file_url = competitor.igc_url
 
             file_path = os.path.join(self.igc_directory, file_name)
+            competitor.file_path = file_path
             while not os.path.exists(file_path):
                 URLopener().retrieve(file_url, file_path)
                 time.sleep(0.1)

@@ -13,18 +13,63 @@ from opensoar.utilities.helper_functions import dm2dd
 from opensoar.competition.daily_results_page import DailyResultsPage
 
 
+def get_comment_lines_from_parsed_file(parsed_igc_file):
+    """In the parsed file, lines are split into source and comment. This function stiches them back together"""
+    records = parsed_igc_file['comment_records'][1]
+    return [f"L{record['source']}{record['comment']}" for record in records]
+
+
 def get_waypoints_from_parsed_file(parsed_igc_file):
+    return get_info_from_comment_lines(parsed_igc_file)['waypoints']
+
+
+def get_task_rules(lseeyou_tsk_line):
+    rules = dict()
+
+    for element in lseeyou_tsk_line.split(','):
+        if element.startswith('TaskTime'):
+            time = element.split('=')[1]
+            hours, minutes, seconds = [int(part) for part in time.split(':')]
+            rules['task_time'] = datetime.time(hours, minutes, seconds)
+        elif element.startswith('NoStart'):
+            time = element.split('=')[1]
+            hours, minutes, seconds = [int(part) for part in time.split(':')]
+            rules['start_time'] = datetime.time(hours, minutes, seconds)
+
+    return rules
+
+
+def get_info_from_comment_lines(parsed_igc_file):
+    """
+    There is specific contest information stored in the comment lines of the IGC files.
+    This function extracts this information
+    """
+
     lcu_lines = list()
     lseeyou_lines = list()
-    for comment_record in parsed_igc_file['comment_records'][1]:
-        line = 'L{}{}'.format(comment_record['source'], comment_record['comment'])
+    contest_information = dict()
+
+    comment_lines = get_comment_lines_from_parsed_file(parsed_igc_file)
+    for line in comment_lines:
         if line.startswith('LCU::C'):
             lcu_lines.append(line)
         elif line.startswith('LSEEYOU OZ'):
             lseeyou_lines.append(line)
+        elif line.startswith('LCU::HPGTYGLIDERTYPE:'):
+            contest_information['airplane'] = line.split(':')[3]
+        elif line.startswith('LCU::HPCIDCOMPETITIONID:'):
+            contest_information['competition_id'] = line.split(':')[3]
+        elif line.startswith('LCU::HPCCLCOMPETITIONCLASS:'):
+            contest_information['competition_class'] = line.split(':')[3]
+        elif line.startswith('LSEEYOU TSK'):
+            contest_information['task_rules'] = get_task_rules(line)
+        elif line.startswith('LCU::HPTZNTIMEZONE:'):
+            contest_information['timezone'] = int(line.split(':')[3])
 
     waypoints = get_waypoints(lcu_lines, lseeyou_lines)
-    return waypoints
+    contest_information['waypoints'] = waypoints
+
+    return contest_information
 
 
 def get_waypoints(lcu_lines, lseeyou_lines):

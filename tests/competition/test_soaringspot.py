@@ -3,7 +3,7 @@ import unittest
 import datetime
 
 from opensoar.competition.soaringspot import get_lat_long, get_fixed_orientation_angle, get_sector_orientation, \
-    get_sector_dimensions, get_waypoint, get_waypoints, SoaringSpotDaily
+    get_sector_dimensions, get_waypoint, get_waypoints, SoaringSpotDaily, get_task_rules
 from opensoar.task.waypoint import Waypoint
 
 
@@ -93,3 +93,15 @@ class TestSoaringspot(unittest.TestCase):
         self.assertEqual(competitionday.plane_class, 'club')
         self.assertEqual(competitionday.date, datetime.date(2014, 6, 21))
         self.assertEqual(len(competitionday.competitors), 8)
+
+    def test_get_task_rules(self):
+        lseeyou_tsk_line = 'LSEEYOU TSK,NoStart=13:29:00,TaskTime=03:30:00,WpDis=False,' \
+                           'MinDis=True,NearDis=0.5km,NearAlt=200.0m,MinFinAlt=0.0km'
+
+        task_rules = get_task_rules(lseeyou_tsk_line)
+
+        self.assertIn('start_time', task_rules)
+        self.assertIn('task_time', task_rules)
+
+        self.assertEquals(task_rules['start_time'], datetime.time(13, 29, 0))
+        self.assertEquals(task_rules['task_time'], datetime.time(3, 30, 0))

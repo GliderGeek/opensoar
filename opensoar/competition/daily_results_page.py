@@ -45,7 +45,8 @@ class DailyResultsPage(ABC):
 
         return BeautifulSoup(html, "html.parser")
 
-    def download_flights(self, download_progress):
+    def download_flights(self, download_progress=None):
+        # todo: enable generic progress function
         """
 
         Download from igc_url property inside each entry in competitors list.

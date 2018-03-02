@@ -20,6 +20,7 @@ class CompetitionDay:
         self.plane_class = plane_class
 
     def analyse_flights(self):
+        # todo: enable generic progress function
 
         if self.task is None:
             raise ValueError('Task not present')

@@ -14,9 +14,9 @@ to read the files.
 # Example race task
 ```python
 from aerofiles.igc import Reader
-from OpenSoar.competition.soaringspot import get_waypoints_from_parsed_file
-from OpenSoar.task.race_task import RaceTask
-from OpenSoar.task.trip import Trip
+from opensoar.competition.soaringspot import get_waypoints_from_parsed_file
+from opensoar.task.race_task import RaceTask
+from opensoar.task.trip import Trip
 
 with open('example.igc', 'r') as f:
     parsed_igc_file = Reader().read(f)

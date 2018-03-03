@@ -46,13 +46,12 @@ class DailyResultsPage(ABC):
         return BeautifulSoup(html, "html.parser")
 
     def download_flights(self, download_progress=None):
-        # todo: enable generic progress function
         """
-
         Download from igc_url property inside each entry in competitors list.
         Adds the file location as a property to the competitor
 
-        :param download_progress:
+        :param download_progress: optional function to log the download progress.
+        Function should have two inputs: number_of_downloads, total_number_of_flights
         :return:
         """
 
@@ -75,8 +74,7 @@ class DailyResultsPage(ABC):
             flights_downloaded += 1
 
             if download_progress is not None:
-                download_progress.configure(text=f'Downloaded: {flights_downloaded}/{len(self.competitors)}')
-                download_progress.update()
+                download_progress(flights_downloaded, len(self.competitors))
 
     @abstractmethod
     def get_competitors(self) -> List[Competitor]:

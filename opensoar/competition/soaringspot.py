@@ -37,6 +37,8 @@ def get_task_rules(lseeyou_tsk_line):
             time = element.split('=')[1]
             hours, minutes, seconds = [int(part) for part in time.split(':')]
             rules['start_opening'] = datetime.time(hours, minutes, seconds)
+        elif element.startswith('MultiStart:'):
+            rules['multi_start'] = element.split(':')[1] == 'True'
 
     return rules
 
@@ -75,6 +77,13 @@ def get_info_from_comment_lines(parsed_igc_file):
 
 
 def get_task_from_igc(parsed_igc_file, start_time_buffer=0):
+    """
+    Returns RaceTask or AAT.
+    Also return task rules with additional information, which is currently not used in the tasks
+    :param parsed_igc_file:
+    :param start_time_buffer:
+    :return:
+    """
     contest_information = get_info_from_comment_lines(parsed_igc_file)
     task_rules = contest_information['task_rules']
     waypoints = contest_information['waypoints']
@@ -82,9 +91,9 @@ def get_task_from_igc(parsed_igc_file, start_time_buffer=0):
 
     if 'task_time' in task_rules:
         t_min = task_rules['task_time']
-        return AAT(waypoints, t_min, start_opening, start_time_buffer)
+        return AAT(waypoints, t_min, start_opening, start_time_buffer), task_rules
     else:
-        return RaceTask(waypoints, start_opening, start_time_buffer)
+        return RaceTask(waypoints, start_opening, start_time_buffer), task_rules
 
 
 def get_waypoints(lcu_lines, lseeyou_lines):

@@ -30,7 +30,7 @@ class Competitor:
     def phases(self):
         return self._phases
 
-    def analyse(self, task):
+    def analyse(self, task, classification_method):
 
         if self.trace is None or len(self.trace) == 0:
             raise ValueError('No trace present')
@@ -38,5 +38,6 @@ class Competitor:
         self._trip = Trip(task, self.trace)
 
         # competitor should have at least started
-        if self._trip.fixes >= 1:
-            self._phases = FlightPhases(self._trip, self.trace)
+        if len(self._trip.fixes) >= 1:
+            self._phases = FlightPhases(classification_method, self.trace, self._trip)
+

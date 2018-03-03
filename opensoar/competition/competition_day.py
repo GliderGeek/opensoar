@@ -19,8 +19,9 @@ class CompetitionDay:
         self.date = date
         self.plane_class = plane_class
 
-    def analyse_flights(self, analysis_progress=None):
+    def analyse_flights(self, classification_method, analysis_progress=None):
         """
+        :param classification_method: method for detecting thermals. See FlightPhases for more info.
         :param analysis_progress: optional function to log the analysis progress.
         Function should have two inputs: number_of_analyses, total_number_of_flights
         :return:
@@ -31,7 +32,7 @@ class CompetitionDay:
 
         number_of_analyzed_flights = 0
         for competitor in self.competitors:
-            competitor.analyse(self.task)
+            competitor.analyse(self.task, classification_method)
 
             if analysis_progress is not None:
                 number_of_analyzed_flights += 1

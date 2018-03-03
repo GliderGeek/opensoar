@@ -155,7 +155,7 @@ class StreplaDaily(DailyResultsPage):
     def __init__(self, url, target_directory):
         super().__init__(url, target_directory)
 
-    def get_competition_day(self) -> CompetitionDay:
+    def _get_competition_day(self, competitors: List[Competitor]) -> CompetitionDay:
         soup = self._get_html_soup()
 
         competition_name = soup.find('div', id="public_contest_info").find('span', id="ctl00_lblCompName").text
@@ -169,9 +169,9 @@ class StreplaDaily(DailyResultsPage):
         dd, mm, yyyy = str(raw_date).split('.')
         date = datetime.date(int(yyyy), int(mm), int(dd))
 
-        return CompetitionDay(competition_name, date, plane_class, self.get_competitors())
+        return CompetitionDay(competition_name, date, plane_class, self._get_competitors())
 
-    def get_competitors(self) -> List[Competitor]:
+    def _get_competitors(self) -> List[Competitor]:
         soup = self._get_html_soup()
 
         competitors = list()

@@ -22,6 +22,14 @@ class Competitor:
 
         self.file_path = None
 
+    @property
+    def trip(self):
+        return self._trip
+
+    @property
+    def phases(self):
+        return self._phases
+
     def analyse(self, task):
 
         if self.trace is None or len(self.trace) == 0:

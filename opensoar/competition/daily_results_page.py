@@ -20,12 +20,12 @@ class DailyResultsPage(ABC):
         else:
             self.url = f'http://{url}'
 
-        self.competitors = self.get_competitors()
-        self.competition_day = self.get_competition_day()
+        self.competitors = self._get_competitors()
+        self.competition_day = self._get_competition_day(self.competitors)
 
-        self.igc_directory = os.path.join(target_directory, self.competition_day.name,
-                                          self.competition_day.plane_class,
-                                          self.competition_day.date.strftime('%d-%m-%Y'))
+        self._igc_directory = os.path.join(target_directory, self.competition_day.name,
+                                           self.competition_day.plane_class,
+                                           self.competition_day.date.strftime('%d-%m-%Y'))
 
     def _get_html_soup(self):
         # fix problem with SSL certificates
@@ -56,8 +56,8 @@ class DailyResultsPage(ABC):
         """
 
         # make directory if necessary
-        if not os.path.exists(self.igc_directory):
-            os.makedirs(self.igc_directory)
+        if not os.path.exists(self._igc_directory):
+            os.makedirs(self._igc_directory)
 
         flights_downloaded = 0
         for competitor in self.competitors:
@@ -65,7 +65,7 @@ class DailyResultsPage(ABC):
             file_name = f'{competitor.competition_id}.igc'
             file_url = competitor.igc_url
 
-            file_path = os.path.join(self.igc_directory, file_name)
+            file_path = os.path.join(self._igc_directory, file_name)
             competitor.file_path = file_path
             while not os.path.exists(file_path):
                 URLopener().retrieve(file_url, file_path)
@@ -77,9 +77,9 @@ class DailyResultsPage(ABC):
                 download_progress(flights_downloaded, len(self.competitors))
 
     @abstractmethod
-    def get_competitors(self) -> List[Competitor]:
+    def _get_competitors(self) -> List[Competitor]:
         """Fallback to base class"""
 
     @abstractmethod
-    def get_competition_day(self) -> CompetitionDay:
+    def _get_competition_day(self, competitors) -> CompetitionDay:
         """Fallback to base class"""

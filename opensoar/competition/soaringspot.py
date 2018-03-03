@@ -228,7 +228,7 @@ class SoaringSpotDaily(DailyResultsPage):
     def __init__(self, url, target_directory):
         DailyResultsPage.__init__(self, url, target_directory)
 
-    def get_competitors(self) -> List[Competitor]:
+    def _get_competitors(self) -> List[Competitor]:
         base_url = "https://www.soaringspot.com"
         competitors = list()
 
@@ -253,7 +253,7 @@ class SoaringSpotDaily(DailyResultsPage):
 
         return competitors
 
-    def get_competition_day(self) -> CompetitionDay:
+    def _get_competition_day(self, competitors) -> CompetitionDay:
         if self.url.startswith('https://') or self.url.startswith('http://'):
             _, _, _, _, name, _, plane_class, date_description, _ = self.url.split('/')
         else:
@@ -262,4 +262,4 @@ class SoaringSpotDaily(DailyResultsPage):
         date_us = date_description[-10::]
         date = datetime.date(int(date_us[0:4]), int(date_us[5:7]), int(date_us[-2::]))
 
-        return CompetitionDay(name, date, plane_class, self.get_competitors())
+        return CompetitionDay(name, date, plane_class, competitors)

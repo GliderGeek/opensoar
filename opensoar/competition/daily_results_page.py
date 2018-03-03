@@ -27,6 +27,10 @@ class DailyResultsPage(ABC):
                                            self.competition_day.plane_class,
                                            self.competition_day.date.strftime('%d-%m-%Y'))
 
+    @property
+    def igc_directory(self):
+        return self._igc_directory
+
     def _get_html_soup(self):
         # fix problem with SSL certificates
         # https://stackoverflow.com/questions/30551400/disable-ssl-certificate-validation-in-mechanize#35960702

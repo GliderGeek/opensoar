@@ -118,8 +118,35 @@ def calculate_average_bearing(bearing1, bearing2):
     return (avg_bearing + 360) % 360
 
 
+def height_difference_fixes(fix1, fix2, gps_altitude=True):
+    if gps_altitude:
+        return fix2['gps_alt'] - fix1['gps_alt']
+    else:
+        return fix2['pressure_alt'] - fix1['pressure_alt']
+
+
+def altitude_gain_and_loss(fixes: List[dict], gps_altitude=True):
+    if gps_altitude:
+        gain = sum(fix['gps_alt'] for fix in fixes if fix['gps_alt'] >= 0)
+        loss = sum(fix['gps_alt'] for fix in fixes if fix['gps_alt'] < 0)
+    else:
+        gain = sum(fix['pressure_alt'] for fix in fixes if fix['pressure_alt'] >= 0)
+        loss = sum(fix['pressure_alt'] for fix in fixes if fix['pressure_alt'] < 0)
+
+    return gain, loss
+
+
 def seconds_time_difference_fixes(fix1, fix2):
     return seconds_time_difference(fix1['time'], fix2['time'])
+
+
+def total_distance_travelled(fixes: List[dict]):
+    """Calculates the total distance, summing over the inter fix distances"""
+    distance = 0
+    for fix, next_fix in double_iterator(fixes):
+        distance += calculate_distance(fix, next_fix)
+
+    return distance
 
 
 def seconds_time_difference(time1: datetime.time, time2: datetime.time):

@@ -62,6 +62,14 @@ class FlightPhases:
 
         if leg is not None:
             self._check_leg(leg)
+
+            phases = list()
+            for phase in self._phases:
+                phase_in_leg = self._get_phase_within_leg(phase, leg)
+                if phase_in_leg is not None:
+                    phases.append(phase_in_leg)
+
+            return phases
         else:
             return self._phases
 
@@ -70,7 +78,7 @@ class FlightPhases:
             raise ValueError('No trip specified')
         else:
             if leg >= self._trip.completed_legs():
-                raise ValueError('Trip only contains {} legs'.format(self._trip.completed_legs))
+                raise ValueError('Trip only contains {} legs'.format(self._trip.completed_legs()))
 
     def _get_phase_within_leg(self, phase, leg):
         """

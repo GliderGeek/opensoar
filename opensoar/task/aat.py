@@ -20,6 +20,10 @@ class AAT(Task):
         else:
             return super().__eq__(other)
 
+    @property
+    def t_min(self):
+        return self._t_min
+
     def _calculate_nominal_distances(self):
         distances = list()
         for start_waypoint, end_waypoint in double_iterator(self.waypoints):

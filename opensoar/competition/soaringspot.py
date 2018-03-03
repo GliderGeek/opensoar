@@ -2,8 +2,6 @@
 File with helper functions for soaringspot competitions:
 - reading waypoints from soaringspot igc
 """
-import operator
-from typing import List
 import datetime
 
 from aerofiles.igc import Reader
@@ -12,7 +10,6 @@ from opensoar.competition.competition_day import CompetitionDay
 from opensoar.competition.competitor import Competitor
 from opensoar.task.aat import AAT
 from opensoar.task.race_task import RaceTask
-from opensoar.task.task import Task
 from opensoar.task.waypoint import Waypoint
 from opensoar.utilities.helper_functions import dm2dd
 from opensoar.competition.daily_results_page import DailyResultsPage
@@ -256,23 +253,6 @@ class SoaringSpotDaily(DailyResultsPage):
         date = datetime.date(int(date_us[0:4]), int(date_us[5:7]), int(date_us[-2::]))
 
         return competition_name, date, plane_class
-
-    @staticmethod
-    def _select_task(tasks: List[Task]):
-        """There might be different and duplicate tasks. The task is selected is most frequently present in the list."""
-
-        unique_tasks = list()
-        number_of_times_present = list()
-        for task in tasks:
-            if task in unique_tasks:
-                index = unique_tasks.index(task)
-                number_of_times_present[index] += 1
-            else:
-                unique_tasks.append(task)
-                number_of_times_present.append(1)
-
-        max_index, max_value = max(enumerate(number_of_times_present), key=operator.itemgetter(1))
-        return tasks[max_index]
 
     def generate_competition_day(self, target_directory, download_progress=None) -> CompetitionDay:
 

@@ -15,7 +15,7 @@ class AAT(Task):
         self._nominal_distances = self._calculate_nominal_distances()
 
     def __eq__(self, other):
-        if self._t_min != other._t_min:
+        if self.t_min != other.t_min:
             return False
         else:
             return super().__eq__(other)

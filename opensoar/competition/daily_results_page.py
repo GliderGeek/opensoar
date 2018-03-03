@@ -1,5 +1,6 @@
 import os
 from abc import ABC, abstractmethod
+from typing import List
 from urllib.request import URLopener
 from urllib.request import urlopen
 import time
@@ -7,6 +8,7 @@ import time
 from bs4 import BeautifulSoup
 
 from opensoar.competition.competition_day import CompetitionDay
+from opensoar.task.task import Task
 
 
 class DailyResultsPage(ABC):
@@ -67,3 +69,20 @@ class DailyResultsPage(ABC):
     @abstractmethod
     def generate_competition_day(self, target_directory, download_progress=None) -> CompetitionDay:
         """Fallback to base class. This function downloads the igc files and constructs a CompetitionDay"""
+
+    @staticmethod
+    def _select_task(tasks: List[Task]):
+        """There might be different and duplicate tasks. The task is selected is most frequently present in the list."""
+
+        unique_tasks = list()
+        number_of_times_present = list()
+        for task in tasks:
+            if task in unique_tasks:
+                index = unique_tasks.index(task)
+                number_of_times_present[index] += 1
+            else:
+                unique_tasks.append(task)
+                number_of_times_present.append(1)
+
+        max_index, max_value = max(enumerate(number_of_times_present), key=operator.itemgetter(1))
+        return tasks[max_index]

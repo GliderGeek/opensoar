@@ -62,7 +62,7 @@ class TestStrepla(unittest.TestCase):
 
 class TestStreplaDaily(unittest.TestCase):
 
-    daily_page = StreplaDaily("http://www.strepla.de/scs/public/scoreDay.aspx?cId=222&idDay=2388", '')
+    daily_page = StreplaDaily("http://www.strepla.de/scs/public/scoreDay.aspx?cId=222&idDay=2388")
 
     def test_get_competitors(self):
         competitors = self.daily_page.competitors

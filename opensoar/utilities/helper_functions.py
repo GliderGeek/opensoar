@@ -213,3 +213,19 @@ def dm2dd(degrees, minutes, cardinal):
     if cardinal in ('S', 'W'):
         dd *= -1
     return dd
+
+
+def both_none_or_same_float(var1, var2):
+    """Determine wheter both vars are the same. Either None or float"""
+    if var1 is None:
+        return var2 is None
+    else:
+        return var2 is not None and isclose(var1, var2)
+
+
+def both_none_or_same_str(var1, var2):
+    """Determine wheter both vars are the same. Either None or float"""
+    if var1 is None:
+        return var2 is None
+    else:
+        return var2 is not None and var1 == var2

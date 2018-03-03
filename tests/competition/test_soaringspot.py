@@ -100,8 +100,8 @@ class TestSoaringspot(unittest.TestCase):
 
         task_rules = get_task_rules(lseeyou_tsk_line)
 
-        self.assertIn('start_time', task_rules)
+        self.assertIn('start_opening', task_rules)
         self.assertIn('task_time', task_rules)
 
-        self.assertEquals(task_rules['start_time'], datetime.time(13, 29, 0))
+        self.assertEquals(task_rules['start_opening'], datetime.time(13, 29, 0))
         self.assertEquals(task_rules['task_time'], datetime.time(3, 30, 0))

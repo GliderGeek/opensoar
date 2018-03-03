@@ -8,6 +8,8 @@ import datetime
 
 from opensoar.competition.competition_day import CompetitionDay
 from opensoar.competition.competitor import Competitor
+from opensoar.task.aat import AAT
+from opensoar.task.race_task import RaceTask
 from opensoar.task.waypoint import Waypoint
 from opensoar.utilities.helper_functions import dm2dd
 from opensoar.competition.daily_results_page import DailyResultsPage
@@ -34,7 +36,7 @@ def get_task_rules(lseeyou_tsk_line):
         elif element.startswith('NoStart'):
             time = element.split('=')[1]
             hours, minutes, seconds = [int(part) for part in time.split(':')]
-            rules['start_time'] = datetime.time(hours, minutes, seconds)
+            rules['start_opening'] = datetime.time(hours, minutes, seconds)
 
     return rules
 
@@ -70,6 +72,19 @@ def get_info_from_comment_lines(parsed_igc_file):
     contest_information['waypoints'] = waypoints
 
     return contest_information
+
+
+def get_task_from_igc(parsed_igc_file, start_time_buffer=0):
+    contest_information = get_info_from_comment_lines(parsed_igc_file)
+    task_rules = contest_information['task_rules']
+    waypoints = contest_information['waypoints']
+    start_opening = task_rules.get('start_opening', None)
+
+    if 'task_time' in task_rules:
+        t_min = task_rules['task_time']
+        return AAT(waypoints, t_min, start_opening, start_time_buffer)
+    else:
+        return RaceTask(waypoints, start_opening, start_time_buffer)
 
 
 def get_waypoints(lcu_lines, lseeyou_lines):

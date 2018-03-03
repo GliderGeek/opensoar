@@ -189,8 +189,7 @@ class StreplaDaily(DailyResultsPage):
 
                 igc_url = f"http://www.strepla.de/scs/Public/{relative_file_url}"
 
-                competitor = Competitor(trace=list(), competition_id=competition_id, airplane=plane, ranking=ranking,
-                                        igc_url=igc_url)
+                competitor = Competitor(trace=list(), competition_id=competition_id, airplane=plane, ranking=ranking)
                 competitors.append(competitor)
 
         return competitors

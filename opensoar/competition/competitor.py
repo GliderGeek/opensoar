@@ -6,29 +6,29 @@ from opensoar.thermals.flight_phases import FlightPhases
 
 class Competitor:
 
-    def __init__(self, trace: List, competition_id: str=None, airplane: str=None, ranking: int=None, pilot: str=None,
-                 igc_url=None):
+    def __init__(self, trace: List, competition_id: str=None, plane_model: str=None, ranking: int=None, pilot_name: str=None):
 
         self.trace = trace
         self.competition_id = competition_id
-        self._airplane = airplane
+        self._plane_model = plane_model
         self.ranking = ranking
-        self._pilot = pilot
-        self.igc_url = igc_url
+        self._pilot_name = pilot_name
 
         # to be set by analyse method
         self._trip = None
         self._phases = None
-
-        self.file_path = None
 
     @property
     def trip(self):
         return self._trip
 
     @property
-    def airplane(self):
-        return self._airplane
+    def pilot_name(self):
+        return self._pilot_name
+
+    @property
+    def plane_model(self):
+        return self._plane_model
 
     @property
     def phases(self):
@@ -44,4 +44,3 @@ class Competitor:
         # competitor should have at least started
         if len(self._trip.fixes) >= 1:
             self._phases = FlightPhases(classification_method, self.trace, self._trip)
-

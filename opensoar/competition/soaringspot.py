@@ -2,14 +2,17 @@
 File with helper functions for soaringspot competitions:
 - reading waypoints from soaringspot igc
 """
+import operator
 from typing import List
-
 import datetime
+
+from aerofiles.igc import Reader
 
 from opensoar.competition.competition_day import CompetitionDay
 from opensoar.competition.competitor import Competitor
 from opensoar.task.aat import AAT
 from opensoar.task.race_task import RaceTask
+from opensoar.task.task import Task
 from opensoar.task.waypoint import Waypoint
 from opensoar.utilities.helper_functions import dm2dd
 from opensoar.competition.daily_results_page import DailyResultsPage
@@ -21,29 +24,26 @@ def get_comment_lines_from_parsed_file(parsed_igc_file):
     return [f"L{record['source']}{record['comment']}" for record in records]
 
 
-def get_waypoints_from_parsed_file(parsed_igc_file):
-    return get_info_from_comment_lines(parsed_igc_file)['waypoints']
-
-
 def get_task_rules(lseeyou_tsk_line):
-    rules = dict()
-
+    start_opening = None
+    t_min = None
+    multi_start = False
     for element in lseeyou_tsk_line.split(','):
         if element.startswith('TaskTime'):
             time = element.split('=')[1]
             hours, minutes, seconds = [int(part) for part in time.split(':')]
-            rules['task_time'] = datetime.time(hours, minutes, seconds)
+            t_min = datetime.time(hours, minutes, seconds)
         elif element.startswith('NoStart'):
             time = element.split('=')[1]
             hours, minutes, seconds = [int(part) for part in time.split(':')]
-            rules['start_opening'] = datetime.time(hours, minutes, seconds)
+            start_opening = datetime.time(hours, minutes, seconds)
         elif element.startswith('MultiStart:'):
-            rules['multi_start'] = element.split(':')[1] == 'True'
+            multi_start = element.split(':')[1] == 'True'
 
-    return rules
+    return start_opening, t_min, multi_start
 
 
-def get_info_from_comment_lines(parsed_igc_file):
+def get_info_from_comment_lines(parsed_igc_file, start_time_buffer=0):
     """
     There is specific contest information stored in the comment lines of the IGC files.
     This function extracts this information
@@ -51,50 +51,43 @@ def get_info_from_comment_lines(parsed_igc_file):
 
     lcu_lines = list()
     lseeyou_lines = list()
+
     contest_information = dict()
+    competitor_information = dict()
 
     comment_lines = get_comment_lines_from_parsed_file(parsed_igc_file)
+
+    timezone = 0
+    t_min = None
+    start_opening = None
+    multi_start = False
+
     for line in comment_lines:
         if line.startswith('LCU::C'):
             lcu_lines.append(line)
         elif line.startswith('LSEEYOU OZ'):
             lseeyou_lines.append(line)
         elif line.startswith('LCU::HPGTYGLIDERTYPE:'):
-            contest_information['airplane'] = line.split(':')[3]
+            competitor_information['plane_model'] = line.split(':')[3]
+        elif line.startswith('LCU::HPPLTPILOT:'):
+            competitor_information['pilot_name'] = line.split(':')[3]
         elif line.startswith('LCU::HPCIDCOMPETITIONID:'):
-            contest_information['competition_id'] = line.split(':')[3]
+            competitor_information['competition_id'] = line.split(':')[3]
         elif line.startswith('LCU::HPCCLCOMPETITIONCLASS:'):
             contest_information['competition_class'] = line.split(':')[3]
         elif line.startswith('LSEEYOU TSK'):
-            contest_information['task_rules'] = get_task_rules(line)
+            start_opening, t_min, multi_start = get_task_rules(line)
         elif line.startswith('LCU::HPTZNTIMEZONE:'):
-            contest_information['timezone'] = int(line.split(':')[3])
+            timezone = int(line.split(':')[3])
 
     waypoints = get_waypoints(lcu_lines, lseeyou_lines)
-    contest_information['waypoints'] = waypoints
 
-    return contest_information
-
-
-def get_task_from_igc(parsed_igc_file, start_time_buffer=0):
-    """
-    Returns RaceTask or AAT.
-    Also return task rules with additional information, which is currently not used in the tasks
-    :param parsed_igc_file:
-    :param start_time_buffer:
-    :return:
-    """
-    contest_information = get_info_from_comment_lines(parsed_igc_file)
-    task_rules = contest_information['task_rules']
-    waypoints = contest_information['waypoints']
-    start_opening = task_rules.get('start_opening', None)
-    timezone = contest_information.get('timezone', 0)
-
-    if 'task_time' in task_rules:
-        t_min = task_rules['task_time']
-        return AAT(waypoints, t_min, timezone, start_opening, start_time_buffer), task_rules
+    if t_min is None:
+        task = RaceTask(waypoints, timezone, start_opening, start_time_buffer, multi_start)
     else:
-        return RaceTask(waypoints, timezone, start_opening, start_time_buffer), task_rules
+        task = AAT(waypoints, t_min, timezone, start_opening, start_time_buffer, multi_start)
+
+    return task, contest_information, competitor_information
 
 
 def get_waypoints(lcu_lines, lseeyou_lines):
@@ -226,12 +219,12 @@ def get_sector_dimensions(lseeyou_line):
 
 class SoaringSpotDaily(DailyResultsPage):
 
-    def __init__(self, url, target_directory):
-        DailyResultsPage.__init__(self, url, target_directory)
+    def __init__(self, url):
+        super().__init__(url)
 
-    def _get_competitors(self) -> List[Competitor]:
+    def _get_table_info(self):
         base_url = "https://www.soaringspot.com"
-        competitors = list()
+        competitors_info = list()
 
         table = self._get_html_soup().find("table")
         for row in table.findAll('tr')[1:]:
@@ -249,18 +242,77 @@ class SoaringSpotDaily(DailyResultsPage):
 
                     competition_id = link.text
 
-                competitor = Competitor(trace=list(), ranking=ranking, competition_id=competition_id, igc_url=igc_url)
-                competitors.append(competitor)
+                competitors_info.append(dict(ranking=ranking, competition_id=competition_id, igc_url=igc_url))
 
-        return competitors
+        return competitors_info
 
-    def _get_competition_day(self, competitors) -> CompetitionDay:
+    def _get_competition_day_info(self):
         if self.url.startswith('https://') or self.url.startswith('http://'):
-            _, _, _, _, name, _, plane_class, date_description, _ = self.url.split('/')
+            _, _, _, _, competition_name, _, plane_class, date_description, _ = self.url.split('/')
         else:
-            _, _, name, _, plane_class, date_description, _ = self.url.split('/')
+            _, _, competition_name, _, plane_class, date_description, _ = self.url.split('/')
 
         date_us = date_description[-10::]
         date = datetime.date(int(date_us[0:4]), int(date_us[5:7]), int(date_us[-2::]))
 
-        return CompetitionDay(name, date, plane_class, competitors)
+        return competition_name, date, plane_class
+
+    @staticmethod
+    def _select_task(tasks: List[Task]):
+        """There might be different and duplicate tasks. The task is selected is most frequently present in the list."""
+
+        unique_tasks = list()
+        number_of_times_present = list()
+        for task in tasks:
+            if task in unique_tasks:
+                index = unique_tasks.index(task)
+                number_of_times_present[index] += 1
+            else:
+                unique_tasks.append(task)
+                number_of_times_present.append(1)
+
+        max_index, max_value = max(enumerate(number_of_times_present), key=operator.itemgetter(1))
+        return tasks[max_index]
+
+    def generate_competition_day(self, target_directory, download_progress=None) -> CompetitionDay:
+
+        # get info from website
+        competition_name, date, plane_class = self._get_competition_day_info()
+        table_info = self._get_table_info()
+
+        self.set_igc_directory(target_directory, competition_name, plane_class, date)
+
+        competitors = list()
+        tasks = list()
+        files_downloaded = 0
+        for table_entry in table_info:
+            competition_id = table_entry['competition_id']
+            igc_url = table_entry['igc_url']
+            ranking = table_entry['ranking']
+
+            # download files
+            file_path = self.download_flight(igc_url, competition_id)
+
+            files_downloaded += 1
+            if download_progress is not None:
+                download_progress(files_downloaded, len(table_info))
+
+            with open(file_path, 'r') as f:
+                parsed_igc_file = Reader().read(f)
+
+            trace_errors, trace = parsed_igc_file['fix_records']
+
+            # get info from file
+            task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file)
+            plane_model = competitor_information.get('plane_model', None)
+            pilot_name = competitor_information.get('pilot_name', None)
+
+            competitor = Competitor(trace, competition_id, plane_model, ranking, pilot_name)
+
+            competitors.append(competitor)
+            tasks.append(task)
+
+        # Select task from tasks list
+        task = self._select_task(tasks)
+
+        return CompetitionDay(competition_name, date, plane_class, competitors, task)

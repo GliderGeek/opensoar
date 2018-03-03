@@ -1,6 +1,5 @@
 import os
 from abc import ABC, abstractmethod
-from typing import List
 from urllib.request import URLopener
 from urllib.request import urlopen
 import time
@@ -8,28 +7,25 @@ import time
 from bs4 import BeautifulSoup
 
 from opensoar.competition.competition_day import CompetitionDay
-from opensoar.competition.competitor import Competitor
 
 
 class DailyResultsPage(ABC):
 
-    def __init__(self, url, target_directory):
-
+    def __init__(self, url):
         if url.startswith('http://') or url.startswith('https://'):
             self.url = url
         else:
             self.url = f'http://{url}'
 
-        self.competitors = self._get_competitors()
-        self.competition_day = self._get_competition_day(self.competitors)
-
-        self._igc_directory = os.path.join(target_directory, self.competition_day.name,
-                                           self.competition_day.plane_class,
-                                           self.competition_day.date.strftime('%d-%m-%Y'))
+        self._igc_directory = None  # to be set in subclass
 
     @property
     def igc_directory(self):
         return self._igc_directory
+
+    def set_igc_directory(self, target_directory, competition_name, plane_class, date):
+        self._igc_directory = os.path.join(target_directory, competition_name, plane_class,
+                                           date.strftime('%d-%m-%Y'))
 
     def _get_html_soup(self):
         # fix problem with SSL certificates
@@ -49,41 +45,25 @@ class DailyResultsPage(ABC):
 
         return BeautifulSoup(html, "html.parser")
 
-    def download_flights(self, download_progress=None):
-        """
-        Download from igc_url property inside each entry in competitors list.
-        Adds the file location as a property to the competitor
+    def igc_file_name(self, competition_id):
+        return f'{competition_id}.igc'
 
-        :param download_progress: optional function to log the download progress.
-        Function should have two inputs: number_of_downloads, total_number_of_flights
-        :return:
-        """
+    def igc_file_path(self, competition_id):
+        file_name = self.igc_file_name(competition_id)
+        return os.path.join(self._igc_directory, file_name)
 
+    def download_flight(self, igc_url, competition_id):
         # make directory if necessary
         if not os.path.exists(self._igc_directory):
             os.makedirs(self._igc_directory)
 
-        flights_downloaded = 0
-        for competitor in self.competitors:
+        file_path = self.igc_file_path(competition_id)
+        while not os.path.exists(file_path):
+            URLopener().retrieve(igc_url, file_path)
+            time.sleep(0.1)
 
-            file_name = f'{competitor.competition_id}.igc'
-            file_url = competitor.igc_url
-
-            file_path = os.path.join(self._igc_directory, file_name)
-            competitor.file_path = file_path
-            while not os.path.exists(file_path):
-                URLopener().retrieve(file_url, file_path)
-                time.sleep(0.1)
-
-            flights_downloaded += 1
-
-            if download_progress is not None:
-                download_progress(flights_downloaded, len(self.competitors))
+        return file_path
 
     @abstractmethod
-    def _get_competitors(self) -> List[Competitor]:
-        """Fallback to base class"""
-
-    @abstractmethod
-    def _get_competition_day(self, competitors) -> CompetitionDay:
-        """Fallback to base class"""
+    def generate_competition_day(self, target_directory, download_progress=None) -> CompetitionDay:
+        """Fallback to base class. This function downloads the igc files and constructs a CompetitionDay"""

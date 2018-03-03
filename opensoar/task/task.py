@@ -7,7 +7,7 @@ class Task:
     ENL_VALUE_THRESHOLD = 500
     ENL_TIME_THRESHOLD = 30
 
-    def __init__(self, waypoints, timezone, start_opening, start_time_buffer):
+    def __init__(self, waypoints, timezone, start_opening, start_time_buffer, multistart):
         """
         :param waypoints:
         :param timezone: time difference wrt utc in hours
@@ -19,6 +19,7 @@ class Task:
         self.timezone = timezone
         self.start_opening = start_opening
         self.start_time_buffer = start_time_buffer
+        self.multistart = multistart
 
         self.set_orientation_angles(self.waypoints)
 

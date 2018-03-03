@@ -30,6 +30,9 @@ class CompetitionDay:
         if self.task is None:
             raise ValueError('Task not present')
 
+        if self.task.multistart:
+            raise ValueError('Multistart is not supported')
+
         number_of_analyzed_flights = 0
         for competitor in self.competitors:
             competitor.analyse(self.task, classification_method)

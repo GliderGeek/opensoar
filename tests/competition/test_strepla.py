@@ -65,11 +65,11 @@ class TestStreplaDaily(unittest.TestCase):
     daily_page = StreplaDaily("http://www.strepla.de/scs/public/scoreDay.aspx?cId=222&idDay=2388", '')
 
     def test_get_competitors(self):
-        competitors = self.daily_page.get_competitors()
+        competitors = self.daily_page.competitors
         self.assertTrue(len(competitors), 10)
 
     def test_get_competitionday(self):
-        competition_day = self.daily_page.get_competition_day()
+        competition_day = self.daily_page.competition_day
         self.assertEqual(competition_day.name, 'Reinheim_Cup')
         self.assertEqual(competition_day.plane_class, 'Standard')
         self.assertEqual(competition_day.date, datetime.date(2013, 8, 5))

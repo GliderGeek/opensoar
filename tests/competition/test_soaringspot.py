@@ -87,7 +87,7 @@ class TestSoaringspot(unittest.TestCase):
         soaringspot_page = SoaringSpotDaily(
             'https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily', '')
 
-        competitionday = soaringspot_page.competition_day()
+        competitionday = soaringspot_page.competition_day
 
         self.assertEqual(competitionday.name, 'sallandse-tweedaagse-2014')
         self.assertEqual(competitionday.plane_class, 'club')

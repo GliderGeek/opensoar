@@ -12,6 +12,9 @@ class RaceTask(Task):
 
         self.distances = self.calculate_task_distances()
 
+    def __eq__(self, other):
+        return super().__eq__(other)
+
     @property
     def total_distance(self):
         return sum(self.distances)

@@ -14,11 +14,29 @@ class Task:
         :param start_time_buffer: in seconds
         """
 
-        self.waypoints = waypoints
+        self._waypoints = waypoints
         self.start_opening = start_opening
         self.start_time_buffer = start_time_buffer
 
         self.set_orientation_angles(self.waypoints)
+
+    def __eq__(self, other):
+        same_number_waypoints = len(self.waypoints) == len(other.waypoints)
+
+        if not same_number_waypoints:
+            return False
+        else:
+            for waypoint, other_waypoint in zip(self.waypoints, other.waypoints):
+                if waypoint != other_waypoint:
+                    return False
+
+        return (self.start_opening == other.start_opening and
+                self.start_time_buffer == other.start_time_buffer)
+
+    @property
+    def waypoints(self):
+        # waypoints may not be altered because subclasses perform tasks to calculate distances based on waypoints.
+        return self._waypoints
 
     @property
     def no_tps(self):

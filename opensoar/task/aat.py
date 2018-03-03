@@ -14,6 +14,12 @@ class AAT(Task):
         self._t_min = t_min
         self._nominal_distances = self._calculate_nominal_distances()
 
+    def __eq__(self, other):
+        if self._t_min != other._t_min:
+            return False
+        else:
+            return super().__eq__(other)
+
     def _calculate_nominal_distances(self):
         distances = list()
         for start_waypoint, end_waypoint in double_iterator(self.waypoints):

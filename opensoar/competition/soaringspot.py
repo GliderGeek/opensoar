@@ -88,12 +88,13 @@ def get_task_from_igc(parsed_igc_file, start_time_buffer=0):
     task_rules = contest_information['task_rules']
     waypoints = contest_information['waypoints']
     start_opening = task_rules.get('start_opening', None)
+    timezone = contest_information.get('timezone', 0)
 
     if 'task_time' in task_rules:
         t_min = task_rules['task_time']
-        return AAT(waypoints, t_min, start_opening, start_time_buffer), task_rules
+        return AAT(waypoints, t_min, timezone, start_opening, start_time_buffer), task_rules
     else:
-        return RaceTask(waypoints, start_opening, start_time_buffer), task_rules
+        return RaceTask(waypoints, timezone, start_opening, start_time_buffer), task_rules
 
 
 def get_waypoints(lcu_lines, lseeyou_lines):

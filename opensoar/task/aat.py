@@ -8,8 +8,8 @@ from opensoar.utilities.helper_functions import double_iterator, calculate_dista
 
 class AAT(Task):
 
-    def __init__(self, waypoints, t_min: datetime.time, start_opening=None, start_time_buffer=0):
-        super().__init__(waypoints, start_opening, start_time_buffer)
+    def __init__(self, waypoints, t_min: datetime.time, timezone=0, start_opening=None, start_time_buffer=0):
+        super().__init__(waypoints, timezone, start_opening, start_time_buffer)
 
         self._t_min = t_min
         self._nominal_distances = self._calculate_nominal_distances()

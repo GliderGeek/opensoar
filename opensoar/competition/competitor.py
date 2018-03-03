@@ -27,6 +27,10 @@ class Competitor:
         return self._trip
 
     @property
+    def airplane(self):
+        return self._airplane
+
+    @property
     def phases(self):
         return self._phases
 

@@ -77,8 +77,8 @@ class FlightPhases:
         if self._trip is None:
             raise ValueError('No trip specified')
         else:
-            if leg >= self._trip.completed_legs():
-                raise ValueError('Trip only contains {} legs'.format(self._trip.completed_legs()))
+            if leg > self._trip.started_legs() - 1:
+                raise ValueError('Trip only contains {} legs'.format(self._trip.started_legs()))
 
     def _get_phase_within_leg(self, phase, leg):
         """
@@ -95,9 +95,14 @@ class FlightPhases:
         elif phase_start_in_leg and phase_end_in_leg:
             return phase
         elif phase_start_in_leg and not phase_end_in_leg:
-            end_fix = self._trip.fixes[leg + 1]
+
+            if leg + 1 == self._trip.started_legs():
+                end_fix = self._trip.outlanding_fix
+            else:
+                end_fix = self._trip.fixes[leg + 1]
+
             phase_end_index = phase.fixes.index(end_fix)
-            return Phase(phase.is_cruise, phase.fixes[0:phase_end_index+1])
+            return Phase(phase.is_cruise, phase.fixes[0:phase_end_index + 1])
         else:  # not phase_start_in_leg and phase_end_in_leg:
             start_fix = self._trip.fixes[leg]
             phase_start_index = phase.fixes.index(start_fix)

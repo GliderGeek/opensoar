@@ -38,13 +38,17 @@ class Trip:
         :param leg: 
         :return: 
         """
+        larger_than_minimum = not self.fix_before_leg(fix, leg)
+        smaller_than_maximum = not self.fix_after_leg(fix, leg)
+        return larger_than_minimum and smaller_than_maximum
+
+    def fix_before_leg(self, fix, leg):
+        return seconds_time_difference(fix['time'], self.fixes[leg]['time']) >= 0
+
+    def fix_after_leg(self, fix, leg):
         if leg + 1 <= self.completed_legs():
-            larger_than_minimum = seconds_time_difference(self.fixes[leg]['time'], fix['time']) >= 0
-            smaller_than_maximum = seconds_time_difference(fix['time'], self.fixes[leg + 1]['time']) >= 0
+            return seconds_time_difference(self.fixes[leg + 1]['time'], fix['time']) >= 0
         elif self.outlanded() and leg == self.outlanding_leg():
-            larger_than_minimum = seconds_time_difference(self.fixes[leg]['time'], fix['time']) >= 0
-            smaller_than_maximum = seconds_time_difference(fix['time'], self.outlanding_fix['time']) >= 0
+            return seconds_time_difference(self.outlanding_fix['time'], fix['time']) >= 0
         else:  # leg > self.completed_legs() + 1
             raise ValueError('Leg not started')
-
-        return larger_than_minimum and smaller_than_maximum

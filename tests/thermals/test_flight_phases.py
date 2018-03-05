@@ -6,7 +6,7 @@ from opensoar.task.trip import Trip
 from opensoar.thermals.flight_phases import FlightPhases
 from opensoar.utilities.helper_functions import double_iterator, seconds_time_difference
 
-from tests.task.helper_functions import get_trace, get_race_task
+from tests.task.helper_functions import get_trace, get_task
 
 
 class TestFlightPhases(unittest.TestCase):
@@ -25,11 +25,13 @@ class TestFlightPhases(unittest.TestCase):
         datetime.time(13, 4, 52),
     ]
 
-    igc_path = os.path.join('tests', 'igc_files', 'race_task_completed.igc')
+    cwd = os.path.dirname(__file__)
+    igc_path = os.path.join(cwd, '..', 'igc_files', 'race_task_completed.igc')
+
     trace = get_trace(igc_path)
     start_index = 1168
-    last_tp_index = 3240
-    race_task = get_race_task(igc_path)
+    last_tp_index = 3250
+    race_task = get_task(igc_path)
     trip = Trip(race_task, trace)
     phases = FlightPhases('pysoar', trace[start_index:last_tp_index+1], trip)
 

@@ -81,6 +81,9 @@ class FlightPhases:
                 raise ValueError('Trip only contains {} legs'.format(self._trip.started_legs()))
 
     def _get_phase_within_leg(self, phase, leg):
+
+        # todo: write test for this new behavior
+
         """
         Get part of phase that falls within a specified leg
         :param leg: 
@@ -89,21 +92,35 @@ class FlightPhases:
 
         phase_start_in_leg = self._trip.fix_on_leg(phase.fixes[0], leg)
         phase_end_in_leg = self._trip.fix_on_leg(phase.fixes[-1], leg)
+        phase_start_before_leg = self._trip.fix_before_leg(phase.fixes[0], leg)
+        phase_end_after_leg = self._trip.fix_after_leg(phase.fixes[-1], leg)
 
         if not phase_start_in_leg and not phase_end_in_leg:
-            return None
+            if phase_start_before_leg and phase_end_after_leg:
+                use_trip_start_fix = True
+                use_trip_end_fix = True
+            else:
+                return None
         elif phase_start_in_leg and phase_end_in_leg:
-            return phase
+            use_trip_start_fix = False
+            use_trip_end_fix = False
         elif phase_start_in_leg and not phase_end_in_leg:
+            use_trip_start_fix = False
+            use_trip_end_fix = True
+        else:  # not phase_start_in_leg and phase_end_in_leg:
+            use_trip_start_fix = True
+            use_trip_end_fix = False
 
-            if leg + 1 == self._trip.started_legs():
+        start_fix = self._trip.fixes[leg] if use_trip_start_fix else phase.fixes[0]
+
+        if use_trip_end_fix:
+            if self._trip.outlanded() and leg == self._trip.outlanding_leg():
                 end_fix = self._trip.outlanding_fix
             else:
                 end_fix = self._trip.fixes[leg + 1]
+        else:
+            end_fix = phase.fixes[-1]
 
-            phase_end_index = phase.fixes.index(end_fix)
-            return Phase(phase.is_cruise, phase.fixes[0:phase_end_index + 1])
-        else:  # not phase_start_in_leg and phase_end_in_leg:
-            start_fix = self._trip.fixes[leg]
-            phase_start_index = phase.fixes.index(start_fix)
-            return Phase(phase.is_cruise, phase.fixes[phase_start_index::])
+        phase_start_index = phase.fixes.index(start_fix)
+        phase_end_index = phase.fixes.index(end_fix)
+        return Phase(phase.is_cruise, phase.fixes[phase_start_index:phase_end_index + 1])

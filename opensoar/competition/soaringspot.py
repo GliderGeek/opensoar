@@ -219,7 +219,7 @@ class SoaringSpotDaily(DailyResultsPage):
     def __init__(self, url):
         super().__init__(url)
 
-    def _get_table_info(self):
+    def _get_competitors_info(self):
         base_url = "https://www.soaringspot.com"
         competitors_info = list()
 
@@ -258,24 +258,24 @@ class SoaringSpotDaily(DailyResultsPage):
 
         # get info from website
         competition_name, date, plane_class = self._get_competition_day_info()
-        table_info = self._get_table_info()
+        competitors_info = self._get_competitors_info()
 
         self.set_igc_directory(target_directory, competition_name, plane_class, date)
 
         competitors = list()
         tasks = list()
         files_downloaded = 0
-        for table_entry in table_info:
-            competition_id = table_entry['competition_id']
-            igc_url = table_entry['igc_url']
-            ranking = table_entry['ranking']
+        for competitor_info in competitors_info:
+            competition_id = competitor_info['competition_id']
+            igc_url = competitor_info['igc_url']
+            ranking = competitor_info['ranking']
 
             # download files
             file_path = self.download_flight(igc_url, competition_id)
 
             files_downloaded += 1
             if download_progress is not None:
-                download_progress(files_downloaded, len(table_info))
+                download_progress(files_downloaded, len(competitors_info))
 
             with open(file_path, 'r') as f:
                 parsed_igc_file = Reader().read(f)

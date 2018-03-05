@@ -3,17 +3,16 @@ import unittest
 from copy import deepcopy
 
 import datetime
-from aerofiles.igc import Reader
 
-from opensoar.competition.soaringspot import get_waypoints_from_parsed_file
 from opensoar.task.race_task import RaceTask
-from tests.task.helper_functions import get_race_task
+from tests.task.helper_functions import get_task
 
 
 class TestRaceTask(unittest.TestCase):
 
-    igc_path = os.path.join('tests', 'igc_files', 'race_task_completed.igc')
-    race_task = get_race_task(igc_path)
+    cwd = os.path.dirname(__file__)
+    igc_path = os.path.join(cwd, '..', 'igc_files', 'race_task_completed.igc')
+    race_task = get_task(igc_path)
 
     def test_number_of_legs(self):
         self.assertEqual(self.race_task.no_legs, 4)
@@ -31,14 +30,11 @@ class TestRaceTask(unittest.TestCase):
         self.assertAlmostEqual(self.race_task.total_distance / 1000, 101.24, places=2)
 
     def test_equal_tasks(self):
-        race_task2 = get_race_task(self.igc_path)
+        race_task2 = get_task(self.igc_path)
         self.assertEqual(self.race_task, race_task2)
 
     def test_not_equal_tasks(self):
-        with open(self.igc_path, 'r') as f:
-            parsed_igc_file = Reader().read(f)
-
-        waypoints = get_waypoints_from_parsed_file(parsed_igc_file)
+        waypoints = self.race_task.waypoints
 
         # test_unequal number_waypoints
         waypoints2 = deepcopy(waypoints)

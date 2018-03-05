@@ -73,35 +73,31 @@ class TestSoaringspot(unittest.TestCase):
 
     def test_get_competitors(self):
         soaringspot_page = SoaringSpotDaily(
-            'https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily', '')
+            'https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily')
 
-        competitor_pk = soaringspot_page.competitors[2]
-        self.assertEqual(competitor_pk.competition_id, 'PK')
+        competitor_pk = soaringspot_page._get_competitors_info()[2]
 
-        self.assertEqual(competitor_pk.ranking, 3)
+        self.assertEqual(competitor_pk['competition_id'], 'PK')
+        self.assertEqual(competitor_pk['ranking'], 3)
 
         expected_igc_url = 'https://archive.soaringspot.com/contest/013/1323/flights/2477/2597322754.igc'
-        self.assertEqual(competitor_pk.igc_url, expected_igc_url)
+        self.assertEqual(competitor_pk['igc_url'], expected_igc_url)
 
     def test_get_competition_day(self):
         soaringspot_page = SoaringSpotDaily(
-            'https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily', '')
+            'https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily')
 
-        competitionday = soaringspot_page.competition_day
+        competition_name, date, plane_class = soaringspot_page._get_competition_day_info()
 
-        self.assertEqual(competitionday.name, 'sallandse-tweedaagse-2014')
-        self.assertEqual(competitionday.plane_class, 'club')
-        self.assertEqual(competitionday.date, datetime.date(2014, 6, 21))
-        self.assertEqual(len(competitionday.competitors), 8)
+        self.assertEqual(competition_name, 'sallandse-tweedaagse-2014')
+        self.assertEqual(plane_class, 'club')
+        self.assertEqual(date, datetime.date(2014, 6, 21))
 
     def test_get_task_rules(self):
         lseeyou_tsk_line = 'LSEEYOU TSK,NoStart=13:29:00,TaskTime=03:30:00,WpDis=False,' \
                            'MinDis=True,NearDis=0.5km,NearAlt=200.0m,MinFinAlt=0.0km'
 
-        task_rules = get_task_rules(lseeyou_tsk_line)
+        start_opening, t_min, multi_start = get_task_rules(lseeyou_tsk_line)
 
-        self.assertIn('start_opening', task_rules)
-        self.assertIn('task_time', task_rules)
-
-        self.assertEquals(task_rules['start_opening'], datetime.time(13, 29, 0))
-        self.assertEquals(task_rules['task_time'], datetime.time(3, 30, 0))
+        self.assertEquals(start_opening, datetime.time(13, 29, 0))
+        self.assertEquals(t_min, datetime.time(3, 30, 0))

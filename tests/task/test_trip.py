@@ -64,6 +64,8 @@ class TestEnlOutlandingTrip(unittest.TestCase):
     https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/18-meter/task-1-on-2014-06-21/daily
     """
 
+    # todo: fix this failing test
+
     cwd = os.path.dirname(__file__)
     igc_path = os.path.join(cwd, '..', 'igc_files', 'outlanding_race_task_enl.igc')
     race_task = get_task(igc_path)

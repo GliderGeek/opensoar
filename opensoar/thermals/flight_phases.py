@@ -82,8 +82,6 @@ class FlightPhases:
 
     def _get_phase_within_leg(self, phase, leg):
 
-        # todo: write test for this new behavior
-
         """
         Get part of phase that falls within a specified leg
         :param leg: 

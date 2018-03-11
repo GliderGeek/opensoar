@@ -254,7 +254,7 @@ class SoaringSpotDaily(DailyResultsPage):
 
         return competition_name, date, plane_class
 
-    def generate_competition_day(self, target_directory, download_progress=None) -> CompetitionDay:
+    def generate_competition_day(self, target_directory, download_progress=None, start_time_buffer=0) -> CompetitionDay:
 
         # get info from website
         competition_name, date, plane_class = self._get_competition_day_info()
@@ -283,7 +283,7 @@ class SoaringSpotDaily(DailyResultsPage):
             trace_errors, trace = parsed_igc_file['fix_records']
 
             # get info from file
-            task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file)
+            task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file, start_time_buffer)
             plane_model = competitor_information.get('plane_model', None)
             pilot_name = competitor_information.get('pilot_name', None)
 

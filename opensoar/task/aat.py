@@ -8,7 +8,7 @@ from opensoar.utilities.helper_functions import double_iterator, calculate_dista
 
 class AAT(Task):
 
-    def __init__(self, waypoints, t_min: datetime.time, timezone=0, start_opening=None, start_time_buffer=0, multistart=False):
+    def __init__(self, waypoints, t_min: datetime.time, timezone=None, start_opening=None, start_time_buffer=0, multistart=False):
         super().__init__(waypoints, timezone, start_opening, start_time_buffer, multistart)
 
         self._t_min = t_min

@@ -54,7 +54,7 @@ def get_info_from_comment_lines(parsed_igc_file, start_time_buffer=0):
 
     comment_lines = get_comment_lines_from_parsed_file(parsed_igc_file)
 
-    timezone = 0
+    timezone = None
     t_min = None
     start_opening = None
     multi_start = False

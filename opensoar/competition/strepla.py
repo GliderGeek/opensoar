@@ -12,7 +12,7 @@ from opensoar.task.waypoint import Waypoint
 from opensoar.utilities.helper_functions import dm2dd
 
 
-def get_task_info(lscsd_lines, lscsr_lines):
+def get_task_and_competitor_info(lscsd_lines, lscsr_lines):
     task_info = {
         'tp': [],
         's_line_rad': None,
@@ -26,7 +26,14 @@ def get_task_info(lscsd_lines, lscsr_lines):
         'f_cyl_rad': None,
         'tp_aat_rad': [],
         'tp_aat_angle': [],
-        'aat': False
+        'aat': False,
+        'time_window': None,
+        'gate_open': None,
+    }
+
+    competitor_information = {
+        'pilot_name': None,
+        'competition_id': None,
     }
 
     for line in [*lscsd_lines, *lscsr_lines]:
@@ -51,8 +58,18 @@ def get_task_info(lscsd_lines, lscsr_lines):
             else:
                 task_info['tp_aat_angle'].append(int(((line.split(':'))[3])[0:-1]))
             task_info['aat'] = True
+        elif line.startswith('LSCSDTime window'):
+            _, hours, minutes = line.split(':')
+            task_info['time_window'] = datetime.time(int(hours), int(minutes))
+        elif line.startswith('LSCSDGate open'):
+            _, hours, minutes = line.split(':')
+            task_info['gate_open'] = datetime.time(int(hours), int(minutes))
+        elif line.startswith('LSCSDName'):
+            competitor_information['pilot_name'] = line.split(':')[1]
+        elif line.startswith('LSCSDCID'):
+            competitor_information['competition_id'] = line.split(':')[1]
 
-    return task_info
+    return task_info, competitor_information
 
 
 def get_waypoint_name_lat_long(lscs_line_tp):
@@ -125,18 +142,17 @@ def get_waypoint(lscs_line_tp, task_info, n, n_tp):
                     orientation_angle)
 
 
-def get_waypoints(lscsc_lines, lscsd_lines, lscsr_lines):
-    task_info = get_task_info(lscsd_lines, lscsr_lines)
-
+def get_waypoints(lscsc_lines, task_info):
     waypoints = list()
     for n, lscsc_line in enumerate(lscsc_lines):
         waypoint = get_waypoint(lscsc_line, task_info, n, len(lscsc_lines))
         waypoints.append(waypoint)
 
-    return waypoints, task_info['aat']
+    return waypoints
 
 
-def get_waypoints_from_parsed_file(parsed_igc_file):
+def get_info_from_comment_lines(parsed_igc_file, start_time_buffer=0):
+
     lscsd_lines = list()
     lscsr_lines = list()
     lscsc_lines = list()
@@ -151,20 +167,20 @@ def get_waypoints_from_parsed_file(parsed_igc_file):
         elif line.startswith('LSCSR'):
             lscsr_lines.append(line)
 
-    return get_waypoints(lscsc_lines, lscsd_lines, lscsr_lines)
+    task_information, competitor_information = get_task_and_competitor_info(lscsd_lines, lscsr_lines)
+    waypoints = get_waypoints(lscsc_lines, task_information)
 
-
-def get_task_from_parsed_file(parsed_igc_file, start_time_buffer=0):
-    waypoints, aat = get_waypoints_from_parsed_file(parsed_igc_file)
-
-    # todo: t_min, timezone, start_opening, multistart?
-    # t_min is present in IGC file in L lines
-    # start_opening
+    aat = task_information['aat']
+    t_min = task_information.get('time_window', None)
+    start_opening = task_information.get('gate_open', None)
+    timezone = None  # unclear where to get timezone information from strepla igc file
 
     if aat:
-        return AAT(waypoints, t_min, timezone, start_opening, start_time_buffer)
+        task = AAT(waypoints, t_min, timezone, start_opening, start_time_buffer)
     else:
-        return RaceTask(waypoints, timezone, start_opening, start_time_buffer)
+        task = RaceTask(waypoints, timezone, start_opening, start_time_buffer)
+
+    return task, task_information, competitor_information
 
 
 class StreplaDaily(DailyResultsPage):
@@ -211,7 +227,7 @@ class StreplaDaily(DailyResultsPage):
 
         return competitors_info
 
-    def generate_competition_day(self, target_directory, download_progress=None) -> CompetitionDay:
+    def generate_competition_day(self, target_directory, download_progress=None, start_time_buffer=0) -> CompetitionDay:
 
         # get info from website
         competition_name, date, plane_class = self._get_competition_day_info()
@@ -241,7 +257,7 @@ class StreplaDaily(DailyResultsPage):
             trace_errors, trace = parsed_igc_file['fix_records']
 
             # get info from file
-            task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file)
+            task, task_info, competitor_information = get_info_from_comment_lines(parsed_igc_file, start_time_buffer)
             pilot_name = competitor_information.get('pilot_name', None)
 
             competitor = Competitor(trace, competition_id, plane_model, ranking, pilot_name)

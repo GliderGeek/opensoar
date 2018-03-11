@@ -2,8 +2,8 @@ import unittest
 
 import datetime
 
-from opensoar.competition.strepla import get_waypoint_name_lat_long, get_waypoints, get_waypoint, get_task_info, \
-    StreplaDaily
+from opensoar.competition.strepla import get_waypoint_name_lat_long, get_waypoints, get_waypoint, \
+    StreplaDaily, get_task_and_competitor_info
 
 
 class TestStrepla(unittest.TestCase):
@@ -46,14 +46,15 @@ class TestStrepla(unittest.TestCase):
         self.assertAlmostEqual(lon, 9.5817, places=4)
 
     def test_get_waypoints(self):
-        waypoints = get_waypoints(self.lscsc_lines, self.lscsd_lines, self.lscsr_lines)
+        task_info, competitor_information = get_task_and_competitor_info(self.lscsd_lines, self.lscsr_lines)
+        waypoints = get_waypoints(self.lscsc_lines, task_info)
         self.assertEqual(len(waypoints), 7)
 
     def test_get_waypoint(self):
 
         lscsc_line = 'LSCSCS:AP4 Fronhofen Strassen-T:N4942358:E00851490'
 
-        task_info = get_task_info(self.lscsd_lines, self.lscsr_lines)
+        task_info, competitor_information = get_task_and_competitor_info(self.lscsd_lines, self.lscsr_lines)
         waypoint = get_waypoint(lscsc_line, task_info, n=0, n_tp=7)
 
         self.assertEqual(waypoint.name, 'AP4 Fronhofen Strassen-T')
@@ -64,13 +65,12 @@ class TestStreplaDaily(unittest.TestCase):
 
     daily_page = StreplaDaily("http://www.strepla.de/scs/public/scoreDay.aspx?cId=222&idDay=2388")
 
-    def test_get_competitors(self):
-        competitors = self.daily_page.competitors
-        self.assertTrue(len(competitors), 10)
+    def test_get_competitionday_info(self):
+        competition_name, date, plane_class = self.daily_page._get_competition_day_info()
+        self.assertEqual(competition_name, 'Reinheim_Cup')
+        self.assertEqual(plane_class, 'Standard')
+        self.assertEqual(date, datetime.date(2013, 8, 5))
 
-    def test_get_competitionday(self):
-        competition_day = self.daily_page.competition_day
-        self.assertEqual(competition_day.name, 'Reinheim_Cup')
-        self.assertEqual(competition_day.plane_class, 'Standard')
-        self.assertEqual(competition_day.date, datetime.date(2013, 8, 5))
-        self.assertEqual(len(competition_day.competitors), 10)
+    def test_get_table_info(self):
+        competitors_info = self.daily_page._get_table_info()
+        self.assertEqual(len(competitors_info), 10)

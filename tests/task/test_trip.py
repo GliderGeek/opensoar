@@ -57,6 +57,12 @@ class TestOutlandingTrip(unittest.TestCase):
     def test_completed_legs(self):
         self.assertEqual(self.trip.completed_legs(), 2)
 
+    def test_fix_after_leg_on_outlanding_leg(self):
+        """A fix happening on the outlanding leg can never be after the leg, because that leg is never finished."""
+        fix = {'time': datetime.time(14, 44, 45)}
+        fix_after_leg = self.trip.fix_after_leg(fix, leg=2)
+        self.assertFalse(fix_after_leg)
+
 
 class TestEnlOutlandingTrip(unittest.TestCase):
     """

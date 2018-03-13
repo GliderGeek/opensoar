@@ -49,6 +49,6 @@ class Trip:
         if leg + 1 <= self.completed_legs():
             return seconds_time_difference(self.fixes[leg + 1]['time'], fix['time']) >= 0
         elif self.outlanded() and leg == self.outlanding_leg():
-            return seconds_time_difference(self.outlanding_fix['time'], fix['time']) >= 0
+            return False
         else:  # leg > self.completed_legs() + 1
             raise ValueError('Leg not started')

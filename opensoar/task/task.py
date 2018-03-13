@@ -1,3 +1,7 @@
+import datetime
+from typing import List
+
+from opensoar.task.waypoint import Waypoint
 from opensoar.utilities.helper_functions import calculate_bearing, calculate_distance, calculate_bearing_difference, \
     interpolate_fixes, double_iterator
 
@@ -7,12 +11,14 @@ class Task:
     ENL_VALUE_THRESHOLD = 500
     ENL_TIME_THRESHOLD = 30
 
-    def __init__(self, waypoints, timezone, start_opening, start_time_buffer, multistart):
+    def __init__(self, waypoints: List[Waypoint], timezone: int, start_opening: datetime.time, start_time_buffer: int,
+                 multistart: bool):
         """
         :param waypoints:
-        :param timezone: time difference wrt utc in hours
-        :param start_opening: 
+        :param timezone: time difference wrt UTC in hours
+        :param start_opening: in UTC
         :param start_time_buffer: in seconds
+        :param multistart: flag whether multistart takes place
         """
 
         self._waypoints = waypoints

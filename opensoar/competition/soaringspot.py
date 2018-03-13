@@ -11,7 +11,7 @@ from opensoar.competition.competitor import Competitor
 from opensoar.task.aat import AAT
 from opensoar.task.race_task import RaceTask
 from opensoar.task.waypoint import Waypoint
-from opensoar.utilities.helper_functions import dm2dd
+from opensoar.utilities.helper_functions import dm2dd, subtract_times
 from opensoar.competition.daily_results_page import DailyResultsPage
 
 
@@ -76,6 +76,10 @@ def get_info_from_comment_lines(parsed_igc_file, start_time_buffer=0):
             start_opening, t_min, multi_start = get_task_rules(line)
         elif line.startswith('LCU::HPTZNTIMEZONE:'):
             timezone = int(line.split(':')[3])
+
+    if start_opening is not None:
+        # convert start opening to UTC time
+        start_opening = subtract_times(start_opening, datetime.time(hour=timezone))
 
     waypoints = get_waypoints(lcu_lines, lseeyou_lines)
 

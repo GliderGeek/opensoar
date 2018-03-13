@@ -3,7 +3,7 @@ import unittest
 import datetime
 
 from opensoar.utilities.helper_functions import seconds_time_difference, interpolate_fixes, dm2dd, dms2dd, \
-    both_none_or_same_float, both_none_or_same_str
+    both_none_or_same_float, both_none_or_same_str, add_times, subtract_times
 from opensoar.utilities.helper_functions import double_iterator
 from opensoar.utilities.helper_functions import triple_iterator
 from opensoar.utilities.helper_functions import calculate_distance
@@ -48,6 +48,24 @@ class TestHelperFunctions(unittest.TestCase):
 
         self.assertEqual(add_seconds(time1, 20), datetime.time(12, 0, 20))
         self.assertEqual(add_seconds(time2, 20), datetime.time(12, 1, 15))
+
+    def test_add_times(self):
+        time1 = datetime.time(12, 0, 0)
+        time2 = datetime.time(1, 10, 20)
+
+        result = add_times(time1, time2)
+        expected_result = datetime.time(13, 10, 20)
+
+        self.assertEqual(result, expected_result)
+
+    def test_subtract_times(self):
+        time1 = datetime.time(12, 20, 10)
+        time2 = datetime.time(1, 10, 5)
+
+        result = subtract_times(time1, time2)
+        expected_result = datetime.time(11, 10, 5)
+
+        self.assertEqual(result, expected_result)
 
     def test_range_with_bounds(self):
         self.assertListEqual(range_with_bounds(start=2, stop=4, interval=2), [2, 4])

@@ -6,6 +6,13 @@ from opensoar.utilities.helper_functions import calculate_distance, double_itera
 class RaceTask(Task):
 
     def __init__(self, waypoints, timezone=None, start_opening=None, start_time_buffer=0, multistart=False):
+        """
+        :param waypoints:           see super()
+        :param timezone:            see super()
+        :param start_opening:       see super()
+        :param start_time_buffer:   see super()
+        :param multistart:          see super()
+        """
         super().__init__(waypoints, timezone, start_opening, start_time_buffer, multistart)
 
         self.distances = self.calculate_task_distances()

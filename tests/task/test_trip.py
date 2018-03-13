@@ -60,11 +60,9 @@ class TestOutlandingTrip(unittest.TestCase):
 
 class TestEnlOutlandingTrip(unittest.TestCase):
     """
-    This testcase covers an ENL outlanding on a race task. number 5, comp id A2:
-    https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/18-meter/task-1-on-2014-06-21/daily
+    This testcase covers an ENL outlanding on a race task. number 10, comp id 2C:
+    https://www.soaringspot.com/en/nk-zweefvliegen-2017/results/18-meter-klasse/task-8-on-2017-05-31/daily
     """
-
-    # todo: fix this failing test
 
     cwd = os.path.dirname(__file__)
     igc_path = os.path.join(cwd, '..', 'igc_files', 'outlanding_race_task_enl.igc')
@@ -73,7 +71,7 @@ class TestEnlOutlandingTrip(unittest.TestCase):
     trip = Trip(race_task, trace)
 
     def test_total_distance(self):
-        self.assertAlmostEqual(sum(self.trip.distances) / 1000, 121.18, places=2)
+        self.assertAlmostEqual(sum(self.trip.distances) / 1000, 378.13, places=2)
 
     def test_completed_legs(self):
-        self.assertEqual(self.trip.completed_legs(), 2)
+        self.assertEqual(self.trip.completed_legs(), 4)

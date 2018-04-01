@@ -99,5 +99,5 @@ class TestSoaringspot(unittest.TestCase):
 
         start_opening, t_min, multi_start = get_task_rules(lseeyou_tsk_line)
 
-        self.assertEquals(start_opening, datetime.time(13, 29, 0))
-        self.assertEquals(t_min, datetime.time(3, 30, 0))
+        self.assertEqual(start_opening, datetime.time(13, 29, 0))
+        self.assertEqual(t_min, datetime.time(3, 30, 0))

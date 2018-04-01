@@ -127,11 +127,18 @@ def height_difference_fixes(fix1, fix2, gps_altitude=True):
 
 def altitude_gain_and_loss(fixes: List[dict], gps_altitude=True):
     if gps_altitude:
-        gain = sum(fix['gps_alt'] for fix in fixes if fix['gps_alt'] >= 0)
-        loss = sum(fix['gps_alt'] for fix in fixes if fix['gps_alt'] < 0)
+        altitude_key = 'gps_alt'
     else:
-        gain = sum(fix['pressure_alt'] for fix in fixes if fix['pressure_alt'] >= 0)
-        loss = sum(fix['pressure_alt'] for fix in fixes if fix['pressure_alt'] < 0)
+        altitude_key = 'pressure_alt'
+
+    gain, loss = 0, 0
+    for fix, next_fix in double_iterator(fixes):
+        delta_h = next_fix[altitude_key] - fix[altitude_key]
+
+        if delta_h >= 0:
+            gain += delta_h
+        else:
+            loss += (-delta_h)
 
     return gain, loss
 

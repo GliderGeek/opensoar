@@ -30,15 +30,13 @@ class TestFlightPhases(unittest.TestCase):
     igc_path = os.path.join(cwd, '..', 'igc_files', 'race_task_completed.igc')
 
     trace = get_trace(igc_path)
-    start_index = 1168
-    last_tp_index = 3250
     race_task = get_task(igc_path)
     trip = Trip(race_task, trace)
-    phases = FlightPhases('pysoar', trace[start_index:last_tp_index+1], trip)
+    phases = FlightPhases('pysoar', trace, trip)
 
     def test_all_phases(self):
 
-        all_phases = self.phases.all_phases()
+        all_phases = self.phases.all_phases(leg='all')
 
         # Check if end fixes are the same as the start fixes of next phase
         for phase, next_phase in double_iterator(all_phases):
@@ -54,7 +52,7 @@ class TestFlightPhases(unittest.TestCase):
 
     def test_thermals(self):
 
-        thermals = self.phases.thermals()
+        thermals = self.phases.thermals(leg='all')
 
         # check if indeed only thermals
         for thermal in thermals:
@@ -67,7 +65,7 @@ class TestFlightPhases(unittest.TestCase):
 
     def test_cruises(self):
 
-        cruises = self.phases.cruises()
+        cruises = self.phases.cruises(leg='all')
 
         # check if indeed only cruises
         for cruise in cruises:

@@ -3,6 +3,7 @@ File with helper functions for soaringspot competitions:
 - reading waypoints from soaringspot igc
 """
 import datetime
+import re
 
 from aerofiles.igc import Reader
 
@@ -101,16 +102,18 @@ def get_waypoints(lcu_lines, lseeyou_lines):
     if len(lcu_lines) - 3 != len(lseeyou_lines):
         raise ValueError('lcu_lines and lseeyou_lines do not have expected lengths!')
 
-    waypoints = []
-    for lcu_lines, lseeyou_line in zip(lcu_lines[2:-1], lseeyou_lines):
-        waypoint = get_waypoint(lcu_lines, lseeyou_line)
+    waypoints = list()
+    number_of_waypoints = len(lseeyou_lines)
+    for lcu_line, lseeyou_line in zip(lcu_lines[2:-1], lseeyou_lines):
+        waypoint = get_waypoint(lcu_line, lseeyou_line, number_of_waypoints)
         waypoints.append(waypoint)
 
     return waypoints
 
 
-def get_waypoint(lcu_line, lseeyou_line):
+def get_waypoint(lcu_line, lseeyou_line, number_of_waypoints):
     """
+    :param number_of_waypoints:
     :param lcu_line: line in soaringspot igc starting with 'LCU::C
     :param lseeyou_line: line in soaringspot igc starting with 'LSEEYOU OZ'
     :return: Waypoint
@@ -119,7 +122,7 @@ def get_waypoint(lcu_line, lseeyou_line):
     lat, lon = get_lat_long(lcu_line)
     r_min, angle_min, r_max, angle_max = get_sector_dimensions(lseeyou_line)
 
-    sector_orientation = get_sector_orientation(lseeyou_line)
+    sector_orientation = get_sector_orientation(lseeyou_line, number_of_waypoints)
     if sector_orientation == 'fixed':
         orientation_angle = get_fixed_orientation_angle(lseeyou_line)
     else:
@@ -160,23 +163,41 @@ def get_fixed_orientation_angle(lseeyou_line):
             return float(component.split("=")[1])
 
 
-def get_sector_orientation(lseeyou_line):
+def get_sector_orientation(lseeyou_line, number_of_waypoints):
+    """
+    :param lseeyou_line: e.g. 'LSEEYOU OZ=-1,Style=1,R1=500m,A1=180'
+    :param number_of_waypoints:
+    :return:
+    """
     components = lseeyou_line.rstrip().split(",")
+
+    assert components[0].startswith('LSEEYOU OZ')
+    waypoint_index = int(components[0].split('=')[1]) + 1
+
     for component in components:
         if component.startswith("Style="):
-            style = int(component.split("=")[1])
-            if style == 0:
-                return "fixed"
-            elif style == 1:
-                return "symmetrical"
-            elif style == 2:
-                return "next"
-            elif style == 3:
-                return "previous"
-            elif style == 4:
-                return "start"
+
+            # remove SpeedStyle from component.
+            component = re.sub(r'SpeedStyle=[0-9]', '', component)
+
+            if waypoint_index == 0:
+                return 'next'
+            elif waypoint_index == number_of_waypoints - 1:
+                return 'previous'
             else:
-                raise ValueError("Unknown taskpoint style: {}".format(style))
+                style = int(component.split("=")[1])
+                if style == 0:
+                    return "fixed"
+                elif style == 1:
+                    return "symmetrical"
+                elif style == 2:
+                    return "next"
+                elif style == 3:
+                    return "previous"
+                elif style == 4:
+                    return "start"
+                else:
+                    raise ValueError("Unknown taskpoint style: {}".format(style))
 
 
 def get_distance_correction(lseeyou_line):

@@ -21,7 +21,47 @@ class TestSoaringspot(unittest.TestCase):
         self.assertEqual(angle, 215)
 
     def test_get_sector_orientation(self):
-        orientation = get_sector_orientation('LSEEYOU OZ=0,Style=1,R1=500m,A1=180')
+        orientation = get_sector_orientation('LSEEYOU OZ=0,Style=1,R1=500m,A1=180', 3)
+        self.assertEqual(orientation, 'symmetrical')
+
+    def test_get_sector_orientation_start(self):
+        """Should always be next, independent on Style. Sometimes soaringspot files have wrong styles."""
+
+        lseeyou_lines = [
+            'LSEEYOU OZ=-1,Style=1,R1=500m,A1=180',
+            'LSEEYOU OZ=-1,Style=2,R1=500m,A1=180',
+            'LSEEYOU OZ=-1,Style=3,R1=500m,A1=180',
+            'LSEEYOU OZ=-1,Style=4,R1=500m,A1=180',
+        ]
+
+        for lseeyou_line in lseeyou_lines:
+            orientation = get_sector_orientation(lseeyou_line, 3)
+            self.assertEqual(orientation, 'next')
+
+    def test_get_sector_orientation_finish(self):
+        """Should always be previous, independent on Style. Sometimes soaringspot files have wrong styles."""
+
+        lseeyou_lines = [
+            'LSEEYOU OZ=2,Style=1,R1=500m,A1=180',
+            'LSEEYOU OZ=2,Style=2,R1=500m,A1=180',
+            'LSEEYOU OZ=2,Style=3,R1=500m,A1=180',
+            'LSEEYOU OZ=2,Style=4,R1=500m,A1=180',
+        ]
+
+        for lseeyou_line in lseeyou_lines:
+            orientation = get_sector_orientation(lseeyou_line, 4)
+            self.assertEqual(orientation, 'previous')
+
+    def test_get_sector_orientation_speedstyle_error(self):
+        """In some of the soaringspot igc files  a wrong SpeedStyle entry is found"""
+
+        orientation = get_sector_orientation('LSEEYOU OZ=-1,Style=2SpeedStyle=0,R1=5000m,A1=180,Line=1', 4)
+        self.assertEqual(orientation, 'next')
+
+        orientation = get_sector_orientation('LSEEYOU OZ=0,Style=1SpeedStyle=3,R1=500m,A1=180,Reduce=1', 4)
+        self.assertEqual(orientation, 'symmetrical')
+
+        orientation = get_sector_orientation('LSEEYOU OZ=0,Style=1SpeedStyle=2,R1=500m,A1=180,Reduce=1', 4)
         self.assertEqual(orientation, 'symmetrical')
 
     def test_get_sector_dimensions(self):
@@ -35,7 +75,7 @@ class TestSoaringspot(unittest.TestCase):
     def test_get_waypoint(self):
         lcu_line = 'LCU::C5215000N00609500EDeventer'
         lseeyou_line = 'LSEEYOU OZ=0,Style=1,R1=500m,A1=180'
-        waypoint = get_waypoint(lcu_line, lseeyou_line)
+        waypoint = get_waypoint(lcu_line, lseeyou_line, 3)
         self.assertTrue(isinstance(waypoint, Waypoint))
         self.assertEqual(waypoint.name, 'Deventer')
         self.assertAlmostEqual(waypoint.latitude, 52.25)

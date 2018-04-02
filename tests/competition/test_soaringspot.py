@@ -100,4 +100,4 @@ class TestSoaringspot(unittest.TestCase):
         start_opening, t_min, multi_start = get_task_rules(lseeyou_tsk_line)
 
         self.assertEqual(start_opening, datetime.time(13, 29, 0))
-        self.assertEqual(t_min, datetime.time(3, 30, 0))
+        self.assertEqual(t_min, datetime.timedelta(hours=3, minutes=30, seconds=0))

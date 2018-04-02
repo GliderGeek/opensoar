@@ -52,7 +52,7 @@ class TestHelperFunctions(unittest.TestCase):
 
     def test_add_times(self):
         time1 = datetime.time(12, 0, 0)
-        time2 = datetime.time(1, 10, 20)
+        time2 = datetime.timedelta(hours=1, minutes=10, seconds=20)
 
         result = add_times(time1, time2)
         expected_result = datetime.time(13, 10, 20)

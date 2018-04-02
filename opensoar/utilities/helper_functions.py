@@ -170,7 +170,7 @@ def seconds_time_difference(time1: datetime.time, time2: datetime.time):
     return time_diff.total_seconds()
 
 
-def add_times(start_time: datetime.time, delta_time: datetime.time):
+def add_times(start_time: datetime.time, delta_time: datetime.timedelta):
     """
     Helper to circumvent problem that normal datetime.time instances can not be added.
     :param start_time:
@@ -179,9 +179,7 @@ def add_times(start_time: datetime.time, delta_time: datetime.time):
     """
     full_datetime_start = datetime.datetime.combine(datetime.date.today(), start_time)
 
-    full_datetime_result = full_datetime_start + datetime.timedelta(
-        hours=delta_time.hour, minutes=delta_time.minute, seconds=delta_time.second)
-
+    full_datetime_result = full_datetime_start + delta_time
     return full_datetime_result.time()
 
 
@@ -211,7 +209,9 @@ def add_seconds(time: datetime.time, seconds: int) -> datetime.time:
     additional_minutes = additional_seconds // 60
     additional_seconds -= additional_minutes * 60
 
-    return add_times(time, datetime.time(additional_hours, additional_minutes, additional_seconds))
+    return add_times(time, datetime.timedelta(hours=additional_hours,
+                                              minutes=additional_minutes,
+                                              seconds=additional_seconds))
 
 
 def range_with_bounds(start: int, stop: int, interval: int) -> List[int]:

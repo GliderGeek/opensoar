@@ -29,7 +29,7 @@ def get_task_rules(lseeyou_tsk_line):
         if element.startswith('TaskTime'):
             time = element.split('=')[1]
             hours, minutes, seconds = [int(part) for part in time.split(':')]
-            t_min = datetime.time(hours, minutes, seconds)
+            t_min = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
         elif element.startswith('NoStart'):
             time = element.split('=')[1]
             hours, minutes, seconds = [int(part) for part in time.split(':')]
@@ -249,9 +249,9 @@ class SoaringSpotDaily(DailyResultsPage):
 
     def _get_competition_day_info(self):
         if self.url.startswith('https://') or self.url.startswith('http://'):
-            _, _, _, _, competition_name, _, plane_class, date_description, _ = self.url.split('/')
+            _, _, _, _, competition_name, _, plane_class, date_description, *_ = self.url.split('/')
         else:
-            _, _, competition_name, _, plane_class, date_description, _ = self.url.split('/')
+            _, _, competition_name, _, plane_class, date_description, *_ = self.url.split('/')
 
         date_us = date_description[-10::]
         date = datetime.date(int(date_us[0:4]), int(date_us[5:7]), int(date_us[-2::]))

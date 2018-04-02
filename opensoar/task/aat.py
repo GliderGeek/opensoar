@@ -2,13 +2,13 @@ import datetime
 from copy import deepcopy
 
 from opensoar.task.task import Task
-from opensoar.utilities.helper_functions import double_iterator, calculate_distance, seconds_time_difference, \
+from opensoar.utilities.helper_functions import double_iterator, calculate_distance, \
     calculate_bearing, calculate_destination, seconds_time_difference_fixes, add_times
 
 
 class AAT(Task):
 
-    def __init__(self, waypoints, t_min: datetime.time, timezone: int=None, start_opening: datetime.time=None,
+    def __init__(self, waypoints, t_min: datetime.timedelta, timezone: int=None, start_opening: datetime.time=None,
                  start_time_buffer: int=0, multistart: bool=False):
         """
         :param waypoints:           see super()
@@ -49,7 +49,7 @@ class AAT(Task):
 
     def _determine_finish_time(self, fixes, outlanding_fix):
         total_trip_time = seconds_time_difference_fixes(fixes[0], fixes[-1])
-        minimum_trip_time = seconds_time_difference(datetime.time(0, 0), self._t_min)
+        minimum_trip_time = self._t_min.total_seconds()
         if outlanding_fix is None and total_trip_time < minimum_trip_time:
             finish_time = add_times(fixes[0]['time'], self._t_min)
         else:

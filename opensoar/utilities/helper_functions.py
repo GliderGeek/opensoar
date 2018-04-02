@@ -194,8 +194,24 @@ def subtract_times(start_time: datetime.time, delta_time: datetime.time):
     return full_datetime_result.time()
 
 
-def add_seconds(time, seconds):
-    return add_times(time, datetime.time(0, 0, seconds))
+def add_seconds(time: datetime.time, seconds: int) -> datetime.time:
+    """
+    Add seconds to datetime.time object and return resulting datetime.time object.
+
+    :param time:
+    :param seconds: not limited to 0-59.
+    :return:
+    """
+
+    additional_seconds = seconds
+
+    additional_hours = additional_seconds // 3600
+    additional_seconds -= additional_hours * 3600
+
+    additional_minutes = additional_seconds // 60
+    additional_seconds -= additional_minutes * 60
+
+    return add_times(time, datetime.time(additional_hours, additional_minutes, additional_seconds))
 
 
 def range_with_bounds(start: int, stop: int, interval: int) -> List[int]:

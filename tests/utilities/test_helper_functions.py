@@ -48,6 +48,7 @@ class TestHelperFunctions(unittest.TestCase):
 
         self.assertEqual(add_seconds(time1, 20), datetime.time(12, 0, 20))
         self.assertEqual(add_seconds(time2, 20), datetime.time(12, 1, 15))
+        self.assertEqual(add_seconds(time1, 3665), datetime.time(13, 1, 5))
 
     def test_add_times(self):
         time1 = datetime.time(12, 0, 0)

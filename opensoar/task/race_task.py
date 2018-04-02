@@ -1,16 +1,24 @@
-from datetime import timedelta
-
 from opensoar.task.task import Task
 from opensoar.utilities.helper_functions import calculate_distance, double_iterator, \
-    seconds_time_difference_fixes
+    seconds_time_difference_fixes, add_seconds
 
 
 class RaceTask(Task):
 
-    def __init__(self, waypoints, start_opening=None, start_time_buffer=0):
-        super().__init__(waypoints, start_opening, start_time_buffer)
+    def __init__(self, waypoints, timezone=None, start_opening=None, start_time_buffer=0, multistart=False):
+        """
+        :param waypoints:           see super()
+        :param timezone:            see super()
+        :param start_opening:       see super()
+        :param start_time_buffer:   see super()
+        :param multistart:          see super()
+        """
+        super().__init__(waypoints, timezone, start_opening, start_time_buffer, multistart)
 
         self.distances = self.calculate_task_distances()
+
+    def __eq__(self, other):
+        return super().__eq__(other)
 
     @property
     def total_distance(self):
@@ -97,7 +105,7 @@ class RaceTask(Task):
             if self.start_opening is None:
                 after_start_opening = True
             else:
-                after_start_opening = fix['time'] + timedelta(seconds=self.start_time_buffer) > self.start_opening
+                after_start_opening = add_seconds(fix['time'], self.start_time_buffer) > self.start_opening
 
             if leg == -1 and after_start_opening:
                 if self.started(fix_minus1, fix):

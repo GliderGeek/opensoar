@@ -1,12 +1,13 @@
 import os
 import unittest
 import datetime
+from copy import deepcopy
 
 from opensoar.task.trip import Trip
 from opensoar.thermals.flight_phases import FlightPhases
 from opensoar.utilities.helper_functions import double_iterator, seconds_time_difference
 
-from tests.task.helper_functions import get_trace, get_race_task
+from tests.task.helper_functions import get_trace, get_task
 
 
 class TestFlightPhases(unittest.TestCase):
@@ -25,17 +26,17 @@ class TestFlightPhases(unittest.TestCase):
         datetime.time(13, 4, 52),
     ]
 
-    igc_path = os.path.join('tests', 'igc_files', 'race_task_completed.igc')
+    cwd = os.path.dirname(__file__)
+    igc_path = os.path.join(cwd, '..', 'igc_files', 'race_task_completed.igc')
+
     trace = get_trace(igc_path)
-    start_index = 1168
-    last_tp_index = 3240
-    race_task = get_race_task(igc_path)
+    race_task = get_task(igc_path)
     trip = Trip(race_task, trace)
-    phases = FlightPhases('pysoar', trace[start_index:last_tp_index+1], trip)
+    phases = FlightPhases('pysoar', trace, trip)
 
     def test_all_phases(self):
 
-        all_phases = self.phases.all_phases()
+        all_phases = self.phases.all_phases(leg='all')
 
         # Check if end fixes are the same as the start fixes of next phase
         for phase, next_phase in double_iterator(all_phases):
@@ -51,7 +52,7 @@ class TestFlightPhases(unittest.TestCase):
 
     def test_thermals(self):
 
-        thermals = self.phases.thermals()
+        thermals = self.phases.thermals(leg='all')
 
         # check if indeed only thermals
         for thermal in thermals:
@@ -64,7 +65,7 @@ class TestFlightPhases(unittest.TestCase):
 
     def test_cruises(self):
 
-        cruises = self.phases.cruises()
+        cruises = self.phases.cruises(leg='all')
 
         # check if indeed only cruises
         for cruise in cruises:
@@ -107,3 +108,47 @@ class TestFlightPhases(unittest.TestCase):
         # check all cruises
         for cruise in cruises_leg2:
             self.assertTrue(cruise.is_cruise)
+
+    def test_phases_on_leg_spanning_complete_leg(self):
+        """This test covers the case when the phase starts before the start of the leg and ends after
+        the end of the leg."""
+
+        trace = [
+            {'time': datetime.time(11, 33, 26), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
+             'pressure_alt': -37, 'gps_alt': 47, 'FXA': 2, 'SIU': 1},
+            {'time': datetime.time(11, 33, 34), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
+             'pressure_alt': -37, 'gps_alt': 47, 'FXA': 2, 'SIU': 1},
+            {'time': datetime.time(11, 33, 42), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
+             'pressure_alt': -37, 'gps_alt': 47, 'FXA': 2, 'SIU': 1},
+            {'time': datetime.time(11, 33, 50), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
+             'pressure_alt': -37, 'gps_alt': 48, 'FXA': 1, 'SIU': 1},
+            {'time': datetime.time(11, 33, 58), 'lat': 52.468183333333336, 'lon': 6.340216666666667, 'validity': 'A',
+             'pressure_alt': -37, 'gps_alt': 48, 'FXA': 1, 'SIU': 1},
+            {'time': datetime.time(11, 34, 6), 'lat': 52.46816666666667, 'lon': 6.339666666666667, 'validity': 'A',
+             'pressure_alt': -38, 'gps_alt': 49, 'FXA': 1, 'SIU': 1},
+        ]
+
+        trip = deepcopy(self.trip)
+        trip.fixes = [
+            trace[1],
+            trace[4]
+        ]
+
+        phases = FlightPhases('pysoar', trace, trip)
+
+        # there should only be one phase: starting at first fix and ending at last fix of trace
+        # these are conditions to a correct test setup, therefore no actual tests
+        assert len(phases._phases) == 1
+        assert phases._phases[0].fixes[0]['time'] == trace[0]['time']
+        assert phases._phases[0].fixes[-1]['time'] == trace[-1]['time']
+
+        all_phases_leg0 = phases.all_phases(leg=0)
+
+        # check 1 phase found
+        self.assertEqual(len(all_phases_leg0), 1)
+
+        # check if phase correctly starts and ends at the trip fixes and not the trace fixes
+        first_phase_fix = all_phases_leg0[0].fixes[0]
+        last_phase_fix = all_phases_leg0[0].fixes[-1]
+        self.assertEqual(first_phase_fix['time'], trip.fixes[0]['time'])
+        self.assertEqual(last_phase_fix['time'], trip.fixes[-1]['time'])

@@ -1,14 +1,18 @@
 import datetime
 from typing import List
 
+from aerofiles.igc import Reader
+
 from opensoar.competition.competition_day import CompetitionDay
 from opensoar.competition.competitor import Competitor
 from opensoar.competition.daily_results_page import DailyResultsPage
+from opensoar.task.aat import AAT
+from opensoar.task.race_task import RaceTask
 from opensoar.task.waypoint import Waypoint
 from opensoar.utilities.helper_functions import dm2dd
 
 
-def get_task_info(lscsd_lines, lscsr_lines):
+def get_task_and_competitor_info(lscsd_lines, lscsr_lines):
     task_info = {
         'tp': [],
         's_line_rad': None,
@@ -22,7 +26,14 @@ def get_task_info(lscsd_lines, lscsr_lines):
         'f_cyl_rad': None,
         'tp_aat_rad': [],
         'tp_aat_angle': [],
-        'aat': False
+        'aat': False,
+        'time_window': None,
+        'gate_open': None,
+    }
+
+    competitor_information = {
+        'pilot_name': None,
+        'competition_id': None,
     }
 
     for line in [*lscsd_lines, *lscsr_lines]:
@@ -47,8 +58,18 @@ def get_task_info(lscsd_lines, lscsr_lines):
             else:
                 task_info['tp_aat_angle'].append(int(((line.split(':'))[3])[0:-1]))
             task_info['aat'] = True
+        elif line.startswith('LSCSDTime window'):
+            _, hours, minutes = line.split(':')
+            task_info['time_window'] = datetime.time(int(hours), int(minutes))
+        elif line.startswith('LSCSDGate open'):
+            _, hours, minutes = line.split(':')
+            task_info['gate_open'] = datetime.time(int(hours), int(minutes))
+        elif line.startswith('LSCSDName'):
+            competitor_information['pilot_name'] = line.split(':')[1]
+        elif line.startswith('LSCSDCID'):
+            competitor_information['competition_id'] = line.split(':')[1]
 
-    return task_info
+    return task_info, competitor_information
 
 
 def get_waypoint_name_lat_long(lscs_line_tp):
@@ -121,9 +142,7 @@ def get_waypoint(lscs_line_tp, task_info, n, n_tp):
                     orientation_angle)
 
 
-def get_waypoints(lscsc_lines, lscsd_lines, lscsr_lines):
-    task_info = get_task_info(lscsd_lines, lscsr_lines)
-
+def get_waypoints(lscsc_lines, task_info):
     waypoints = list()
     for n, lscsc_line in enumerate(lscsc_lines):
         waypoint = get_waypoint(lscsc_line, task_info, n, len(lscsc_lines))
@@ -132,7 +151,8 @@ def get_waypoints(lscsc_lines, lscsd_lines, lscsr_lines):
     return waypoints
 
 
-def get_waypoints_from_parsed_file(parsed_igc_file):
+def get_info_from_comment_lines(parsed_igc_file, start_time_buffer=0):
+
     lscsd_lines = list()
     lscsr_lines = list()
     lscsc_lines = list()
@@ -147,15 +167,28 @@ def get_waypoints_from_parsed_file(parsed_igc_file):
         elif line.startswith('LSCSR'):
             lscsr_lines.append(line)
 
-    return get_waypoints(lscsc_lines, lscsd_lines, lscsr_lines)
+    task_information, competitor_information = get_task_and_competitor_info(lscsd_lines, lscsr_lines)
+    waypoints = get_waypoints(lscsc_lines, task_information)
+
+    aat = task_information['aat']
+    t_min = task_information.get('time_window', None)
+    start_opening = task_information.get('gate_open', None)
+    timezone = None  # unclear where to get timezone information from strepla igc file
+
+    if aat:
+        task = AAT(waypoints, t_min, timezone, start_opening, start_time_buffer)
+    else:
+        task = RaceTask(waypoints, timezone, start_opening, start_time_buffer)
+
+    return task, task_information, competitor_information
 
 
 class StreplaDaily(DailyResultsPage):
 
-    def __init__(self, url, target_directory):
-        super().__init__(url, target_directory)
+    def __init__(self, url):
+        super().__init__(url)
 
-    def get_competition_day(self) -> CompetitionDay:
+    def _get_competition_day_info(self):
         soup = self._get_html_soup()
 
         competition_name = soup.find('div', id="public_contest_info").find('span', id="ctl00_lblCompName").text
@@ -169,12 +202,12 @@ class StreplaDaily(DailyResultsPage):
         dd, mm, yyyy = str(raw_date).split('.')
         date = datetime.date(int(yyyy), int(mm), int(dd))
 
-        return CompetitionDay(competition_name, date, plane_class, self.get_competitors())
+        return competition_name, date, plane_class
 
-    def get_competitors(self) -> List[Competitor]:
+    def _get_table_info(self) -> List[dict]:
         soup = self._get_html_soup()
 
-        competitors = list()
+        competitors_info = list()
 
         table = soup.find("table")
         num_comp = len(table.findAll('tr'))
@@ -185,12 +218,54 @@ class StreplaDaily(DailyResultsPage):
                 ranking = int(comp.findAll('span')[0].text)
                 relative_file_url = comp.findAll('a')[0].get('href')
                 competition_id = comp.findAll('span')[1].text
-                plane = comp.findAll('span')[3].text
+                plane_model = comp.findAll('span')[3].text
 
                 igc_url = f"http://www.strepla.de/scs/Public/{relative_file_url}"
 
-                competitor = Competitor(trace=list(), competition_id=competition_id, airplane=plane, ranking=ranking,
-                                        igc_url=igc_url)
-                competitors.append(competitor)
+                competitors_info.append(dict(plane_model=plane_model, ranking=ranking, competition_id=competition_id,
+                                             igc_url=igc_url))
 
-        return competitors
+        return competitors_info
+
+    def generate_competition_day(self, target_directory, download_progress=None, start_time_buffer=0) -> CompetitionDay:
+
+        # get info from website
+        competition_name, date, plane_class = self._get_competition_day_info()
+        table_info = self._get_table_info()
+
+        self.set_igc_directory(target_directory, competition_name, plane_class, date)
+
+        competitors = list()
+        tasks = list()
+        files_downloaded = 0
+        for table_entry in table_info:
+            competition_id = table_entry['competition_id']
+            igc_url = table_entry['igc_url']
+            plane_model = table_entry['ranking']
+            ranking = table_entry['plane_model']
+
+            # download files
+            file_path = self.download_flight(igc_url, competition_id)
+
+            files_downloaded += 1
+            if download_progress is not None:
+                download_progress(files_downloaded, len(table_info))
+
+            with open(file_path, 'r') as f:
+                parsed_igc_file = Reader().read(f)
+
+            trace_errors, trace = parsed_igc_file['fix_records']
+
+            # get info from file
+            task, task_info, competitor_information = get_info_from_comment_lines(parsed_igc_file, start_time_buffer)
+            pilot_name = competitor_information.get('pilot_name', None)
+
+            competitor = Competitor(trace, competition_id, plane_model, ranking, pilot_name)
+
+            competitors.append(competitor)
+            tasks.append(task)
+
+        # Select task from tasks list
+        task = self._select_task(tasks)
+
+        return CompetitionDay(competition_name, date, plane_class, competitors, task)

@@ -1,4 +1,6 @@
-from opensoar.utilities.helper_functions import calculate_distance
+from math import isclose
+
+from opensoar.utilities.helper_functions import calculate_distance, both_none_or_same_float, both_none_or_same_str
 from opensoar.utilities.helper_functions import calculate_bearing
 from opensoar.utilities.helper_functions import calculate_bearing_difference
 from opensoar.utilities.helper_functions import calculate_average_bearing
@@ -13,12 +15,12 @@ class Waypoint(object):
         :param name:
         :param latitude: latitude in degrees
         :param longitude: in degrees
-        :param r_min: in m
+        :param r_min: in m or None
         :param angle_min: in degrees
         :param r_max: in m
         :param angle_max: in degrees
         :param is_line: boolean denoting whether waypoint is a line
-        :param sector_orientation: in degrees. valid values: 'fixed', 'symmetrical', 'next', 'previous', 'start'
+        :param sector_orientation:  valid values: 'fixed', 'symmetrical', 'next', 'previous', 'start'
         :param distance_correction: optional argument. valid values: 'displace_tp', 'shorten_legs'
         :param orientation_angle: optional argument. Should only be set when sector_orientation='fixed'.
         """
@@ -37,6 +39,20 @@ class Waypoint(object):
         self.is_line = is_line
         self.sector_orientation = sector_orientation
         self.distance_correction = distance_correction
+
+    def __eq__(self, other):
+
+        return (self.name == other.name and
+                isclose(self.latitude, other.latitude) and
+                isclose(self.longitude, other.longitude) and
+                both_none_or_same_float(self.r_min, other.r_min) and
+                both_none_or_same_float(self.angle_min, other.angle_min) and
+                isclose(self.r_max, other.r_max) and
+                isclose(self.angle_max, other.angle_max) and
+                isclose(self.orientation_angle, other.orientation_angle) and
+                self.is_line == other.is_line and
+                both_none_or_same_str(self.sector_orientation, other.sector_orientation) and
+                both_none_or_same_str(self.distance_correction, other.distance_correction))
 
     @property
     def fix(self):

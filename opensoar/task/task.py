@@ -1,3 +1,7 @@
+import datetime
+from typing import List
+
+from opensoar.task.waypoint import Waypoint
 from opensoar.utilities.helper_functions import calculate_bearing, calculate_distance, calculate_bearing_difference, \
     interpolate_fixes, double_iterator
 
@@ -7,18 +11,41 @@ class Task:
     ENL_VALUE_THRESHOLD = 500
     ENL_TIME_THRESHOLD = 30
 
-    def __init__(self, waypoints, start_opening, start_time_buffer):
+    def __init__(self, waypoints: List[Waypoint], timezone: int, start_opening: datetime.time, start_time_buffer: int,
+                 multistart: bool):
         """
-        :param waypoints: 
-        :param start_opening: 
+        :param waypoints:
+        :param timezone: time difference wrt UTC in hours
+        :param start_opening: in UTC
         :param start_time_buffer: in seconds
+        :param multistart: flag whether multistart takes place
         """
 
-        self.waypoints = waypoints
+        self._waypoints = waypoints
+        self.timezone = timezone
         self.start_opening = start_opening
         self.start_time_buffer = start_time_buffer
+        self.multistart = multistart
 
         self.set_orientation_angles(self.waypoints)
+
+    def __eq__(self, other):
+        same_number_waypoints = len(self.waypoints) == len(other.waypoints)
+
+        if not same_number_waypoints:
+            return False
+        else:
+            for waypoint, other_waypoint in zip(self.waypoints, other.waypoints):
+                if waypoint != other_waypoint:
+                    return False
+
+        return (self.start_opening == other.start_opening and
+                self.start_time_buffer == other.start_time_buffer)
+
+    @property
+    def waypoints(self):
+        # waypoints may not be altered because subclasses perform tasks to calculate distances based on waypoints.
+        return self._waypoints
 
     @property
     def no_tps(self):

@@ -2,7 +2,8 @@ import unittest
 
 import datetime
 
-from opensoar.utilities.helper_functions import seconds_time_difference, interpolate_fixes, dm2dd, dms2dd
+from opensoar.utilities.helper_functions import seconds_time_difference, interpolate_fixes, dm2dd, dms2dd, \
+    both_none_or_same_float, both_none_or_same_str, add_times, subtract_times
 from opensoar.utilities.helper_functions import double_iterator
 from opensoar.utilities.helper_functions import triple_iterator
 from opensoar.utilities.helper_functions import calculate_distance
@@ -47,6 +48,25 @@ class TestHelperFunctions(unittest.TestCase):
 
         self.assertEqual(add_seconds(time1, 20), datetime.time(12, 0, 20))
         self.assertEqual(add_seconds(time2, 20), datetime.time(12, 1, 15))
+        self.assertEqual(add_seconds(time1, 3665), datetime.time(13, 1, 5))
+
+    def test_add_times(self):
+        time1 = datetime.time(12, 0, 0)
+        time2 = datetime.timedelta(hours=1, minutes=10, seconds=20)
+
+        result = add_times(time1, time2)
+        expected_result = datetime.time(13, 10, 20)
+
+        self.assertEqual(result, expected_result)
+
+    def test_subtract_times(self):
+        time1 = datetime.time(12, 20, 10)
+        time2 = datetime.time(1, 10, 5)
+
+        result = subtract_times(time1, time2)
+        expected_result = datetime.time(11, 10, 5)
+
+        self.assertEqual(result, expected_result)
 
     def test_range_with_bounds(self):
         self.assertListEqual(range_with_bounds(start=2, stop=4, interval=2), [2, 4])
@@ -103,3 +123,31 @@ class TestHelperFunctions(unittest.TestCase):
 
         dd = dms2dd(degrees=9.0, minutes=34, seconds=54, cardinal='E')
         self.assertAlmostEqual(dd, 9.5817, places=4)
+
+    def test_both_none_or_same_float(self):
+
+        test_cases = [
+            (None, None, True),
+            (None, 0.3, False),
+            (0.3, None, False),
+            (0.3, 0.3, True),
+            (0.3, 0.31, False),
+        ]
+
+        for var1, var2, expected_bool in test_cases:
+            result = both_none_or_same_float(var1, var2)
+            self.assertEqual(expected_bool, result)
+
+    def test_both_none_or_same_str(self):
+
+        test_cases = [
+            (None, None, True),
+            (None, 'test', False),
+            ('test', None, False),
+            ('test', 'test', True),
+            ('test2', 'test', False),
+        ]
+
+        for var1, var2, expected_bool in test_cases:
+            result = both_none_or_same_str(var1, var2)
+            self.assertEqual(expected_bool, result)

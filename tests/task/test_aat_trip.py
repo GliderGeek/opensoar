@@ -4,15 +4,17 @@ import unittest
 import os
 
 from opensoar.task.trip import Trip
-from tests.task.helper_functions import get_aat, get_trace
+from tests.task.helper_functions import get_trace, get_task
 
 
 class TestAATTrip(unittest.TestCase):
 
     # https://www.soaringspot.com/en_gb/cae-nls-nederlandse-kampioenschappen-zweefvliegen-2012/results/club/task-10-on-2012-05-26/daily
     # competitor 3, SP
-    igc_path = os.path.join('tests', 'igc_files', 'aat_completed.igc')
-    aat = get_aat(igc_path)
+
+    cwd = os.path.dirname(__file__)
+    igc_path = os.path.join(cwd, '..', 'igc_files', 'aat_completed.igc')
+    aat = get_task(igc_path)
     trace = get_trace(igc_path)
     trip = Trip(aat, trace)
 
@@ -38,8 +40,9 @@ class TestAATTripOutlandingOutside(unittest.TestCase):
 
     # https://www.soaringspot.com/en_gb/cae-nls-nederlandse-kampioenschappen-zweefvliegen-2012/results/club/task-10-on-2012-05-26/daily
     # competitor 5, CEO
-    igc_path = os.path.join('tests', 'igc_files', 'aat_outlanding_outside_sector.igc')
-    aat = get_aat(igc_path)
+    cwd = os.path.dirname(__file__)
+    igc_path = os.path.join(cwd, '..', 'igc_files', 'aat_outlanding_outside_sector.igc')
+    aat = get_task(igc_path)
     trace = get_trace(igc_path)
     trip = Trip(aat, trace)
 
@@ -73,8 +76,9 @@ class TestAATTripOutlandingInside(unittest.TestCase):
 
     # https://www.soaringspot.com/en_gb/cae-nls-nederlandse-kampioenschappen-zweefvliegen-2012/results/club/task-10-on-2012-05-26/daily
     # competitor 7, YES
-    igc_path = os.path.join('tests', 'igc_files', 'aat_outlanding_inside_sector.igc')
-    aat = get_aat(igc_path)
+    cwd = os.path.dirname(__file__)
+    igc_path = os.path.join(cwd, '..', 'igc_files', 'aat_outlanding_inside_sector.igc')
+    aat = get_task(igc_path)
     trace = get_trace(igc_path)
     trip = Trip(aat, trace)
 

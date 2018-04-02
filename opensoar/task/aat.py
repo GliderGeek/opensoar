@@ -2,17 +2,36 @@ import datetime
 from copy import deepcopy
 
 from opensoar.task.task import Task
-from opensoar.utilities.helper_functions import double_iterator, calculate_distance, seconds_time_difference, \
+from opensoar.utilities.helper_functions import double_iterator, calculate_distance, \
     calculate_bearing, calculate_destination, seconds_time_difference_fixes, add_times
 
 
 class AAT(Task):
 
-    def __init__(self, waypoints, t_min: datetime.time, start_opening=None, start_time_buffer=0):
-        super().__init__(waypoints, start_opening, start_time_buffer)
+    def __init__(self, waypoints, t_min: datetime.timedelta, timezone: int=None, start_opening: datetime.time=None,
+                 start_time_buffer: int=0, multistart: bool=False):
+        """
+        :param waypoints:           see super()
+        :param t_min:               minimal time to complete task
+        :param timezone:            see super()
+        :param start_opening:       see super()
+        :param start_time_buffer:   see super()
+        :param multistart:          see super()
+        """
+        super().__init__(waypoints, timezone, start_opening, start_time_buffer, multistart)
 
         self._t_min = t_min
         self._nominal_distances = self._calculate_nominal_distances()
+
+    def __eq__(self, other):
+        if self.t_min != other.t_min:
+            return False
+        else:
+            return super().__eq__(other)
+
+    @property
+    def t_min(self):
+        return self._t_min
 
     def _calculate_nominal_distances(self):
         distances = list()
@@ -30,7 +49,7 @@ class AAT(Task):
 
     def _determine_finish_time(self, fixes, outlanding_fix):
         total_trip_time = seconds_time_difference_fixes(fixes[0], fixes[-1])
-        minimum_trip_time = seconds_time_difference(datetime.time(0, 0), self._t_min)
+        minimum_trip_time = self._t_min.total_seconds()
         if outlanding_fix is None and total_trip_time < minimum_trip_time:
             finish_time = add_times(fixes[0]['time'], self._t_min)
         else:

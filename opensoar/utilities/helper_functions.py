@@ -118,8 +118,42 @@ def calculate_average_bearing(bearing1, bearing2):
     return (avg_bearing + 360) % 360
 
 
+def height_difference_fixes(fix1, fix2, gps_altitude=True):
+    if gps_altitude:
+        return fix2['gps_alt'] - fix1['gps_alt']
+    else:
+        return fix2['pressure_alt'] - fix1['pressure_alt']
+
+
+def altitude_gain_and_loss(fixes: List[dict], gps_altitude=True):
+    if gps_altitude:
+        altitude_key = 'gps_alt'
+    else:
+        altitude_key = 'pressure_alt'
+
+    gain, loss = 0, 0
+    for fix, next_fix in double_iterator(fixes):
+        delta_h = next_fix[altitude_key] - fix[altitude_key]
+
+        if delta_h >= 0:
+            gain += delta_h
+        else:
+            loss += (-delta_h)
+
+    return gain, loss
+
+
 def seconds_time_difference_fixes(fix1, fix2):
     return seconds_time_difference(fix1['time'], fix2['time'])
+
+
+def total_distance_travelled(fixes: List[dict]):
+    """Calculates the total distance, summing over the inter fix distances"""
+    distance = 0
+    for fix, next_fix in double_iterator(fixes):
+        distance += calculate_distance(fix, next_fix)
+
+    return distance
 
 
 def seconds_time_difference(time1: datetime.time, time2: datetime.time):
@@ -136,7 +170,7 @@ def seconds_time_difference(time1: datetime.time, time2: datetime.time):
     return time_diff.total_seconds()
 
 
-def add_times(start_time: datetime.time, delta_time: datetime.time):
+def add_times(start_time: datetime.time, delta_time: datetime.timedelta):
     """
     Helper to circumvent problem that normal datetime.time instances can not be added.
     :param start_time:
@@ -145,14 +179,39 @@ def add_times(start_time: datetime.time, delta_time: datetime.time):
     """
     full_datetime_start = datetime.datetime.combine(datetime.date.today(), start_time)
 
-    full_datetime_result = full_datetime_start + datetime.timedelta(
+    full_datetime_result = full_datetime_start + delta_time
+    return full_datetime_result.time()
+
+
+def subtract_times(start_time: datetime.time, delta_time: datetime.time):
+    full_datetime_start = datetime.datetime.combine(datetime.date.today(), start_time)
+
+    full_datetime_result = full_datetime_start - datetime.timedelta(
         hours=delta_time.hour, minutes=delta_time.minute, seconds=delta_time.second)
 
     return full_datetime_result.time()
 
 
-def add_seconds(time, seconds):
-    return add_times(time, datetime.time(0, 0, seconds))
+def add_seconds(time: datetime.time, seconds: int) -> datetime.time:
+    """
+    Add seconds to datetime.time object and return resulting datetime.time object.
+
+    :param time:
+    :param seconds: not limited to 0-59.
+    :return:
+    """
+
+    additional_seconds = seconds
+
+    additional_hours = additional_seconds // 3600
+    additional_seconds -= additional_hours * 3600
+
+    additional_minutes = additional_seconds // 60
+    additional_seconds -= additional_minutes * 60
+
+    return add_times(time, datetime.timedelta(hours=additional_hours,
+                                              minutes=additional_minutes,
+                                              seconds=additional_seconds))
 
 
 def range_with_bounds(start: int, stop: int, interval: int) -> List[int]:
@@ -213,3 +272,19 @@ def dm2dd(degrees, minutes, cardinal):
     if cardinal in ('S', 'W'):
         dd *= -1
     return dd
+
+
+def both_none_or_same_float(var1, var2):
+    """Determine wheter both vars are the same. Either None or float"""
+    if var1 is None:
+        return var2 is None
+    else:
+        return var2 is not None and isclose(var1, var2)
+
+
+def both_none_or_same_str(var1, var2):
+    """Determine wheter both vars are the same. Either None or float"""
+    if var1 is None:
+        return var2 is None
+    else:
+        return var2 is not None and var1 == var2

@@ -3,7 +3,7 @@ import unittest
 import datetime
 
 from opensoar.competition.soaringspot import get_lat_long, get_fixed_orientation_angle, get_sector_orientation, \
-    get_sector_dimensions, get_waypoint, get_waypoints, SoaringSpotDaily
+    get_sector_dimensions, get_waypoint, get_waypoints, SoaringSpotDaily, get_task_rules
 from opensoar.task.waypoint import Waypoint
 
 
@@ -21,7 +21,47 @@ class TestSoaringspot(unittest.TestCase):
         self.assertEqual(angle, 215)
 
     def test_get_sector_orientation(self):
-        orientation = get_sector_orientation('LSEEYOU OZ=0,Style=1,R1=500m,A1=180')
+        orientation = get_sector_orientation('LSEEYOU OZ=0,Style=1,R1=500m,A1=180', 3)
+        self.assertEqual(orientation, 'symmetrical')
+
+    def test_get_sector_orientation_start(self):
+        """Should always be next, independent on Style. Sometimes soaringspot files have wrong styles."""
+
+        lseeyou_lines = [
+            'LSEEYOU OZ=-1,Style=1,R1=500m,A1=180',
+            'LSEEYOU OZ=-1,Style=2,R1=500m,A1=180',
+            'LSEEYOU OZ=-1,Style=3,R1=500m,A1=180',
+            'LSEEYOU OZ=-1,Style=4,R1=500m,A1=180',
+        ]
+
+        for lseeyou_line in lseeyou_lines:
+            orientation = get_sector_orientation(lseeyou_line, 3)
+            self.assertEqual(orientation, 'next')
+
+    def test_get_sector_orientation_finish(self):
+        """Should always be previous, independent on Style. Sometimes soaringspot files have wrong styles."""
+
+        lseeyou_lines = [
+            'LSEEYOU OZ=2,Style=1,R1=500m,A1=180',
+            'LSEEYOU OZ=2,Style=2,R1=500m,A1=180',
+            'LSEEYOU OZ=2,Style=3,R1=500m,A1=180',
+            'LSEEYOU OZ=2,Style=4,R1=500m,A1=180',
+        ]
+
+        for lseeyou_line in lseeyou_lines:
+            orientation = get_sector_orientation(lseeyou_line, 4)
+            self.assertEqual(orientation, 'previous')
+
+    def test_get_sector_orientation_speedstyle_error(self):
+        """In some of the soaringspot igc files  a wrong SpeedStyle entry is found"""
+
+        orientation = get_sector_orientation('LSEEYOU OZ=-1,Style=2SpeedStyle=0,R1=5000m,A1=180,Line=1', 4)
+        self.assertEqual(orientation, 'next')
+
+        orientation = get_sector_orientation('LSEEYOU OZ=0,Style=1SpeedStyle=3,R1=500m,A1=180,Reduce=1', 4)
+        self.assertEqual(orientation, 'symmetrical')
+
+        orientation = get_sector_orientation('LSEEYOU OZ=0,Style=1SpeedStyle=2,R1=500m,A1=180,Reduce=1', 4)
         self.assertEqual(orientation, 'symmetrical')
 
     def test_get_sector_dimensions(self):
@@ -35,7 +75,7 @@ class TestSoaringspot(unittest.TestCase):
     def test_get_waypoint(self):
         lcu_line = 'LCU::C5215000N00609500EDeventer'
         lseeyou_line = 'LSEEYOU OZ=0,Style=1,R1=500m,A1=180'
-        waypoint = get_waypoint(lcu_line, lseeyou_line)
+        waypoint = get_waypoint(lcu_line, lseeyou_line, 3)
         self.assertTrue(isinstance(waypoint, Waypoint))
         self.assertEqual(waypoint.name, 'Deventer')
         self.assertAlmostEqual(waypoint.latitude, 52.25)
@@ -73,23 +113,31 @@ class TestSoaringspot(unittest.TestCase):
 
     def test_get_competitors(self):
         soaringspot_page = SoaringSpotDaily(
-            'https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily', '')
+            'https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily')
 
-        competitor_pk = soaringspot_page.get_competitors()[2]
-        self.assertEqual(competitor_pk.competition_id, 'PK')
+        competitor_pk = soaringspot_page._get_competitors_info()[2]
 
-        self.assertEqual(competitor_pk.ranking, 3)
+        self.assertEqual(competitor_pk['competition_id'], 'PK')
+        self.assertEqual(competitor_pk['ranking'], 3)
 
         expected_igc_url = 'https://archive.soaringspot.com/contest/013/1323/flights/2477/2597322754.igc'
-        self.assertEqual(competitor_pk.igc_url, expected_igc_url)
+        self.assertEqual(competitor_pk['igc_url'], expected_igc_url)
 
     def test_get_competition_day(self):
         soaringspot_page = SoaringSpotDaily(
-            'https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily', '')
+            'https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily')
 
-        competitionday = soaringspot_page.get_competition_day()
+        competition_name, date, plane_class = soaringspot_page._get_competition_day_info()
 
-        self.assertEqual(competitionday.name, 'sallandse-tweedaagse-2014')
-        self.assertEqual(competitionday.plane_class, 'club')
-        self.assertEqual(competitionday.date, datetime.date(2014, 6, 21))
-        self.assertEqual(len(competitionday.competitors), 8)
+        self.assertEqual(competition_name, 'sallandse-tweedaagse-2014')
+        self.assertEqual(plane_class, 'club')
+        self.assertEqual(date, datetime.date(2014, 6, 21))
+
+    def test_get_task_rules(self):
+        lseeyou_tsk_line = 'LSEEYOU TSK,NoStart=13:29:00,TaskTime=03:30:00,WpDis=False,' \
+                           'MinDis=True,NearDis=0.5km,NearAlt=200.0m,MinFinAlt=0.0km'
+
+        start_opening, t_min, multi_start = get_task_rules(lseeyou_tsk_line)
+
+        self.assertEqual(start_opening, datetime.time(13, 29, 0))
+        self.assertEqual(t_min, datetime.timedelta(hours=3, minutes=30, seconds=0))

@@ -3,6 +3,11 @@ OpenSoar
 
 .. image:: https://travis-ci.org/GliderGeek/PySoar.svg?branch=master
     :target: https://travis-ci.org/GliderGeek/PySoar
+    :alt: Build status
+
+.. image:: https://readthedocs.org/projects/opensoar/badge/?version=latest
+    :target: http://opensoar.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
 The OpenSoar python library is meant to provide open source tooling for glider flight analysis. This may vary from 
 thermal detection to competition scoring.

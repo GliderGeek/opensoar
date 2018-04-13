@@ -302,7 +302,7 @@ class SoaringSpotDaily(DailyResultsPage):
             if download_progress is not None:
                 download_progress(files_downloaded, len(competitors_info))
 
-            with open(file_path, 'r') as f:
+            with open(file_path, 'r', encoding='utf-8') as f:
                 parsed_igc_file = Reader().read(f)
 
             trace_errors, trace = parsed_igc_file['fix_records']

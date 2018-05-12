@@ -227,7 +227,7 @@ class StreplaDaily(DailyResultsPage):
                 competition_id = comp.findAll('span')[1].text
                 plane_model = comp.findAll('span')[3].text
 
-                igc_url = f"http://www.strepla.de/scs/Public/{relative_file_url}"
+                igc_url = "http://www.strepla.de/scs/Public/%s".format(relative_file_url)
 
                 competitors_info.append(dict(plane_model=plane_model, ranking=ranking, competition_id=competition_id,
                                              igc_url=igc_url))

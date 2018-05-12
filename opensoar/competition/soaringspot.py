@@ -21,7 +21,7 @@ from opensoar.competition.daily_results_page import DailyResultsPage
 def get_comment_lines_from_parsed_file(parsed_igc_file: dict) -> List[str]:
     """In the parsed file, lines are split into source and comment. This function stiches them back together"""
     records = parsed_igc_file['comment_records'][1]
-    return [f"L{record['source']}{record['comment']}" for record in records]
+    return ["L%s%s".format(record['source'], record['comment']) for record in records]
 
 
 def get_task_rules(lseeyou_tsk_line: str) -> Tuple[datetime.time, datetime.timedelta, bool]:
@@ -199,7 +199,7 @@ def get_sector_orientation(lseeyou_line: str, number_of_waypoints: int) -> str:
                 elif style == 4:
                     return "start"
                 else:
-                    raise ValueError("Unknown taskpoint style: {}".format(style))
+                    raise ValueError("Unknown taskpoint style: %s".format(style))
 
 
 def get_distance_correction(lseeyou_line: str) -> Union[str, None]:

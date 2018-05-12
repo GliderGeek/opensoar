@@ -8,7 +8,8 @@ from opensoar.utilities.helper_functions import calculate_average_bearing
 
 class Waypoint(object):
 
-    def __init__(self, name, latitude, longitude, r_min, angle_min, r_max, angle_max, is_line, sector_orientation,
+    def __init__(self, name: str, latitude: float, longitude: float, r_min: float, angle_min: float, r_max: float,
+                 angle_max: float, is_line: bool, sector_orientation: str,
                  distance_correction=None, orientation_angle=None):
         """
         Waypoint is either the start point, one of the turn points or the finish point of a task.

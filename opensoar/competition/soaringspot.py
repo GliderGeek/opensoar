@@ -1,9 +1,10 @@
 """
-File with helper functions for soaringspot competitions:
-- reading waypoints from soaringspot igc
+Helper functions for SoaringSpot competitions.
+The files from SoaringSpot always contain task information, which can be used for competition analysis.
 """
 import datetime
 import re
+from typing import List, Tuple, Union
 
 from aerofiles.igc import Reader
 
@@ -11,18 +12,19 @@ from opensoar.competition.competition_day import CompetitionDay
 from opensoar.competition.competitor import Competitor
 from opensoar.task.aat import AAT
 from opensoar.task.race_task import RaceTask
+from opensoar.task.task import Task
 from opensoar.task.waypoint import Waypoint
 from opensoar.utilities.helper_functions import dm2dd, subtract_times
 from opensoar.competition.daily_results_page import DailyResultsPage
 
 
-def get_comment_lines_from_parsed_file(parsed_igc_file):
+def get_comment_lines_from_parsed_file(parsed_igc_file: dict) -> List[str]:
     """In the parsed file, lines are split into source and comment. This function stiches them back together"""
     records = parsed_igc_file['comment_records'][1]
     return [f"L{record['source']}{record['comment']}" for record in records]
 
 
-def get_task_rules(lseeyou_tsk_line):
+def get_task_rules(lseeyou_tsk_line: str) -> Tuple[datetime.time, datetime.timedelta, bool]:
     start_opening = None
     t_min = None
     multi_start = False
@@ -41,7 +43,7 @@ def get_task_rules(lseeyou_tsk_line):
     return start_opening, t_min, multi_start
 
 
-def get_info_from_comment_lines(parsed_igc_file, start_time_buffer=0):
+def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0) -> Tuple[Task, dict, dict]:
     """
     There is specific contest information stored in the comment lines of the IGC files.
     This function extracts this information
@@ -92,7 +94,7 @@ def get_info_from_comment_lines(parsed_igc_file, start_time_buffer=0):
     return task, contest_information, competitor_information
 
 
-def get_waypoints(lcu_lines, lseeyou_lines):
+def get_waypoints(lcu_lines: List[str], lseeyou_lines: List[str]) -> List[Waypoint]:
     """
     :param lcu_lines: lines in soaringspot igc file starting with 'LCU::C'
     :param lseeyou_lines: lines in soaringspot igc starting with 'LSEEYOU OZ'
@@ -111,7 +113,7 @@ def get_waypoints(lcu_lines, lseeyou_lines):
     return waypoints
 
 
-def get_waypoint(lcu_line, lseeyou_line, number_of_waypoints):
+def get_waypoint(lcu_line: str, lseeyou_line: str, number_of_waypoints: int) -> Waypoint:
     """
     :param number_of_waypoints:
     :param lcu_line: line in soaringspot igc starting with 'LCU::C
@@ -136,7 +138,7 @@ def get_waypoint(lcu_line, lseeyou_line, number_of_waypoints):
                     orientation_angle)
 
 
-def get_lat_long(lcu_line):
+def get_lat_long(lcu_line: str) -> Tuple[float, float]:
     """
     :param lcu_line: line in soaringspot igc file starting with 'LCU::C'
     :return: latitude, longitude in degrees
@@ -156,14 +158,14 @@ def get_lat_long(lcu_line):
     return latitude, longitude
 
 
-def get_fixed_orientation_angle(lseeyou_line):
+def get_fixed_orientation_angle(lseeyou_line: str) -> float:
     components = lseeyou_line.rstrip().split(",")
     for component in components:
         if component.startswith("A12="):
             return float(component.split("=")[1])
 
 
-def get_sector_orientation(lseeyou_line, number_of_waypoints):
+def get_sector_orientation(lseeyou_line: str, number_of_waypoints: int) -> str:
     """
     :param lseeyou_line: e.g. 'LSEEYOU OZ=-1,Style=1,R1=500m,A1=180'
     :param number_of_waypoints:
@@ -200,7 +202,7 @@ def get_sector_orientation(lseeyou_line, number_of_waypoints):
                     raise ValueError("Unknown taskpoint style: {}".format(style))
 
 
-def get_distance_correction(lseeyou_line):
+def get_distance_correction(lseeyou_line: str) -> Union[str, None]:
     components = lseeyou_line.rstrip().split(",")
     reduce = False
     move = False
@@ -220,7 +222,7 @@ def get_distance_correction(lseeyou_line):
         return None
 
 
-def get_sector_dimensions(lseeyou_line):
+def get_sector_dimensions(lseeyou_line: str) -> Tuple[int, int, int, int]:
     components = lseeyou_line.rstrip().split(",")
     r_min = None
     angle_min = None
@@ -240,11 +242,14 @@ def get_sector_dimensions(lseeyou_line):
 
 
 class SoaringSpotDaily(DailyResultsPage):
+    """
+    Helper class for dealing with daily result pages which are published on the SoaringSpot platform.
+    """
 
-    def __init__(self, url):
+    def __init__(self, url: str):
         super().__init__(url)
 
-    def _get_competitors_info(self):
+    def _get_competitors_info(self) -> List[dict]:
         base_url = "https://www.soaringspot.com"
         competitors_info = list()
 
@@ -268,7 +273,8 @@ class SoaringSpotDaily(DailyResultsPage):
 
         return competitors_info
 
-    def _get_competition_day_info(self):
+    def _get_competition_day_info(self) -> Tuple[str, datetime.date, str]:
+
         if self.url.startswith('https://') or self.url.startswith('http://'):
             _, _, _, _, competition_name, _, plane_class, date_description, *_ = self.url.split('/')
         else:
@@ -279,7 +285,16 @@ class SoaringSpotDaily(DailyResultsPage):
 
         return competition_name, date, plane_class
 
-    def generate_competition_day(self, target_directory, download_progress=None, start_time_buffer=0) -> CompetitionDay:
+    def generate_competition_day(self, target_directory: str, download_progress=None, start_time_buffer: int=0) -> CompetitionDay:
+        """
+        Generate a CompetitionDay for the specified SoaringSpot daily result page.
+        Information is pulled from the overview table and from the igc files, which are automatically downloaded.
+
+        :param target_directory: see super
+        :param download_progress: see super
+        :param start_time_buffer: see super
+        :return:
+        """
 
         # get info from website
         competition_name, date, plane_class = self._get_competition_day_info()

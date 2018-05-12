@@ -7,6 +7,9 @@ from opensoar.utilities.helper_functions import double_iterator, calculate_dista
 
 
 class AAT(Task):
+    """
+    Assigned Area Task.
+    """
 
     def __init__(self, waypoints, t_min: datetime.timedelta, timezone: int=None, start_opening: datetime.time=None,
                  start_time_buffer: int=0, multistart: bool=False):

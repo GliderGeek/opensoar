@@ -1,5 +1,9 @@
+"""
+Helper functions for Strepla competitions.
+The files from Strepla always contain task information, which can be used for competition analysis.
+"""
 import datetime
-from typing import List
+from typing import List, Tuple
 
 from aerofiles.igc import Reader
 
@@ -12,7 +16,7 @@ from opensoar.task.waypoint import Waypoint
 from opensoar.utilities.helper_functions import dm2dd
 
 
-def get_task_and_competitor_info(lscsd_lines, lscsr_lines):
+def get_task_and_competitor_info(lscsd_lines: List[str], lscsr_lines: List[str]) -> Tuple[dict, dict]:
     task_info = {
         'tp': [],
         's_line_rad': None,
@@ -72,7 +76,7 @@ def get_task_and_competitor_info(lscsd_lines, lscsr_lines):
     return task_info, competitor_information
 
 
-def get_waypoint_name_lat_long(lscs_line_tp):
+def get_waypoint_name_lat_long(lscs_line_tp: str) -> Tuple[str, float, float]:
     """Parse LSCSCT line (LSCSCT:074 Main Lohr-M:N4959700:E00934900)"""
     _, name, lat, lon = lscs_line_tp.split(':')
 
@@ -85,7 +89,7 @@ def get_waypoint_name_lat_long(lscs_line_tp):
     return name, lat, lon
 
 
-def get_waypoint(lscs_line_tp, task_info, n, n_tp):
+def get_waypoint(lscs_line_tp: str, task_info: dict, n: int, n_tp: int) -> Waypoint:
 
     name, lat, lon = get_waypoint_name_lat_long(lscs_line_tp)
 
@@ -142,7 +146,7 @@ def get_waypoint(lscs_line_tp, task_info, n, n_tp):
                     orientation_angle)
 
 
-def get_waypoints(lscsc_lines, task_info):
+def get_waypoints(lscsc_lines: List[str], task_info: List[str]) -> List[Waypoint]:
     waypoints = list()
     for n, lscsc_line in enumerate(lscsc_lines):
         waypoint = get_waypoint(lscsc_line, task_info, n, len(lscsc_lines))
@@ -151,7 +155,7 @@ def get_waypoints(lscsc_lines, task_info):
     return waypoints
 
 
-def get_info_from_comment_lines(parsed_igc_file, start_time_buffer=0):
+def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0):
 
     lscsd_lines = list()
     lscsr_lines = list()
@@ -184,11 +188,14 @@ def get_info_from_comment_lines(parsed_igc_file, start_time_buffer=0):
 
 
 class StreplaDaily(DailyResultsPage):
+    """
+    Helper class for dealing with daily result pages which are published on the Strepla platform.
+    """
 
-    def __init__(self, url):
+    def __init__(self, url: str):
         super().__init__(url)
 
-    def _get_competition_day_info(self):
+    def _get_competition_day_info(self) -> Tuple[str, datetime.date, str]:
         soup = self._get_html_soup()
 
         competition_name = soup.find('div', id="public_contest_info").find('span', id="ctl00_lblCompName").text
@@ -227,7 +234,16 @@ class StreplaDaily(DailyResultsPage):
 
         return competitors_info
 
-    def generate_competition_day(self, target_directory, download_progress=None, start_time_buffer=0) -> CompetitionDay:
+    def generate_competition_day(self, target_directory: str, download_progress=None, start_time_buffer: int=0)\
+            -> CompetitionDay:
+
+        """
+
+        :param target_directory: see super
+        :param download_progress: see super
+        :param start_time_buffer: see super
+        :return:
+        """
 
         # get info from website
         competition_name, date, plane_class = self._get_competition_day_info()

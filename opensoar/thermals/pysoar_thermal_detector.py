@@ -3,6 +3,9 @@ from opensoar.utilities.helper_functions import triple_iterator, calculate_beari
 
 
 class PySoarThermalDetector:
+    """
+    Detector taken from the PySoar project.
+    """
 
     MINIMUM_BEARING_CHANGE_RATE = 1e-2
     CRUISE_THRESHOLD_BEARINGRATE = 4  # deg/s

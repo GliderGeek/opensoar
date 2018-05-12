@@ -4,6 +4,9 @@ from opensoar.utilities.helper_functions import calculate_distance, double_itera
 
 
 class RaceTask(Task):
+    """
+    Race task.
+    """
 
     def __init__(self, waypoints, timezone=None, start_opening=None, start_time_buffer=0, multistart=False):
         """

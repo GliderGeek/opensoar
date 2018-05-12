@@ -13,6 +13,9 @@ from opensoar.task.task import Task
 
 
 class DailyResultsPage(ABC):
+    """
+    Abstract Base Class for daily result pages. Specific implementation example: soaringspot.
+    """
 
     def __init__(self, url):
         if url.startswith('http://') or url.startswith('https://'):
@@ -30,7 +33,7 @@ class DailyResultsPage(ABC):
         self._igc_directory = os.path.join(target_directory, competition_name, plane_class,
                                            date.strftime('%d-%m-%Y'))
 
-    def _get_html_soup(self):
+    def _get_html_soup(self) -> BeautifulSoup:
         # fix problem with SSL certificates
         # https://stackoverflow.com/questions/30551400/disable-ssl-certificate-validation-in-mechanize#35960702
         import ssl
@@ -48,14 +51,34 @@ class DailyResultsPage(ABC):
 
         return BeautifulSoup(html, "html.parser")
 
-    def igc_file_name(self, competition_id):
+    def igc_file_name(self, competition_id: str) -> str:
+        """
+        Create igc file name from competition_id
+
+        :param competition_id:
+        :return:
+        """
         return f'{competition_id}.igc'
 
-    def igc_file_path(self, competition_id):
+    def igc_file_path(self, competition_id: str) -> str:
+        """
+        Construct file_path from competition_id
+
+        :param competition_id:
+        :return:
+        """
         file_name = self.igc_file_name(competition_id)
         return os.path.join(self._igc_directory, file_name)
 
-    def download_flight(self, igc_url, competition_id):
+    def download_flight(self, igc_url: str, competition_id: str) -> str:
+        """
+        Download flight and return file_path
+
+        :param igc_url:
+        :param competition_id:
+        :return:
+        """
+
         # make directory if necessary
         if not os.path.exists(self._igc_directory):
             os.makedirs(self._igc_directory)
@@ -68,12 +91,21 @@ class DailyResultsPage(ABC):
         return file_path
 
     @abstractmethod
-    def generate_competition_day(self, target_directory, download_progress=None) -> CompetitionDay:
-        """Fallback to base class. This function downloads the igc files and constructs a CompetitionDay"""
+    def generate_competition_day(self, target_directory: str, download_progress=None, start_time_buffer: int = 0) -> CompetitionDay:
+        """
+        Fallback to base class. This function downloads the igc files and constructs a CompetitionDay.
+        
+        :param target_directory: directory in which the igc files are saved
+        :param download_progress: optional progress function. Should have the following signature:
+                                  func(downloads, total_number_of_flights)
+        :param start_time_buffer: optional relaxation on the start time in seconds. E.g. start_time_buffer = 10 means
+                                  that a contestant can cross the start line 10 seconds before the official opening time
+        :return:
+        """
 
     @staticmethod
-    def _select_task(tasks: List[Task]):
-        """There might be different and duplicate tasks. The task is selected is most frequently present in the list."""
+    def _select_task(tasks: List[Task]) -> Task:
+        """There might be different and duplicate tasks. The task selected is most frequently present in the list."""
 
         unique_tasks = list()
         number_of_times_present = list()

@@ -2,6 +2,9 @@ from opensoar.utilities.helper_functions import seconds_time_difference
 
 
 class Trip:
+    """
+    Realised
+    """
 
     def __init__(self, task, trace):
 

@@ -7,6 +7,9 @@ from opensoar.utilities.helper_functions import calculate_bearing, calculate_dis
 
 
 class Task:
+    """
+    Base Class for specific task implementations.
+    """
 
     ENL_VALUE_THRESHOLD = 500
     ENL_TIME_THRESHOLD = 30

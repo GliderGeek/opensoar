@@ -5,8 +5,13 @@ from opensoar.thermals.flight_phases import FlightPhases
 
 
 class Competitor:
+    """
+    All the information of one entry in a CompetitionDay. This encompasses information about the pilot,
+    the plane and the gps trace.
+    """
 
-    def __init__(self, trace: List, competition_id: str=None, plane_model: str=None, ranking: int=None, pilot_name: str=None):
+    def __init__(self, trace: List, competition_id: str=None, plane_model: str=None, ranking: int=None,
+                 pilot_name: str=None):
 
         self.trace = trace
         self.competition_id = competition_id
@@ -34,7 +39,7 @@ class Competitor:
     def phases(self):
         return self._phases
 
-    def analyse(self, task, classification_method):
+    def analyse(self, task, classification_method: str):
 
         if self.trace is None or len(self.trace) == 0:
             raise ValueError('No trace present')

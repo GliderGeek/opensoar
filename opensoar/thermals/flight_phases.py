@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import Union
+from typing import Union, List
 
 from opensoar.thermals.pysoar_thermal_detector import PySoarThermalDetector
 
@@ -7,11 +7,12 @@ Phase = namedtuple('Phase', 'is_cruise fixes')
 
 
 class FlightPhases:
+    """
+    Container to combine the different flight phases (thermal and cruise) with helper methods for easy access.
+    """
 
-    def __init__(self, classification_method, trace, trip=None):
+    def __init__(self, classification_method: str, trace: list, trip=None):
         """
-        Container to combine the different flight phases (thermal and cruise) with helper methods for easy access.
-
         :param classification_method: currently only 'pysoar' supported
         :param trace: 
         :param trip: optional parameter for obtain thermals per leg
@@ -25,7 +26,7 @@ class FlightPhases:
         self._trip = trip
         self._phases = self._thermal_detector.analyse(trace)
 
-    def thermals(self, leg: Union[int, str]=None):
+    def thermals(self, leg: Union[int, str]=None) -> List[Phase]:
         """
         Obtain only thermal phases.
 
@@ -54,7 +55,7 @@ class FlightPhases:
         else:
             return [phase for phase in self._phases if not phase.is_cruise]
 
-    def cruises(self, leg: Union[int, str]=None):
+    def cruises(self, leg: Union[int, str]=None) -> List[Phase]:
         """
         Obtain only cruise phases.
 
@@ -83,7 +84,7 @@ class FlightPhases:
         else:
             return [phase for phase in self._phases if phase.is_cruise]
 
-    def all_phases(self, leg: Union[int, str]=None):
+    def all_phases(self, leg: Union[int, str]=None) -> List[Phase]:
         """
         Obtain all phases (cruise and thermal).
 
@@ -125,7 +126,7 @@ class FlightPhases:
             else:
                 raise NotImplementedError
 
-    def _get_phase_within_leg(self, phase, leg):
+    def _get_phase_within_leg(self, phase: Phase, leg: int) -> Phase:
 
         """
         Get part of phase that falls within a specified leg

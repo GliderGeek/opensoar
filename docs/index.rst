@@ -11,7 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   opensoar/opensoar
+   source/opensoar/opensoar
 
 Indices and tables
 ==================

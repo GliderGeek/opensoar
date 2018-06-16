@@ -4,6 +4,7 @@ from copy import deepcopy
 
 import datetime
 
+from opensoar.competition.soaringspot import get_waypoints
 from opensoar.task.race_task import RaceTask
 from tests.task.helper_functions import get_task
 
@@ -55,3 +56,32 @@ class TestRaceTask(unittest.TestCase):
         # test different start buffer
         race_task2 = RaceTask(waypoints, start_time_buffer=5)
         self.assertNotEqual(self.race_task, race_task2)
+
+    def test_race_reduced_legs(self):
+        """
+        Race task with reduced legs, should produce correct distance
+
+        https://www.soaringspot.com/en_gb/pribina-cup-2018-nitra-2018/results/15-meter/task-1-on-2018-04-02/daily
+        """
+
+        lcu_lines = [
+            'LCU::C020418195435301299000202',
+            'LCU::C0000000N00000000E',
+            'LCU::C4819183N01759550E158LEHOTA',
+            'LCU::C4907167N01819400E235PUCHOV',
+            'LCU::C4748117N01842983E271STUROVO',
+            'LCU::C4816767N01807967E001NITRA',
+            'LCU::C0000000N00000000E',
+        ]
+
+        lseeyou_lines = [
+            'LSEEYOU OZ=-1,Style=2,SpeedStyle=0,R1=5000m,A1=180,Line=1',
+            'LSEEYOU OZ=0,Style=1,SpeedStyle=3,R1=500m,A1=180,Reduce=1',
+            'LSEEYOU OZ=1,Style=1,SpeedStyle=3,R1=500m,A1=180,Reduce=1',
+            'LSEEYOU OZ=2,Style=3,SpeedStyle=2,R1=3000m,A1=180,Reduce=1',
+        ]
+
+        waypoints = get_waypoints(lcu_lines, lseeyou_lines)
+        race_task = RaceTask(waypoints)
+
+        self.assertAlmostEqual(race_task.total_distance / 1000, 305.21, places=2)

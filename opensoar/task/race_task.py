@@ -38,7 +38,7 @@ class RaceTask(Task):
 
             if begin.distance_correction is "shorten_legs":
                 if end.distance_correction is "shorten_legs":
-                    distance = Task.distance_shortened_leg(distance, begin, end, "begin")
+                    distance = Task.distance_shortened_leg(distance, begin, end, "current")
                     distance = Task.distance_shortened_leg(distance, begin, end, "end")
                 elif end.distance_correction is "move_tp":
                     distance = Task.distance_moved_turnpoint(distance, begin, end, "end")

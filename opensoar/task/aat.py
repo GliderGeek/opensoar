@@ -158,7 +158,8 @@ class AAT(Task):
 
         # add last fix to sector if not already present
         last_fix = trace[-1]
-        if self.waypoints[current_leg].inside_sector(last_fix) and last_fix is not sector_fixes[-1][-1]:
+        last_waypoint = self.waypoints[current_leg]
+        if not last_waypoint.is_line and last_waypoint.inside_sector(last_fix) and last_fix is not sector_fixes[-1][-1]:
             sector_fixes[-1].append(last_fix)
 
         if enl_registered:

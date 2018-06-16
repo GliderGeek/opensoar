@@ -5,6 +5,7 @@ The files from SoaringSpot always contain task information, which can be used fo
 import datetime
 import re
 from typing import List, Tuple, Union
+from urllib.error import URLError
 
 from aerofiles.igc import Reader
 
@@ -310,8 +311,11 @@ class SoaringSpotDaily(DailyResultsPage):
             igc_url = competitor_info['igc_url']
             ranking = competitor_info['ranking']
 
-            # download files
-            file_path = self.download_flight(igc_url, competition_id)
+            # download files. skip if not valid
+            try:
+                file_path = self.download_flight(igc_url, competition_id)
+            except URLError:
+                continue
 
             files_downloaded += 1
             if download_progress is not None:

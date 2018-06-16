@@ -218,6 +218,9 @@ class StreplaDaily(DailyResultsPage):
 
         table = soup.find("table")
         num_comp = len(table.findAll('tr'))
+
+        uses_https = self.url.startswith('https://')
+
         for i in range(num_comp - 1):
             comp = table.findAll('tr')[i + 1]
             if comp.findAll('span')[0].text != 'dnf':
@@ -227,7 +230,10 @@ class StreplaDaily(DailyResultsPage):
                 competition_id = comp.findAll('span')[1].text
                 plane_model = comp.findAll('span')[3].text
 
-                igc_url = "http://www.strepla.de/scs/Public/%s".format(relative_file_url)
+                if uses_https:
+                    igc_url = "https://www.strepla.de/scs/Public/{}".format(relative_file_url)
+                else:
+                    igc_url = "http://www.strepla.de/scs/Public/{}".format(relative_file_url)
 
                 competitors_info.append(dict(plane_model=plane_model, ranking=ranking, competition_id=competition_id,
                                              igc_url=igc_url))

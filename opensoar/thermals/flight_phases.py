@@ -21,7 +21,7 @@ class FlightPhases:
         if classification_method == 'pysoar':
             self._thermal_detector = PySoarThermalDetector()
         else:
-            raise ValueError('Classification method %s not supported'.format(classification_method))
+            raise ValueError('Classification method {} not supported'.format(classification_method))
 
         self._trip = trip
         self._phases = self._thermal_detector.analyse(trace)
@@ -122,7 +122,7 @@ class FlightPhases:
                     raise NotImplementedError
             elif type(leg) == int:
                 if leg > self._trip.started_legs() - 1:
-                    raise ValueError('Trip only contains %s legs'.format(self._trip.started_legs()))
+                    raise ValueError('Trip only contains {} legs'.format(self._trip.started_legs()))
             else:
                 raise NotImplementedError
 

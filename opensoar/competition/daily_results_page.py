@@ -21,7 +21,7 @@ class DailyResultsPage(ABC):
         if url.startswith('http://') or url.startswith('https://'):
             self.url = url
         else:
-            self.url = 'http://%s'.format(url)
+            self.url = 'http://{}'.format(url)
 
         self._igc_directory = None  # to be set in subclass
 
@@ -58,7 +58,7 @@ class DailyResultsPage(ABC):
         :param competition_id:
         :return:
         """
-        return '%s.igc'.format(competition_id)
+        return '{}.igc'.format(competition_id)
 
     def igc_file_path(self, competition_id: str) -> str:
         """

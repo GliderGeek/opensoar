@@ -12,6 +12,13 @@ OpenSoar
 The OpenSoar python library is meant to provide open source tooling for glider flight analysis. This may vary from 
 thermal detection to competition scoring.
 
+Installation
+=============
+::
+
+    pip install opensoar
+
+
 Reading in files with aerofiles
 ================================
 
@@ -38,9 +45,4 @@ Example race task
     
     trip = Trip(task, trace)
     task_distance_covered = sum(trip.distances)
-
-Plan
-====
-A lot of functionality regarding analysis and competition scoring is currently present in the
-`PySoar project <https://github.com/GliderGeek/PySoar>`_. It is the aim to take these functionalities, generalize them
-and bundle them in this library.
+    

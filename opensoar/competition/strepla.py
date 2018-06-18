@@ -4,6 +4,7 @@ The files from Strepla always contain task information, which can be used for co
 """
 import datetime
 from typing import List, Tuple
+from urllib.error import URLError
 
 from aerofiles.igc import Reader
 
@@ -266,8 +267,12 @@ class StreplaDaily(DailyResultsPage):
             plane_model = table_entry['ranking']
             ranking = table_entry['plane_model']
 
-            # download files
-            file_path = self.download_flight(igc_url, competition_id)
+            # download files. skip if not valid
+            try:
+                file_path = self.download_flight(igc_url, competition_id)
+            except URLError:
+                print('{} is skipped because of invalid URL'.format(competition_id))
+                continue
 
             files_downloaded += 1
             if download_progress is not None:
@@ -281,6 +286,9 @@ class StreplaDaily(DailyResultsPage):
                     parsed_igc_file = Reader().read(f)
 
             trace_errors, trace = parsed_igc_file['fix_records']
+            if len(trace_errors) != 0:
+                print('{} is skipped because of invalid trace'.format(competition_id))
+                continue
 
             # get info from file
             task, task_info, competitor_information = get_info_from_comment_lines(parsed_igc_file, start_time_buffer)

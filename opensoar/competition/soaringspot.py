@@ -315,6 +315,7 @@ class SoaringSpotDaily(DailyResultsPage):
             try:
                 file_path = self.download_flight(igc_url, competition_id)
             except URLError:
+                print('{} is skipped because of invalid URL'.format(competition_id))
                 continue
 
             files_downloaded += 1
@@ -329,6 +330,9 @@ class SoaringSpotDaily(DailyResultsPage):
                     parsed_igc_file = Reader().read(f)
 
             trace_errors, trace = parsed_igc_file['fix_records']
+            if len(trace_errors) != 0:
+                print('{} is skipped because of invalid trace'.format(competition_id))
+                continue
 
             # get info from file
             task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file, start_time_buffer)

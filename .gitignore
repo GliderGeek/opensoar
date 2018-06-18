@@ -1,3 +1,8 @@
 # virtual environment folder
 env
 docs/build
+
+# from building package
+dist
+build
+opensoar.egg-info/

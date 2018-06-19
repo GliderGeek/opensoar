@@ -91,10 +91,14 @@ class DailyResultsPage(ABC):
         return file_path
 
     @abstractmethod
-    def generate_competition_day(self, target_directory: str, download_progress=None, start_time_buffer: int = 0) -> CompetitionDay:
+    def generate_competition_day(self, target_directory: str, download_progress=None, start_time_buffer: int = 0,
+                                 include_hc_competitors: bool=True) -> CompetitionDay:
         """
-        Fallback to base class. This function downloads the igc files and constructs a CompetitionDay.
-        
+        Construct a CompetitionDay. Information is pulled from the overview table and
+        from the igc files, which are automatically downloaded.
+
+        :param include_hc_competitors: optional argument for including contestants which fly 'Hors Concours',
+                                       which means that they don't officially participate in the competition.
         :param target_directory: directory in which the igc files are saved
         :param download_progress: optional progress function. Should have the following signature:
                                   func(downloads, total_number_of_flights)

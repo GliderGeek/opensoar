@@ -250,15 +250,25 @@ class SoaringSpotDaily(DailyResultsPage):
     def __init__(self, url: str):
         super().__init__(url)
 
-    def _get_competitors_info(self) -> List[dict]:
+    def _get_competitors_info(self, include_hc_competitors: bool) -> List[dict]:
+        """
+        :param include_hc_competitors: include pilots which do not officially compete
+        :return:
+        """
+
         base_url = "https://www.soaringspot.com"
         competitors_info = list()
 
         table = self._get_html_soup().find("table")
         for row in table.findAll('tr')[1:]:
-            if row.findAll('td')[0].text not in ["DNS", "DNF", "HC"]:
+            if row.findAll('td')[0].text not in ["DNS", "DNF"]:
 
-                ranking = int(row.findAll('td')[0].text[0:-1])
+                ranking = row.findAll('td')[0].text
+                if ranking == 'HC':
+                    if not include_hc_competitors:
+                        continue
+                else:
+                    ranking = int(ranking[:-1])
 
                 igc_url = None
                 competition_id = None
@@ -286,20 +296,12 @@ class SoaringSpotDaily(DailyResultsPage):
 
         return competition_name, date, plane_class
 
-    def generate_competition_day(self, target_directory: str, download_progress=None, start_time_buffer: int=0) -> CompetitionDay:
-        """
-        Generate a CompetitionDay for the specified SoaringSpot daily result page.
-        Information is pulled from the overview table and from the igc files, which are automatically downloaded.
-
-        :param target_directory: see super
-        :param download_progress: see super
-        :param start_time_buffer: see super
-        :return:
-        """
+    def generate_competition_day(self, target_directory: str, download_progress=None, start_time_buffer: int=0,
+                                 include_hc_competitors: bool = True) -> CompetitionDay:
 
         # get info from website
         competition_name, date, plane_class = self._get_competition_day_info()
-        competitors_info = self._get_competitors_info()
+        competitors_info = self._get_competitors_info(include_hc_competitors)
 
         self.set_igc_directory(target_directory, competition_name, plane_class, date)
 

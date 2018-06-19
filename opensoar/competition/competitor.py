@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from opensoar.task.trip import Trip
 from opensoar.thermals.flight_phases import FlightPhases
@@ -10,8 +10,17 @@ class Competitor:
     the plane and the gps trace.
     """
 
-    def __init__(self, trace: List, competition_id: str=None, plane_model: str=None, ranking: int=None,
+    def __init__(self, trace: List, competition_id: str=None, plane_model: str=None, ranking: Union[int, str]=None,
                  pilot_name: str=None):
+
+        """
+
+        :param trace:
+        :param competition_id:
+        :param plane_model:
+        :param ranking: may also be 'HC' when competitor flies hors concours.
+        :param pilot_name:
+        """
 
         self.trace = trace
         self.competition_id = competition_id

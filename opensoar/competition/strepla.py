@@ -212,7 +212,11 @@ class StreplaDaily(DailyResultsPage):
 
         return competition_name, date, plane_class
 
-    def _get_table_info(self) -> List[dict]:
+    def _get_table_info(self, include_hc_competitors: bool) -> List[dict]:
+        """
+        :param include_hc_competitors: include pilots which do not officially compete
+        :return:
+        """
         soup = self._get_html_soup()
 
         competitors_info = list()
@@ -226,7 +230,14 @@ class StreplaDaily(DailyResultsPage):
             comp = table.findAll('tr')[i + 1]
             if comp.findAll('span')[0].text != 'dnf':
 
-                ranking = int(comp.findAll('span')[0].text)
+                ranking = comp.findAll('span')[0].text
+
+                if ranking == 'hc':
+                    if not include_hc_competitors:
+                        continue
+                else:
+                    ranking = int(ranking)
+
                 relative_file_url = comp.findAll('a')[0].get('href')
                 competition_id = comp.findAll('span')[1].text
                 plane_model = comp.findAll('span')[3].text
@@ -241,20 +252,12 @@ class StreplaDaily(DailyResultsPage):
 
         return competitors_info
 
-    def generate_competition_day(self, target_directory: str, download_progress=None, start_time_buffer: int=0)\
-            -> CompetitionDay:
-
-        """
-
-        :param target_directory: see super
-        :param download_progress: see super
-        :param start_time_buffer: see super
-        :return:
-        """
+    def generate_competition_day(self, target_directory: str, download_progress=None, start_time_buffer: int=0,
+                                 include_hc_competitors: bool = True) -> CompetitionDay:
 
         # get info from website
         competition_name, date, plane_class = self._get_competition_day_info()
-        table_info = self._get_table_info()
+        table_info = self._get_table_info(include_hc_competitors)
 
         self.set_igc_directory(target_directory, competition_name, plane_class, date)
 

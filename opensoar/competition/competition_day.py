@@ -29,11 +29,13 @@ class CompetitionDay:
         self.date = date
         self.plane_class = plane_class
 
-    def analyse_flights(self, classification_method: str, analysis_progress=None):
+    def analyse_flights(self, classification_method: str, analysis_progress=None, skip_failed_analyses: bool=False):
         """
         :param classification_method: method for detecting thermals. See FlightPhases for more info.
         :param analysis_progress: optional function to log the analysis progress. Should have the following signature:
                                   func(number_of_analyses, total_number_of_flights)
+        :param skip_failed_analyses: if True, exceptions are caught during a failed analysis. a list is return with the
+                                     competition ids of all failed analyses.
         :return:
         """
 
@@ -44,9 +46,20 @@ class CompetitionDay:
             raise ValueError('Multistart is not supported')
 
         number_of_analyzed_flights = 0
+
+        failed_comp_ids = []
         for competitor in self.competitors:
-            competitor.analyse(self.task, classification_method)
+
+            if skip_failed_analyses:
+                try:
+                    competitor.analyse(self.task, classification_method)
+                except Exception:
+                    failed_comp_ids.append(competitor.competition_id)
+            else:
+                competitor.analyse(self.task, classification_method)
 
             if analysis_progress is not None:
                 number_of_analyzed_flights += 1
                 analysis_progress(number_of_analyzed_flights, len(self.competitors))
+
+        return failed_comp_ids

@@ -115,7 +115,7 @@ class TestSoaringspot(unittest.TestCase):
         soaringspot_page = SoaringSpotDaily(
             'https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily')
 
-        competitor_pk = soaringspot_page._get_competitors_info()[2]
+        competitor_pk = soaringspot_page._get_competitors_info(include_hc_competitors=False)[2]
 
         self.assertEqual(competitor_pk['competition_id'], 'PK')
         self.assertEqual(competitor_pk['ranking'], 3)

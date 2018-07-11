@@ -72,5 +72,5 @@ class TestStreplaDaily(unittest.TestCase):
         self.assertEqual(date, datetime.date(2013, 8, 5))
 
     def test_get_table_info(self):
-        competitors_info = self.daily_page._get_table_info()
+        competitors_info = self.daily_page._get_table_info(include_hc_competitors=False)
         self.assertEqual(len(competitors_info), 10)

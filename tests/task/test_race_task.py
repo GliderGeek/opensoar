@@ -13,6 +13,9 @@ class TestRaceTask(unittest.TestCase):
 
     cwd = os.path.dirname(__file__)
     igc_path = os.path.join(cwd, '..', 'igc_files', 'race_task_completed.igc')
+    # https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily
+    # competitor HS
+
     race_task = get_task(igc_path)
 
     def test_number_of_legs(self):

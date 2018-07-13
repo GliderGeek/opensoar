@@ -1,8 +1,9 @@
+from .thermal_detector import ThermalDetector
 from opensoar.utilities.helper_functions import triple_iterator, calculate_bearing_change, calculate_distance, \
     seconds_time_difference
 
 
-class PySoarThermalDetector:
+class PySoarThermalDetector(ThermalDetector):
     """
     Detector taken from the PySoar project.
     """
@@ -15,7 +16,7 @@ class PySoarThermalDetector:
     THERMAL_THRESHOLD_BEARINGRATE = 4  # deg/s
 
     def __init__(self):
-        pass
+        super().__init__()
 
     def analyse(self, trace):
 

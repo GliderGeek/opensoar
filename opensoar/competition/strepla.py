@@ -282,11 +282,15 @@ class StreplaDaily(DailyResultsPage):
                 download_progress(files_downloaded, len(table_info))
 
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    parsed_igc_file = Reader().read(f)
-            except UnicodeDecodeError:
-                with open(file_path, 'r', encoding='latin1') as f:
-                    parsed_igc_file = Reader().read(f)
+                try:  # try utf-8
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        parsed_igc_file = Reader().read(f)
+                except UnicodeDecodeError:  # if not utf-8 use latin1
+                    with open(file_path, 'r', encoding='latin1') as f:
+                        parsed_igc_file = Reader().read(f)
+            except Exception:
+                print('{} is skipped because the file could not be parsed'.format(competition_id))
+                continue
 
             trace_errors, trace = parsed_igc_file['fix_records']
             if len(trace_errors) != 0:

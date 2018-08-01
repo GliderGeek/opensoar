@@ -85,3 +85,36 @@ class TestRaceTask(unittest.TestCase):
         race_task = RaceTask(waypoints)
 
         self.assertAlmostEqual(race_task.total_distance / 1000, 305.21, places=2)
+
+    def test_race_moved_leg(self):
+        """
+        Race task with moved waypoint, should not crash. somehow distances are not completely equal.
+
+        https://www.soaringspot.com/en_gb/35th-world-gliding-championships-hosin-2018/results/18-meter/task-1-on-2018-07-29/daily
+        """
+
+        lcu_lines = [
+            'LCU::C290718193533301299000203',
+            'LCU::C0000000N00000000E',
+            'LCU::C4908600N01432867E011SP07RADONICE',
+            'LCU::C4936150N01352917E477ROZMITAL',
+            'LCU::C4940950N01240067E442PRIMDA',
+            'LCU::C4915633N01308733E385NYRSKO',
+            'LCU::C4902383N01429650E001SP01HOSIN',
+            'LCU::C0000000N00000000E',
+        ]
+
+        lseeyou_lines = [
+            'LSEEYOU OZ=-1,Style=2,SpeedStyle=0,R1=5000m,A1=180,Line=1',
+            'LSEEYOU OZ=0,Style=1,SpeedStyle=3,R1=500m,A1=180',
+            'LSEEYOU OZ=1,Style=1,SpeedStyle=3,R1=500m,A1=180',
+            'LSEEYOU OZ=2,Style=1,SpeedStyle=3,R1=500m,A1=180',
+            'LSEEYOU OZ=3,Style=3,SpeedStyle=2,R1=5000m,A1=180,Move=1',
+        ]
+
+        waypoints = get_waypoints(lcu_lines, lseeyou_lines)
+
+        try:
+            race_task = RaceTask(waypoints)
+        except Exception:
+            self.fail()

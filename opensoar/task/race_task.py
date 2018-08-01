@@ -42,9 +42,9 @@ class RaceTask(Task):
                     distance = Task.distance_shortened_leg(distance, begin, end, "end")
                 elif end.distance_correction is "move_tp":
                     distance = Task.distance_moved_turnpoint(distance, begin, end, "end")
-                    distance = Task.distance_shortened_leg(distance, begin, end, "begin")
+                    distance = Task.distance_shortened_leg(distance, begin, end, "current")
                 elif end.distance_correction is None:
-                    distance = Task.distance_shortened_leg(distance, begin, end, "begin")
+                    distance = Task.distance_shortened_leg(distance, begin, end, "current")
                 else:
                     raise ValueError("This distance correction does not exist: %s" % end.distance_correction)
 

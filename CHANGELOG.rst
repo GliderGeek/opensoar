@@ -3,6 +3,9 @@ Changelog
 
 unreleased
 ------------------------
+
+v0.1.2
+------------------------
 * fix bug where moved_turnpoint caused failing task
 * skip flights which cannot be parsed
 

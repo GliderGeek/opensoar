@@ -1,8 +1,9 @@
 Changelog
 ==========
 
-unreleased
+v0.1.2
 ------------------------
+* fix bug where moved_turnpoint caused failing task
 
 v0.1.1
 ------------------------

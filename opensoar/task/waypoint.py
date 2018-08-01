@@ -57,6 +57,9 @@ class Waypoint(object):
                 both_none_or_same_str(self.sector_orientation, other.sector_orientation) and
                 both_none_or_same_str(self.distance_correction, other.distance_correction))
 
+    def __repr__(self):
+        return "<Waypoint lat=%s, lon=%s>" % (self.latitude, self.longitude)
+
     @property
     def fix(self):
         return dict(lat=self.latitude, lon=self.longitude)

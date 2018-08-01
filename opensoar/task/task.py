@@ -120,7 +120,7 @@ class Task:
 
         displacement_dist = moved.r_max if moved.angle_max == 180 else moved.r_min
         bearing1 = moved.orientation_angle
-        bearing2 = calculate_bearing(other.fix, other.fix)
+        bearing2 = calculate_bearing(other.fix, moved.fix, final_bearing=True)
 
         if move_direction == 'increase':
             angle = 180 - abs(calculate_bearing_difference(bearing1, bearing2)) - angle_reduction

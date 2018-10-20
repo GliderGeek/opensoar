@@ -17,7 +17,7 @@ from opensoar.task.waypoint import Waypoint
 from opensoar.utilities.helper_functions import dm2dd
 
 
-def get_task_and_competitor_info(lscsd_lines: List[str], lscsr_lines: List[str]) -> Tuple[dict, dict]:
+def get_task_and_competitor_info(lscsd_lines: List[str], lscsr_lines: List[str], lscsa_lines: List[str]) -> Tuple[dict, dict]:
     task_info = {
         'tp': [],
         's_line_rad': None,
@@ -41,7 +41,7 @@ def get_task_and_competitor_info(lscsd_lines: List[str], lscsr_lines: List[str])
         'competition_id': None,
     }
 
-    for line in [*lscsd_lines, *lscsr_lines]:
+    for line in [*lscsd_lines, *lscsr_lines, *lscsa_lines]:
         if line.startswith('LSCSRSLINE'):
             task_info['s_line_rad'] = int((line.split(':'))[1]) / 2
         elif line.startswith('LSCSRFLINE'):
@@ -58,14 +58,14 @@ def get_task_and_competitor_info(lscsd_lines: List[str], lscsr_lines: List[str])
             task_info['f_cyl_rad'] = int((line.split(':'))[1])
         elif line.startswith('LSCSA0'):
             task_info['tp_aat_rad'].append(int((line.split(':'))[1]))
-            if int(((line.split(':'))[3])[0:-1]) == 0:
+            if int(line.split(':')[3]) == 0:
                 task_info['tp_aat_angle'].append(360)
             else:
-                task_info['tp_aat_angle'].append(int(((line.split(':'))[3])[0:-1]))
+                task_info['tp_aat_angle'].append(int(line.split(':')[3]))
             task_info['aat'] = True
         elif line.startswith('LSCSDTime window'):
             _, hours, minutes = line.split(':')
-            task_info['time_window'] = datetime.time(int(hours), int(minutes))
+            task_info['time_window'] = datetime.timedelta(hours=int(hours), minutes=int(minutes))
         elif line.startswith('LSCSDGate open'):
             _, hours, minutes = line.split(':')
             task_info['gate_open'] = datetime.time(int(hours), int(minutes))
@@ -161,6 +161,7 @@ def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0)
     lscsd_lines = list()
     lscsr_lines = list()
     lscsc_lines = list()
+    lscsa_lines = list()
 
     for comment_record in parsed_igc_file['comment_records'][1]:
         line = 'L{}{}'.format(comment_record['source'], comment_record['comment'])
@@ -171,8 +172,10 @@ def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0)
             lscsc_lines.append(line)
         elif line.startswith('LSCSR'):
             lscsr_lines.append(line)
+        elif line.startswith('LSCSA'):
+            lscsa_lines.append(line)
 
-    task_information, competitor_information = get_task_and_competitor_info(lscsd_lines, lscsr_lines)
+    task_information, competitor_information = get_task_and_competitor_info(lscsd_lines, lscsr_lines, lscsa_lines)
     waypoints = get_waypoints(lscsc_lines, task_information)
 
     aat = task_information['aat']

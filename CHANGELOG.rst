@@ -3,7 +3,25 @@ Changelog
 
 unreleased
 ------------------------
-* fix bug in recognizing an AAT task for scoringStrepla 
+Added
+~~~~~~
+Changed
+~~~~~~~~
+Deprecated
+~~~~~~~~~~~~
+Removed
+~~~~~~~~~
+Fixed
+~~~~~~~~
+Security
+~~~~~~~~~
+
+
+v0.1.3
+------------------------
+Fixed
+~~~~~~~~
+* fix bug in handling AAT task for scoringStrepla
 
 v0.1.2
 ------------------------

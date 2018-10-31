@@ -147,7 +147,7 @@ def get_waypoint(lscs_line_tp: str, task_info: dict, n: int, n_tp: int) -> Waypo
                     orientation_angle)
 
 
-def get_waypoints(lscsc_lines: List[str], task_info: List[str]) -> List[Waypoint]:
+def get_waypoints(lscsc_lines: List[str], task_info: dict) -> List[Waypoint]:
     waypoints = list()
     for n, lscsc_line in enumerate(lscsc_lines):
         waypoint = get_waypoint(lscsc_line, task_info, n, len(lscsc_lines))

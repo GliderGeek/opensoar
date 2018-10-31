@@ -2,8 +2,13 @@ import unittest
 
 import datetime
 
+import os
+
+from aerofiles.igc import Reader
+
 from opensoar.competition.strepla import get_waypoint_name_lat_long, get_waypoints, get_waypoint, \
-    StreplaDaily, get_task_and_competitor_info
+    StreplaDaily, get_task_and_competitor_info, get_info_from_comment_lines
+from opensoar.task.aat import AAT
 
 
 class TestStrepla(unittest.TestCase):
@@ -35,6 +40,8 @@ class TestStrepla(unittest.TestCase):
         'LSCSDElevation start:155',
     ]
 
+    lscsa_lines = []
+
     def test_waypoint_info_parsing(self):
         """test whether name and coordinates are correctly read from line in igc file"""
 
@@ -46,7 +53,7 @@ class TestStrepla(unittest.TestCase):
         self.assertAlmostEqual(lon, 9.5817, places=4)
 
     def test_get_waypoints(self):
-        task_info, competitor_information = get_task_and_competitor_info(self.lscsd_lines, self.lscsr_lines)
+        task_info, competitor_information = get_task_and_competitor_info(self.lscsd_lines, self.lscsr_lines, [])
         waypoints = get_waypoints(self.lscsc_lines, task_info)
         self.assertEqual(len(waypoints), 7)
 
@@ -54,11 +61,44 @@ class TestStrepla(unittest.TestCase):
 
         lscsc_line = 'LSCSCS:AP4 Fronhofen Strassen-T:N4942358:E00851490'
 
-        task_info, competitor_information = get_task_and_competitor_info(self.lscsd_lines, self.lscsr_lines)
+        task_info, competitor_information = get_task_and_competitor_info(self.lscsd_lines, self.lscsr_lines, [])
         waypoint = get_waypoint(lscsc_line, task_info, n=0, n_tp=7)
 
         self.assertEqual(waypoint.name, 'AP4 Fronhofen Strassen-T')
         self.assertTrue(waypoint.is_line)
+
+    def test_aat_from_file(self):
+        """Test if aat is correctly recognised and waypoint are correct"""
+
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'igc_files', 'aat_strepla.igc')
+
+        with open(file_path, 'r', encoding='utf-8') as f:
+            parsed_igc_file = Reader().read(f)
+
+        trace_errors, trace = parsed_igc_file['fix_records']
+
+        self.assertEqual(len(trace_errors), 0)
+
+        task, _, _ = get_info_from_comment_lines(parsed_igc_file)
+
+        self.assertIsInstance(task, AAT)
+        self.assertEqual(task.t_min, datetime.timedelta(hours=2, minutes=30))
+
+        expected_waypoints = [
+            ('AP3 Muellhalde', None),
+            ('Loreley', 20000),
+            ('Kusel', 40000),
+            ('Loreley', 20000),
+            ('ZP Anspach/Taunus', None),
+        ]
+
+        self.assertEqual(len(task.waypoints), len(expected_waypoints))
+
+        for i, waypoint in enumerate(task.waypoints):
+            expected_name, expected_r_max = expected_waypoints[i]
+            self.assertEqual(waypoint.name, expected_name)
+            if 0 < i < len(expected_waypoints) - 1:
+                self.assertEqual(waypoint.r_max, expected_r_max)
 
 
 class TestStreplaDaily(unittest.TestCase):

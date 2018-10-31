@@ -70,7 +70,10 @@ class TestStrepla(unittest.TestCase):
         self.assertTrue(waypoint.is_line)
 
     def test_aat_from_file(self):
-        """Test if aat is correctly recognised and waypoint are correct"""
+        """
+        Test if aat is correctly recognised and waypoint are correct
+        file from: https://www.strepla.de/scs/Public/scoreDay.aspx?cId=451&idDay=7912, competitor 1 CX
+        """
 
         file_path = os.path.join(os.path.dirname(__file__), '..', 'igc_files', 'aat_strepla.igc')
 
@@ -106,8 +109,10 @@ class TestStrepla(unittest.TestCase):
         competitor.analyse(task, 'pysoar')
 
         time_diff = seconds_time_difference(competitor.trip.refined_start_time, datetime.time(13, 22, 40))
+        dist_diff = sum(competitor.trip.distances) - 283500
         self.assertLessEqual(abs(time_diff), 1)
         self.assertEqual(len(competitor.trip.fixes), len(expected_waypoints))
+        self.assertLessEqual(abs(dist_diff), 1000)
 
 
 class TestStreplaDaily(unittest.TestCase):

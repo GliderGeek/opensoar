@@ -3,6 +3,7 @@ Changelog
 
 unreleased
 ------------------------
+* fix bug in recognizing an AAT task for scoringStrepla 
 
 v0.1.2
 ------------------------

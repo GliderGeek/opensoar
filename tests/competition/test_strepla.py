@@ -6,9 +6,11 @@ import os
 
 from aerofiles.igc import Reader
 
+from opensoar.competition.competitor import Competitor
 from opensoar.competition.strepla import get_waypoint_name_lat_long, get_waypoints, get_waypoint, \
     StreplaDaily, get_task_and_competitor_info, get_info_from_comment_lines
 from opensoar.task.aat import AAT
+from opensoar.utilities.helper_functions import seconds_time_difference
 
 
 class TestStrepla(unittest.TestCase):
@@ -99,6 +101,13 @@ class TestStrepla(unittest.TestCase):
             self.assertEqual(waypoint.name, expected_name)
             if 0 < i < len(expected_waypoints) - 1:
                 self.assertEqual(waypoint.r_max, expected_r_max)
+
+        competitor = Competitor(trace, 'CX', 'Discus2b', 1, 'Karsten Leucker')
+        competitor.analyse(task, 'pysoar')
+
+        time_diff = seconds_time_difference(competitor.trip.refined_start_time, datetime.time(13, 22, 40))
+        self.assertLessEqual(abs(time_diff), 1)
+        self.assertEqual(len(competitor.trip.fixes), len(expected_waypoints))
 
 
 class TestStreplaDaily(unittest.TestCase):

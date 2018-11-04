@@ -1,13 +1,12 @@
 from copy import copy
-from math import isclose, pi, sin, cos, atan2
-
+from math import isclose, pi, sin, cos, atan2, ceil
 import datetime
-from typing import List
+from typing import List, Tuple, Union
 
 from pygeodesy.ellipsoidalVincenty import LatLon
 
 
-def double_iterator(lst):
+def double_iterator(lst: list):
     """Create iterator with two values. E.g.: current, plus1 in a for loop"""
     a = iter(lst)
     b = copy(a)
@@ -16,7 +15,7 @@ def double_iterator(lst):
     return zip(a, b)
 
 
-def triple_iterator(lst):
+def triple_iterator(lst: list):
     """Create iterator with three values. E.g.: current, plus1, plus2 in a for loop"""
 
     a = iter(lst)
@@ -29,7 +28,7 @@ def triple_iterator(lst):
     return zip(a, b, c)
 
 
-def calculate_distance(fix1, fix2):
+def calculate_distance(fix1: dict, fix2: dict) -> float:
     """
     Calculate distance between fix1 and fix2 using WGS84
     :param fix1: b-record from IGC file (dict with keys 'lat' and 'lon')
@@ -46,7 +45,7 @@ def calculate_distance(fix1, fix2):
     return loc1_lat_lon.distanceTo(loc2_lat_lon)
 
 
-def calculate_bearing(fix1, fix2, final_bearing=False):
+def calculate_bearing(fix1: dict, fix2: dict, final_bearing: bool=False) -> float:
     """
     Calculate bearing between fix1 and fix. By default the bearing is taking tangent to the great circle at fix1.
     :param final_bearing: switch to True results in taking the tangent at fix2.
@@ -63,7 +62,7 @@ def calculate_bearing(fix1, fix2, final_bearing=False):
         return loc1_lat_lon.finalBearingTo(loc2_lat_lon)
 
 
-def calculate_bearing_difference(bearing1, bearing2):
+def calculate_bearing_difference(bearing1: float, bearing2: float) -> float:
     """
     Calculate smallest difference from bearing 1 -> bearing2.
     :param bearing1: start bearing in degrees (0-360)
@@ -72,15 +71,16 @@ def calculate_bearing_difference(bearing1, bearing2):
     """
     # always return difference between -180 and +180 degrees
     difference = bearing2 - bearing1
-    if -180 < difference < 180:
-        return difference
-    elif difference <= -180:
+
+    if difference <= -180:
         return difference + 360
-    elif difference >= 180:
+    elif -180 < difference < 180:
+        return difference
+    else:  # 180 <= difference:
         return difference - 360
 
 
-def calculate_bearing_change(fix_minus2, fix_minus1, fix):
+def calculate_bearing_change(fix_minus2: dict, fix_minus1: dict, fix: dict) -> float:
     """
     Calculate bearing change between three fixes.
     :param fix_minus2: b-record from IGC file (dict with keys 'lat' and 'lon')
@@ -102,7 +102,7 @@ def calculate_bearing_change(fix_minus2, fix_minus1, fix):
     return calculate_bearing_difference(bearing1, bearing2)
 
 
-def calculate_average_bearing(bearing1, bearing2):
+def calculate_average_bearing(bearing1: float, bearing2: float):
     """
     Calculate the average bearing
     :param bearing1: bearing in degrees
@@ -118,14 +118,14 @@ def calculate_average_bearing(bearing1, bearing2):
     return (avg_bearing + 360) % 360
 
 
-def height_difference_fixes(fix1, fix2, gps_altitude=True):
+def height_difference_fixes(fix1: dict, fix2: dict, gps_altitude: bool=True) -> float:
     if gps_altitude:
         return fix2['gps_alt'] - fix1['gps_alt']
     else:
         return fix2['pressure_alt'] - fix1['pressure_alt']
 
 
-def altitude_gain_and_loss(fixes: List[dict], gps_altitude=True):
+def altitude_gain_and_loss(fixes: List[dict], gps_altitude=True) -> Tuple[float, float]:
     if gps_altitude:
         altitude_key = 'gps_alt'
     else:
@@ -143,20 +143,20 @@ def altitude_gain_and_loss(fixes: List[dict], gps_altitude=True):
     return gain, loss
 
 
-def seconds_time_difference_fixes(fix1, fix2):
+def seconds_time_difference_fixes(fix1: dict, fix2: dict) -> int:
     return seconds_time_difference(fix1['time'], fix2['time'])
 
 
 def total_distance_travelled(fixes: List[dict]):
     """Calculates the total distance, summing over the inter fix distances"""
-    distance = 0
+    distance = 0.0
     for fix, next_fix in double_iterator(fixes):
         distance += calculate_distance(fix, next_fix)
 
     return distance
 
 
-def seconds_time_difference(time1: datetime.time, time2: datetime.time):
+def seconds_time_difference(time1: datetime.time, time2: datetime.time) -> int:
     """
     Determines the time difference between to datetime.time instances, mocking the operation time2 - time1
     It is assumed that both take place at the same day.
@@ -167,10 +167,10 @@ def seconds_time_difference(time1: datetime.time, time2: datetime.time):
 
     today = datetime.date.today()
     time_diff = datetime.datetime.combine(today, time2) - datetime.datetime.combine(today, time1)
-    return time_diff.total_seconds()
+    return ceil(time_diff.total_seconds())
 
 
-def add_times(start_time: datetime.time, delta_time: datetime.timedelta):
+def add_times(start_time: datetime.time, delta_time: datetime.timedelta) -> datetime.time:
     """
     Helper to circumvent problem that normal datetime.time instances can not be added.
     :param start_time:
@@ -183,7 +183,7 @@ def add_times(start_time: datetime.time, delta_time: datetime.timedelta):
     return full_datetime_result.time()
 
 
-def subtract_times(start_time: datetime.time, delta_time: datetime.time):
+def subtract_times(start_time: datetime.time, delta_time: datetime.time) -> datetime.time:
     full_datetime_start = datetime.datetime.combine(datetime.date.today(), start_time)
 
     full_datetime_result = full_datetime_start - datetime.timedelta(
@@ -222,13 +222,13 @@ def range_with_bounds(start: int, stop: int, interval: int) -> List[int]:
     return result
 
 
-def calculate_time_differences(time1, time2, interval):
+def calculate_time_differences(time1: datetime.time, time2: datetime.time, interval: int):
     total_difference = int(seconds_time_difference(time1, time2))
     differences = range_with_bounds(0, total_difference, interval)
     return differences
 
 
-def interpolate_fixes(fix1, fix2, interval=1):
+def interpolate_fixes(fix1: dict, fix2: dict, interval: int=1):
     """
     Create list of fixes between fix1 and fix2. Split is defined at time interval.
     Only time, latitude and longitude are interpolated.
@@ -253,12 +253,12 @@ def interpolate_fixes(fix1, fix2, interval=1):
     return fixes
 
 
-def calculate_destination(start_fix, distance, bearing):
+def calculate_destination(start_fix: dict, distance: float, bearing: float) -> dict:
     destination_latlon = LatLon(start_fix['lat'], start_fix['lon']).destination(distance, bearing)
     return dict(lat=destination_latlon.lat, lon=destination_latlon.lon)
 
 
-def dms2dd(degrees, minutes, seconds, cardinal):
+def dms2dd(degrees: float, minutes: float, seconds: float, cardinal: str) -> float:
     """convert coordinate format with degrees, minutes and second to degrees"""
     dd = degrees + minutes / 60.0 + seconds / 3600.0
     if cardinal in ('S', 'W'):
@@ -274,15 +274,15 @@ def dm2dd(degrees: float, minutes: float, cardinal: str) -> float:
     return dd
 
 
-def both_none_or_same_float(var1, var2):
-    """Determine wheter both vars are the same. Either None or float"""
+def both_none_or_same_float(var1: Union[None, float], var2: Union[None, float]) -> bool:
+    """Determine whether both vars are the same. Either None or float"""
     if var1 is None:
         return var2 is None
     else:
         return var2 is not None and isclose(var1, var2)
 
 
-def both_none_or_same_str(var1, var2):
+def both_none_or_same_str(var1: Union[None, str], var2: Union[None, str]) -> bool:
     """Determine wheter both vars are the same. Either None or float"""
     if var1 is None:
         return var2 is None

@@ -7,9 +7,11 @@ python:
 install:
   - pip install --upgrade pip setuptools wheel
   - pip install -r requirements.txt
+  - pip install mypy==0.641
 
 script:
   - python -m unittest discover -b --start-directory ./tests
+  - mypy --config-file .mypy.ini opensoar
 
 deploy:
   provider: pypi

@@ -3,7 +3,7 @@ Helper functions for Strepla competitions.
 The files from Strepla always contain task information, which can be used for competition analysis.
 """
 import datetime
-from typing import List, Tuple
+from typing import List, Tuple, Any, Dict
 from urllib.error import URLError
 
 from aerofiles.igc import Reader
@@ -13,6 +13,7 @@ from opensoar.competition.competitor import Competitor
 from opensoar.competition.daily_results_page import DailyResultsPage
 from opensoar.task.aat import AAT
 from opensoar.task.race_task import RaceTask
+from opensoar.task.task import Task
 from opensoar.task.waypoint import Waypoint
 from opensoar.utilities.helper_functions import dm2dd
 
@@ -34,12 +35,12 @@ def get_task_and_competitor_info(lscsd_lines: List[str], lscsr_lines: List[str],
         'aat': False,
         'time_window': None,
         'gate_open': None,
-    }
+    }  # type: Dict[str, Any]
 
     competitor_information = {
         'pilot_name': None,
         'competition_id': None,
-    }
+    }  # type: Dict[str, Any]
 
     for line in [*lscsd_lines, *lscsr_lines, *lscsa_lines]:
         if line.startswith('LSCSRSLINE'):
@@ -79,10 +80,10 @@ def get_task_and_competitor_info(lscsd_lines: List[str], lscsr_lines: List[str],
 
 def get_waypoint_name_lat_long(lscs_line_tp: str) -> Tuple[str, float, float]:
     """Parse LSCSCT line (LSCSCT:074 Main Lohr-M:N4959700:E00934900)"""
-    _, name, lat, lon = lscs_line_tp.split(':')
+    _, name, lat_, lon_ = lscs_line_tp.split(':')
 
-    lat_cardinal, lat_degrees, lat_minutes = lat[0], float(lat[1:3]), float(lat[3:5]) + float(lat[5:8]) / 1000
-    lon_cardinal, lon_degrees, lon_minutes = lon[0], float(lon[1:4]), float(lon[4:6]) + float(lon[6:9]) / 1000
+    lat_cardinal, lat_degrees, lat_minutes = lat_[0], float(lat_[1:3]), float(lat_[3:5]) + float(lat_[5:8]) / 1000
+    lon_cardinal, lon_degrees, lon_minutes = lon_[0], float(lon_[1:4]), float(lon_[4:6]) + float(lon_[6:9]) / 1000
 
     lat = dm2dd(lat_degrees, lat_minutes, lat_cardinal)
     lon = dm2dd(lon_degrees, lon_minutes, lon_cardinal)
@@ -100,7 +101,6 @@ def get_waypoint(lscs_line_tp: str, task_info: dict, n: int, n_tp: int) -> Waypo
     angle_max = None
     orientation_angle = None
     line = False
-    sector_orientation = None
     distance_correction = None
 
     if n == 0:
@@ -142,6 +142,8 @@ def get_waypoint(lscs_line_tp: str, task_info: dict, n: int, n_tp: int) -> Waypo
             r_max = task_info['f_line_rad']
             angle_max = 90
             line = True
+    else:
+        raise ValueError('n should not be larger than n_tp - 1')
 
     return Waypoint(name, lat, lon, r_min, angle_min, r_max, angle_max, line, sector_orientation, distance_correction,
                     orientation_angle)
@@ -181,10 +183,10 @@ def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0)
     aat = task_information['aat']
     t_min = task_information.get('time_window', None)
     start_opening = task_information.get('gate_open', None)
-    timezone = None  # unclear where to get timezone information from strepla igc file
+    timezone = 0  # unclear where to get timezone information from strepla igc file
 
     if aat:
-        task = AAT(waypoints, t_min, timezone, start_opening, start_time_buffer)
+        task = AAT(waypoints, t_min, timezone, start_opening, start_time_buffer)  # type: Task
     else:
         task = RaceTask(waypoints, timezone, start_opening, start_time_buffer)
 

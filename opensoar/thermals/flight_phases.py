@@ -45,8 +45,10 @@ class FlightPhases:
 
                 if leg == 'all':
                     thermal = self._get_phase_within_trip(phase)
-                else:
+                elif isinstance(leg, int):
                     thermal = self._get_phase_within_leg(phase, leg)
+                else:
+                    raise IOError
 
                 if thermal is not None:
                     thermals.append(thermal)
@@ -74,8 +76,10 @@ class FlightPhases:
 
                 if leg == 'all':
                     cruise = self._get_phase_within_trip(phase)
-                else:
+                elif isinstance(leg, int):
                     cruise = self._get_phase_within_leg(phase, leg)
+                else:
+                    raise IOError
 
                 if cruise is not None:
                     cruises.append(cruise)
@@ -102,8 +106,10 @@ class FlightPhases:
 
                 if leg == 'all':
                     phase_ = self._get_phase_within_trip(phase)
-                else:
+                elif isinstance(leg, int):
                     phase_ = self._get_phase_within_leg(phase, leg)
+                else:
+                    raise IOError
 
                 if phase_ is not None:
                     phases.append(phase_)
@@ -126,7 +132,7 @@ class FlightPhases:
             else:
                 raise NotImplementedError
 
-    def _get_phase_within_leg(self, phase: Phase, leg: int) -> Phase:
+    def _get_phase_within_leg(self, phase: Phase, leg: int) -> Union[Phase, None]:
 
         """
         Get part of phase that falls within a specified leg

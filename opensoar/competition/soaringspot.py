@@ -4,7 +4,7 @@ The files from SoaringSpot always contain task information, which can be used fo
 """
 import datetime
 import re
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Optional
 from urllib.error import URLError
 
 from aerofiles.igc import Reader
@@ -25,7 +25,7 @@ def get_comment_lines_from_parsed_file(parsed_igc_file: dict) -> List[str]:
     return ["L{}{}".format(record['source'], record['comment']) for record in records]
 
 
-def get_task_rules(lseeyou_tsk_line: str) -> Tuple[datetime.time, datetime.timedelta, bool]:
+def get_task_rules(lseeyou_tsk_line: str) -> Tuple[Optional[datetime.time], Optional[datetime.timedelta], bool]:
     start_opening = None
     t_min = None
     multi_start = False
@@ -50,15 +50,15 @@ def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0)
     This function extracts this information
     """
 
-    lcu_lines = list()
-    lseeyou_lines = list()
+    lcu_lines = []
+    lseeyou_lines = []
 
-    contest_information = dict()
-    competitor_information = dict()
+    contest_information = {}
+    competitor_information = {}
 
     comment_lines = get_comment_lines_from_parsed_file(parsed_igc_file)
 
-    timezone = None
+    timezone = 0
     t_min = None
     start_opening = None
     multi_start = False
@@ -88,7 +88,7 @@ def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0)
     waypoints = get_waypoints(lcu_lines, lseeyou_lines)
 
     if t_min is None:
-        task = RaceTask(waypoints, timezone, start_opening, start_time_buffer, multi_start)
+        task = RaceTask(waypoints, timezone, start_opening, start_time_buffer, multi_start)  # type: Task
     else:
         task = AAT(waypoints, t_min, timezone, start_opening, start_time_buffer, multi_start)
 
@@ -127,7 +127,7 @@ def get_waypoint(lcu_line: str, lseeyou_line: str, number_of_waypoints: int) -> 
 
     sector_orientation = get_sector_orientation(lseeyou_line, number_of_waypoints)
     if sector_orientation == 'fixed':
-        orientation_angle = get_fixed_orientation_angle(lseeyou_line)
+        orientation_angle = get_fixed_orientation_angle(lseeyou_line)  # type: Optional[float]
     else:
         orientation_angle = None
 
@@ -164,6 +164,8 @@ def get_fixed_orientation_angle(lseeyou_line: str) -> float:
     for component in components:
         if component.startswith("A12="):
             return float(component.split("=")[1])
+
+    raise ValueError
 
 
 def get_sector_orientation(lseeyou_line: str, number_of_waypoints: int) -> str:
@@ -202,6 +204,8 @@ def get_sector_orientation(lseeyou_line: str, number_of_waypoints: int) -> str:
                 else:
                     raise ValueError("Unknown taskpoint style: {}".format(style))
 
+    raise ValueError
+
 
 def get_distance_correction(lseeyou_line: str) -> Union[str, None]:
     components = lseeyou_line.rstrip().split(",")
@@ -223,7 +227,7 @@ def get_distance_correction(lseeyou_line: str) -> Union[str, None]:
         return None
 
 
-def get_sector_dimensions(lseeyou_line: str) -> Tuple[int, int, int, int]:
+def get_sector_dimensions(lseeyou_line: str) -> Tuple[Optional[int], Optional[int], Optional[int], Optional[int]]:
     components = lseeyou_line.rstrip().split(",")
     r_min = None
     angle_min = None

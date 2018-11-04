@@ -11,7 +11,7 @@ class AAT(Task):
     Assigned Area Task.
     """
 
-    def __init__(self, waypoints, t_min: datetime.timedelta, timezone: int=None, start_opening: datetime.time=None,
+    def __init__(self, waypoints, t_min: datetime.timedelta, timezone: int=0, start_opening: datetime.time=None,
                  start_time_buffer: int=0, multistart: bool=False):
         """
         :param waypoints:           see super()
@@ -21,7 +21,7 @@ class AAT(Task):
         :param start_time_buffer:   see super()
         :param multistart:          see super()
         """
-        super().__init__(waypoints, timezone, start_opening, start_time_buffer, multistart)
+        super().__init__(waypoints, timezone, start_time_buffer, multistart, start_opening)
 
         self._t_min = t_min
         self._nominal_distances = self._calculate_nominal_distances()

@@ -6,3 +6,5 @@ docs/build
 dist
 build
 opensoar.egg-info/
+
+.mypy_cache

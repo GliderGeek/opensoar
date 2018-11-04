@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Optional
 
 from opensoar.task.trip import Trip
 from opensoar.thermals.flight_phases import FlightPhases
@@ -29,8 +29,8 @@ class Competitor:
         self._pilot_name = pilot_name
 
         # to be set by analyse method
-        self._trip = None
-        self._phases = None
+        self._trip = None  # type: Optional[Trip]
+        self._phases = None  # type: Optional[FlightPhases]
 
     @property
     def trip(self):

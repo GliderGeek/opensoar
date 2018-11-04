@@ -266,7 +266,7 @@ def dms2dd(degrees, minutes, seconds, cardinal):
     return dd
 
 
-def dm2dd(degrees, minutes, cardinal):
+def dm2dd(degrees: float, minutes: float, cardinal: str) -> float:
     """convert coordinate format with degrees and minutes to degrees"""
     dd = degrees + minutes / 60.0
     if cardinal in ('S', 'W'):

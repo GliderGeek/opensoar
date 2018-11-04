@@ -1,3 +1,5 @@
+from typing import Optional
+
 from math import isclose
 
 from opensoar.utilities.helper_functions import calculate_distance, both_none_or_same_float, both_none_or_same_str
@@ -10,9 +12,9 @@ class Waypoint(object):
 
     SEEYOU_SECTOR_MARGIN = 12  # SeeYou does not outland flights which come this close to the sector
 
-    def __init__(self, name: str, latitude: float, longitude: float, r_min: float, angle_min: float, r_max: float,
-                 angle_max: float, is_line: bool, sector_orientation: str,
-                 distance_correction=None, orientation_angle=None):
+    def __init__(self, name: str, latitude: float, longitude: float, r_min: Optional[float], angle_min: Optional[float],
+                 r_max: Optional[float], angle_max: Optional[float], is_line: bool, sector_orientation: str,
+                 distance_correction=None, orientation_angle: Optional[float]=None):
         """
         Waypoint is either the start point, one of the turn points or the finish point of a task.
         :param name:

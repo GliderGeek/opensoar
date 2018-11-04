@@ -111,8 +111,8 @@ class DailyResultsPage(ABC):
     def _select_task(tasks: List[Task]) -> Task:
         """There might be different and duplicate tasks. The task selected is most frequently present in the list."""
 
-        unique_tasks = list()
-        number_of_times_present = list()
+        unique_tasks: List[Task] = []
+        number_of_times_present: List[int] = []
         for task in tasks:
             if task in unique_tasks:
                 index = unique_tasks.index(task)

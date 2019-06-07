@@ -13,6 +13,8 @@ Removed
 ~~~~~~~~~
 Fixed
 ~~~~~~~~
+* relative urls for igc files using different base. (solves dev.soaringspot)
+
 Security
 ~~~~~~~~~
 

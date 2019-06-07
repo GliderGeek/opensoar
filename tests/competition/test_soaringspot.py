@@ -123,6 +123,18 @@ class TestSoaringspot(unittest.TestCase):
         expected_igc_url = 'https://archive.soaringspot.com/contest/013/1323/flights/2477/2597322754.igc'
         self.assertEqual(competitor_pk['igc_url'], expected_igc_url)
 
+    def test_get_competitors_dev_url(self):
+        soaringspot_page = SoaringSpotDaily(
+            'https://dev.soaringspot.com/en_gb/53-hww/results/std/task-6-on-2019-06-01/daily')
+
+        competitor_a1 = soaringspot_page._get_competitors_info(include_hc_competitors=False)[0]
+
+        self.assertEqual(competitor_a1['competition_id'], 'A1')
+        self.assertEqual(competitor_a1['ranking'], 1)
+
+        expected_igc_url = 'https://dev.soaringspot.com/en_gb/download-contest-flight/2818-5941231725'
+        self.assertEqual(competitor_a1['igc_url'], expected_igc_url)
+
     def test_get_competition_day(self):
         soaringspot_page = SoaringSpotDaily(
             'https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily')

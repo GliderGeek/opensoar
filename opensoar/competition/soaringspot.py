@@ -6,6 +6,7 @@ import datetime
 import re
 from typing import List, Tuple, Union
 from urllib.error import URLError
+from urllib.parse import urljoin
 
 from aerofiles.igc import Reader
 
@@ -256,7 +257,6 @@ class SoaringSpotDaily(DailyResultsPage):
         :return:
         """
 
-        base_url = "https://www.soaringspot.com"
         competitors_info = list()
 
         table = self._get_html_soup().find("table")
@@ -273,10 +273,12 @@ class SoaringSpotDaily(DailyResultsPage):
                 igc_url = None
                 competition_id = None
                 for link in row.findAll('a'):
-                    if link.get('href').startswith("http://") or link.get('href').startswith("https://"):
-                        igc_url = link.get('href')
-                    elif link.get('href').split('/')[2] == "download-contest-flight":
-                        igc_url = base_url + link.get('href')
+
+                    href = link.get('href')
+                    if href.startswith("http://") or href.startswith("https://"):
+                        igc_url = href
+                    elif href.split('/')[2] == "download-contest-flight":
+                        igc_url = urljoin(self.url, href)
 
                     competition_id = link.text
 

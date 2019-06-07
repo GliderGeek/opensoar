@@ -13,10 +13,14 @@ Removed
 ~~~~~~~~~
 Fixed
 ~~~~~~~~
-* relative urls for igc files using different base. (solves dev.soaringspot)
-
 Security
 ~~~~~~~~~
+
+v0.1.4
+------------------------
+Fixed
+~~~~~~~~
+* relative urls for igc files using different base. (solves dev.soaringspot)
 
 
 v0.1.3

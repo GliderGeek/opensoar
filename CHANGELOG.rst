@@ -7,6 +7,7 @@ Added
 ~~~~~~
 Changed
 ~~~~~~~~
+* updated pygeodesy dependency
 Deprecated
 ~~~~~~~~~~~~
 Removed

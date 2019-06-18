@@ -7,7 +7,6 @@ Added
 ~~~~~~
 Changed
 ~~~~~~~~
-* updated pygeodesy dependency
 Deprecated
 ~~~~~~~~~~~~
 Removed
@@ -16,6 +15,12 @@ Fixed
 ~~~~~~~~
 Security
 ~~~~~~~~~
+
+v0.1.5
+------------------------
+Changed
+~~~~~~~~
+* updated pygeodesy dependency
 
 v0.1.4
 ------------------------

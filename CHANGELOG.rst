@@ -7,18 +7,24 @@ Added
 ~~~~~~
 Changed
 ~~~~~~~~
-* removed pinning from requirements to keep up to date
 Deprecated
 ~~~~~~~~~~~~
 Removed
 ~~~~~~~~~
 Fixed
 ~~~~~~~~
-* obtaining IGC download URLs for soaringspot
-* ranking and plane_model are nog longer switched in competition day
-
 Security
 ~~~~~~~~~
+
+v0.1.6
+------------------------
+Changed
+~~~~~~~~
+* removed pinning from requirements to keep up to date
+Fixed
+~~~~~~~~
+* obtaining IGC download URLs for soaringspot
+* ranking and plane_model are nog longer switched in competition day
 
 v0.1.5
 ------------------------

@@ -12,3 +12,5 @@ opensoar.egg-info/
 .idea
 
 *.pyc
+
+.DS_Store

@@ -123,6 +123,14 @@ class TestSoaringspot(unittest.TestCase):
         expected_igc_url = 'https://archive.soaringspot.com/contest/013/1323/flights/2477/2597322754.igc'
         self.assertEqual(competitor_pk['igc_url'], expected_igc_url)
 
+    def test_get_competitors_info_relative_downloads(self):
+        """relative IGC URLs"""
+        soaringspot_page = SoaringSpotDaily(
+            'https://www.soaringspot.com/en_gb/nation-gliding-championships-taupo-2020/results/racing/task-5-on-2020-02-10/daily'
+        )
+        competitors = soaringspot_page._get_competitors_info(include_hc_competitors=False)
+        self.assertEqual(len(competitors), 10)
+
     # disabled because this URL is no longer used. unclear whether all dev urls are cleared
     # def test_get_competitors_dev_url(self):
     #     soaringspot_page = SoaringSpotDaily(

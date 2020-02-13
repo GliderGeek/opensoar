@@ -16,6 +16,11 @@ Fixed
 Security
 ~~~~~~~~~
 
+v0.1.7
+------------------------
+Fixed
+~~~~~~~~
+* wrong version number in package
 v0.1.6
 ------------------------
 Changed

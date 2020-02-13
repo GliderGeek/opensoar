@@ -270,8 +270,8 @@ class StreplaDaily(DailyResultsPage):
         for table_entry in table_info:
             competition_id = table_entry['competition_id']
             igc_url = table_entry['igc_url']
-            plane_model = table_entry['ranking']
-            ranking = table_entry['plane_model']
+            plane_model = table_entry['plane_model']
+            ranking = table_entry['ranking']
 
             # download files. skip if not valid
             try:

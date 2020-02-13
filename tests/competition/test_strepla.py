@@ -117,7 +117,7 @@ class TestStrepla(unittest.TestCase):
 
 class TestStreplaDaily(unittest.TestCase):
 
-    daily_page = StreplaDaily("http://www.strepla.de/scs/public/scoreDay.aspx?cId=222&idDay=2388")
+    daily_page = StreplaDaily("https://www.strepla.de/scs/public/scoreDay.aspx?cId=222&idDay=2388")
 
     def test_get_competitionday_info(self):
         competition_name, date, plane_class = self.daily_page._get_competition_day_info()

@@ -15,6 +15,7 @@ Removed
 Fixed
 ~~~~~~~~
 * obtaining IGC download URLs for soaringspot
+* ranking and plane_model are nog longer switched in competition day
 
 Security
 ~~~~~~~~~

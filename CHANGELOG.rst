@@ -13,6 +13,8 @@ Removed
 ~~~~~~~~~
 Fixed
 ~~~~~~~~
+* obtaining IGC download URLs for soaringspot
+
 Security
 ~~~~~~~~~
 

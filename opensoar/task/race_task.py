@@ -36,11 +36,11 @@ class RaceTask(Task):
             end = self.waypoints[leg+1]  # next is built in name
             distance = calculate_distance(begin.fix, end.fix)
 
-            if begin.distance_correction is "shorten_legs":
-                if end.distance_correction is "shorten_legs":
+            if begin.distance_correction == "shorten_legs":
+                if end.distance_correction == "shorten_legs":
                     distance = Task.distance_shortened_leg(distance, begin, end, "current")
                     distance = Task.distance_shortened_leg(distance, begin, end, "end")
-                elif end.distance_correction is "move_tp":
+                elif end.distance_correction == "move_tp":
                     distance = Task.distance_moved_turnpoint(distance, begin, end, "end")
                     distance = Task.distance_shortened_leg(distance, begin, end, "current")
                 elif end.distance_correction is None:
@@ -48,11 +48,11 @@ class RaceTask(Task):
                 else:
                     raise ValueError("This distance correction does not exist: %s" % end.distance_correction)
 
-            elif begin.distance_correction is "move_tp":
-                if end.distance_correction is "shorten_legs":
+            elif begin.distance_correction == "move_tp":
+                if end.distance_correction == "shorten_legs":
                     distance = Task.distance_moved_turnpoint(distance, begin, end, "begin")
                     distance = Task.distance_shortened_leg(distance, begin, end, "end")
-                elif end.distance_correction is "move_tp":
+                elif end.distance_correction == "move_tp":
                     distance = Task.distance_moved_turnpoint(distance, begin, end, "begin")
                     distance = Task.distance_moved_turnpoint(distance, begin, end, "both_end")
                 elif end.distance_correction is None:
@@ -61,9 +61,9 @@ class RaceTask(Task):
                     raise ValueError("This distance correction does not exist: %s" % end.distance_correction)
 
             elif begin.distance_correction is None:
-                if end.distance_correction is "shorten_legs":
+                if end.distance_correction == "shorten_legs":
                     distance = Task.distance_shortened_leg(distance, begin, end, "end")
-                elif end.distance_correction is "move_tp":
+                elif end.distance_correction == "move_tp":
                     distance = Task.distance_moved_turnpoint(distance, begin, end, "end")
                 elif end.distance_correction is None:
                     pass

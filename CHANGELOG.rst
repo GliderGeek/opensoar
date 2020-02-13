@@ -13,6 +13,7 @@ Removed
 ~~~~~~~~~
 Fixed
 ~~~~~~~~
+* is -> == on literals
 Security
 ~~~~~~~~~
 

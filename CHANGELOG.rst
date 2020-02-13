@@ -7,6 +7,7 @@ Added
 ~~~~~~
 Changed
 ~~~~~~~~
+* removed pinning from requirements to keep up to date
 Deprecated
 ~~~~~~~~~~~~
 Removed

@@ -284,7 +284,7 @@ class SoaringSpotDaily(DailyResultsPage):
                     elif href.split('/')[2] == "download-contest-flight":
                         igc_url = urljoin(self.url, href)
 
-                    competition_id = link.text
+                    competition_id = link.text.strip()
 
                 competitors_info.append(dict(ranking=ranking, competition_id=competition_id, igc_url=igc_url))
 

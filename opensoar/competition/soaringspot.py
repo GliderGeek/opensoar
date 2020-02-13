@@ -9,6 +9,7 @@ from urllib.error import URLError
 from urllib.parse import urljoin
 
 from aerofiles.igc import Reader
+from bs4 import BeautifulSoup
 
 from opensoar.competition.competition_day import CompetitionDay
 from opensoar.competition.competitor import Competitor
@@ -273,14 +274,19 @@ class SoaringSpotDaily(DailyResultsPage):
                 igc_url = None
                 competition_id = None
                 for link in row.findAll('a'):
+                    data_content = link.get('data-content')
+                    soup = BeautifulSoup(data_content, 'html.parser')
+                    href = None
+                    for a in soup.findAll('a'):
+                        if 'download' in a.text.strip().lower():
+                            href = a.get('href')
 
-                    href = link.get('href')
-                    if href.startswith("http://") or href.startswith("https://"):
+                    if href.startswith("http://") or href.startswith("https://"):  # absolute URL
                         igc_url = href
-                    elif href.split('/')[2] == "download-contest-flight":
+                    else:  # relative url
                         igc_url = urljoin(self.url, href)
 
-                    competition_id = link.text
+                    competition_id = link.text.strip()
 
                 competitors_info.append(dict(ranking=ranking, competition_id=competition_id, igc_url=igc_url))
 

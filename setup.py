@@ -14,7 +14,6 @@ setup(
     packages=find_packages(exclude=['tests']),
     long_description=long_description,
     install_requires=[
-        'pygeodesy>=17.11.26',
         'aerofiles>=0.4.1',
         'beautifulsoup4>=4.6.0'
     ]

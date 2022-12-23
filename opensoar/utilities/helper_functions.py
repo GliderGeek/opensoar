@@ -4,7 +4,6 @@ from math import isclose, pi, sin, cos, atan2
 import datetime
 from typing import List
 
-from pygeodesy.ellipsoidalVincenty import LatLon
 from pyproj import Geod
 
 g = Geod(ellps='WGS84')
@@ -253,8 +252,10 @@ def interpolate_fixes(fix1, fix2, interval=1):
 
 
 def calculate_destination(start_fix, distance, bearing):
-    destination_latlon = LatLon(start_fix['lat'], start_fix['lon']).destination(distance, bearing)
-    return dict(lat=destination_latlon.lat, lon=destination_latlon.lon)
+    if bearing > 180:
+        bearing -= 360
+    endlon, endlat, _ = g.fwd(start_fix['lon'], start_fix['lat'], bearing, distance)
+    return dict(lat=endlat, lon=endlon)
 
 
 def dms2dd(degrees, minutes, seconds, cardinal):

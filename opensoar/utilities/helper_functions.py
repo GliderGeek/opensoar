@@ -5,6 +5,9 @@ import datetime
 from typing import List
 
 from pygeodesy.ellipsoidalVincenty import LatLon
+from pyproj import Geod
+
+g = Geod(ellps='WGS84')
 
 
 def double_iterator(lst):
@@ -36,14 +39,8 @@ def calculate_distance(fix1, fix2):
     :param fix2: b-record from IGC file (dict with keys 'lat' and 'lon')
     :return: distance in m
     """
-    loc1_lat_lon = LatLon(fix1['lat'], fix1['lon'])
-    loc2_lat_lon = LatLon(fix2['lat'], fix2['lon'])
-
-    # pygeodesy raises exception when same locations are used
-    if isclose(fix1['lat'], fix2['lat']) and isclose(fix1['lon'], fix2['lon']):
-        return 0
-
-    return loc1_lat_lon.distanceTo(loc2_lat_lon)
+    _, _, dist_new = g.inv(fix1['lon'], fix1['lat'], fix2['lon'], fix2['lat'])
+    return dist_new
 
 
 def calculate_bearing(fix1, fix2, final_bearing=False):
@@ -54,13 +51,15 @@ def calculate_bearing(fix1, fix2, final_bearing=False):
     :param fix2: b-record from IGC file (dict with keys 'lat' and 'lon')
     :return: bearing in degrees
     """
-    loc1_lat_lon = LatLon(fix1['lat'], fix1['lon'])
-    loc2_lat_lon = LatLon(fix2['lat'], fix2['lon'])
+    fw_bearing_new, bw_bearing_new, _ = g.inv(fix1['lon'], fix1['lat'], fix2['lon'], fix2['lat'])
+    if fw_bearing_new < 0:
+        fw_bearing_new += 360
+    bw_bearing_new += 180
 
     if not final_bearing:
-        return loc1_lat_lon.initialBearingTo(loc2_lat_lon)
+        return fw_bearing_new
     else:
-        return loc1_lat_lon.finalBearingTo(loc2_lat_lon)
+        return bw_bearing_new
 
 
 def calculate_bearing_difference(bearing1, bearing2):

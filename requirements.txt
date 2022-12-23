@@ -1,3 +1,4 @@
 pygeodesy
+pyproj
 aerofiles
 beautifulsoup4

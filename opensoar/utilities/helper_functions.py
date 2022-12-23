@@ -38,8 +38,8 @@ def calculate_distance(fix1, fix2):
     :param fix2: b-record from IGC file (dict with keys 'lat' and 'lon')
     :return: distance in m
     """
-    _, _, dist_new = g.inv(fix1['lon'], fix1['lat'], fix2['lon'], fix2['lat'])
-    return dist_new
+    _, _, dist = g.inv(fix1['lon'], fix1['lat'], fix2['lon'], fix2['lat'])
+    return dist
 
 
 def calculate_bearing(fix1, fix2, final_bearing=False):
@@ -50,15 +50,34 @@ def calculate_bearing(fix1, fix2, final_bearing=False):
     :param fix2: b-record from IGC file (dict with keys 'lat' and 'lon')
     :return: bearing in degrees
     """
-    fw_bearing_new, bw_bearing_new, _ = g.inv(fix1['lon'], fix1['lat'], fix2['lon'], fix2['lat'])
-    if fw_bearing_new < 0:
-        fw_bearing_new += 360
-    bw_bearing_new += 180
+    fw_bearing, bw_bearing, dist = g.inv(fix1['lon'], fix1['lat'], fix2['lon'], fix2['lat'])
+    if fw_bearing < 0:
+        fw_bearing += 360
+    bw_bearing += 180
 
     if not final_bearing:
-        return fw_bearing_new
+        return fw_bearing
     else:
-        return bw_bearing_new
+        return bw_bearing
+
+
+def calculate_distance_bearing(fix1, fix2, final_bearing=False):
+    """
+    Calculate bearing between fix1 and fix. By default the bearing is taking tangent to the great circle at fix1.
+    :param final_bearing: switch to True results in taking the tangent at fix2.
+    :param fix1: b-record from IGC file (dict with keys 'lat' and 'lon')
+    :param fix2: b-record from IGC file (dict with keys 'lat' and 'lon')
+    :return: bearing in degrees
+    """
+    fw_bearing, bw_bearing, dist = g.inv(fix1['lon'], fix1['lat'], fix2['lon'], fix2['lat'])
+    if fw_bearing < 0:
+        fw_bearing += 360
+    bw_bearing += 180
+
+    if not final_bearing:
+        return dist, fw_bearing
+    else:
+        return dist, bw_bearing
 
 
 def calculate_bearing_difference(bearing1, bearing2):
@@ -87,12 +106,6 @@ def calculate_bearing_change(fix_minus2, fix_minus1, fix):
     :return: bearing change in degrees between -180 and +180 degrees.
     Return 0 when two of the of the fixes are the same.
     """
-
-    # pygeodesy raises an exception when same locations are used
-    if (isclose(fix_minus1['lat'], fix_minus2['lat']) and isclose(fix_minus1['lon'], fix_minus2['lon']) or
-            isclose(fix_minus1['lat'], fix['lat']) and isclose(fix_minus1['lon'], fix['lon']) or
-            isclose(fix_minus2['lat'], fix['lat']) and isclose(fix_minus2['lon'], fix['lon'])):
-        return 0
 
     bearing1 = calculate_bearing(fix_minus2, fix_minus1)
     bearing2 = calculate_bearing(fix_minus1, fix)

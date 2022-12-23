@@ -1,7 +1,7 @@
 from math import isclose
 
 from opensoar.utilities.helper_functions import calculate_distance, both_none_or_same_float, both_none_or_same_str
-from opensoar.utilities.helper_functions import calculate_bearing
+from opensoar.utilities.helper_functions import calculate_bearing, calculate_distance_bearing
 from opensoar.utilities.helper_functions import calculate_bearing_difference
 from opensoar.utilities.helper_functions import calculate_average_bearing
 
@@ -84,8 +84,7 @@ class Waypoint(object):
 
     def inside_sector(self, fix):
 
-        distance = calculate_distance(fix, self.fix)
-        bearing = calculate_bearing(self.fix, fix)
+        distance, bearing = calculate_distance_bearing(self.fix, fix)
 
         angle_wrt_orientation = abs(calculate_bearing_difference(self.orientation_angle, bearing))
 

@@ -19,6 +19,11 @@ Fixed
 Security
 ~~~~~~~~~
 
+v0.1.8
+------------------------
+Changed
+~~~~~~~~
+* Replace pygeodesy with pyproj for speed-up
 v0.1.7
 ------------------------
 Fixed

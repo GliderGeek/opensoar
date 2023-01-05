@@ -11,6 +11,8 @@ Deprecated
 ~~~~~~~~~~~~
 Removed
 ~~~~~~~~~
+* StreplaDaily support: site no longer online
+
 Fixed
 ~~~~~~~~
 * is -> == on literals

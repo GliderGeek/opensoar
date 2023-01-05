@@ -7,8 +7,7 @@ import os
 from aerofiles.igc import Reader
 
 from opensoar.competition.competitor import Competitor
-from opensoar.competition.strepla import get_waypoint_name_lat_long, get_waypoints, get_waypoint, \
-    StreplaDaily, get_task_and_competitor_info, get_info_from_comment_lines
+from opensoar.competition.strepla import get_waypoint_name_lat_long, get_waypoints, get_waypoint, get_task_and_competitor_info, get_info_from_comment_lines
 from opensoar.task.aat import AAT
 from opensoar.utilities.helper_functions import seconds_time_difference
 

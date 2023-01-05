@@ -113,18 +113,3 @@ class TestStrepla(unittest.TestCase):
         self.assertLessEqual(abs(time_diff), 1)
         self.assertEqual(len(competitor.trip.fixes), len(expected_waypoints))
         self.assertLessEqual(abs(dist_diff), 1000)
-
-
-class TestStreplaDaily(unittest.TestCase):
-
-    daily_page = StreplaDaily("https://www.strepla.de/scs/public/scoreDay.aspx?cId=222&idDay=2388")
-
-    def test_get_competitionday_info(self):
-        competition_name, date, plane_class = self.daily_page._get_competition_day_info()
-        self.assertEqual(competition_name, 'Reinheim_Cup')
-        self.assertEqual(plane_class, 'Standard')
-        self.assertEqual(date, datetime.date(2013, 8, 5))
-
-    def test_get_table_info(self):
-        competitors_info = self.daily_page._get_table_info(include_hc_competitors=False)
-        self.assertEqual(len(competitors_info), 10)

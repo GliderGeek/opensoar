@@ -7,6 +7,7 @@ Added
 ~~~~~~
 Changed
 ~~~~~~~~
+* Introduced github actions instead of TravisCI (release still missing)
 Deprecated
 ~~~~~~~~~~~~
 Removed

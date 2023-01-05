@@ -5,10 +5,6 @@ OpenSoar
     :target: https://pypi.org/project/opensoar/
     :alt: pypi version and link
     
-.. image:: https://api.travis-ci.org/GliderGeek/opensoar.svg?branch=development
-    :target: https://travis-ci.org/GliderGeek/opensoar
-    :alt: Build status
-    
 .. image:: https://readthedocs.org/projects/opensoar/badge/?version=latest
     :target: http://opensoar.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status

@@ -7,10 +7,12 @@ Added
 ~~~~~~
 Changed
 ~~~~~~~~
+* Introduce github actions for tests instead of TravisCI
 Deprecated
 ~~~~~~~~~~~~
 Removed
 ~~~~~~~~~
+* StreplaDaily support: site no longer online
 Fixed
 ~~~~~~~~
 * is -> == on literals

@@ -6,7 +6,7 @@ from opensoar.utilities.helper_functions import seconds_time_difference, interpo
     both_none_or_same_float, both_none_or_same_str, add_times, subtract_times
 from opensoar.utilities.helper_functions import double_iterator
 from opensoar.utilities.helper_functions import triple_iterator
-from opensoar.utilities.helper_functions import calculate_distance
+from opensoar.utilities.helper_functions import calculate_distance_bearing
 from opensoar.utilities.helper_functions import add_seconds
 from opensoar.utilities.helper_functions import range_with_bounds
 from opensoar.utilities.helper_functions import calculate_time_differences
@@ -29,7 +29,7 @@ class TestHelperFunctions(unittest.TestCase):
         fix1 = dict(lat=52.331783333333334, lon=6.249083333333333)
         fix2 = dict(lat=52.331783333333334, lon=6.249083333333333)
 
-        self.assertEqual(calculate_distance(fix1, fix2), 0)
+        self.assertEqual(calculate_distance_bearing(fix1, fix2)[0], 0)
 
     def test_seconds_time_difference(self):
 

@@ -31,43 +31,13 @@ def triple_iterator(lst):
     return zip(a, b, c)
 
 
-def calculate_distance(fix1, fix2):
-    """
-    Calculate distance between fix1 and fix2 using WGS84
-    :param fix1: b-record from IGC file (dict with keys 'lat' and 'lon')
-    :param fix2: b-record from IGC file (dict with keys 'lat' and 'lon')
-    :return: distance in m
-    """
-    _, _, dist = g.inv(fix1['lon'], fix1['lat'], fix2['lon'], fix2['lat'])
-    return dist
-
-
-def calculate_bearing(fix1, fix2, final_bearing=False):
-    """
-    Calculate bearing between fix1 and fix. By default the bearing is taking tangent to the great circle at fix1.
-    :param final_bearing: switch to True results in taking the tangent at fix2.
-    :param fix1: b-record from IGC file (dict with keys 'lat' and 'lon')
-    :param fix2: b-record from IGC file (dict with keys 'lat' and 'lon')
-    :return: bearing in degrees
-    """
-    fw_bearing, bw_bearing, dist = g.inv(fix1['lon'], fix1['lat'], fix2['lon'], fix2['lat'])
-    if fw_bearing < 0:
-        fw_bearing += 360
-    bw_bearing += 180
-
-    if not final_bearing:
-        return fw_bearing
-    else:
-        return bw_bearing
-
-
 def calculate_distance_bearing(fix1, fix2, final_bearing=False):
     """
     Calculate bearing between fix1 and fix. By default the bearing is taking tangent to the great circle at fix1.
     :param final_bearing: switch to True results in taking the tangent at fix2.
     :param fix1: b-record from IGC file (dict with keys 'lat' and 'lon')
     :param fix2: b-record from IGC file (dict with keys 'lat' and 'lon')
-    :return: bearing in degrees
+    :return: distance in meters, bearing in degrees
     """
     fw_bearing, bw_bearing, dist = g.inv(fix1['lon'], fix1['lat'], fix2['lon'], fix2['lat'])
     if fw_bearing < 0:
@@ -107,8 +77,8 @@ def calculate_bearing_change(fix_minus2, fix_minus1, fix):
     Return 0 when two of the of the fixes are the same.
     """
 
-    bearing1 = calculate_bearing(fix_minus2, fix_minus1)
-    bearing2 = calculate_bearing(fix_minus1, fix)
+    _, bearing1 = calculate_distance_bearing(fix_minus2, fix_minus1)
+    _, bearing2 = calculate_distance_bearing(fix_minus1, fix)
 
     return calculate_bearing_difference(bearing1, bearing2)
 
@@ -162,7 +132,8 @@ def total_distance_travelled(fixes: List[dict]):
     """Calculates the total distance, summing over the inter fix distances"""
     distance = 0
     for fix, next_fix in double_iterator(fixes):
-        distance += calculate_distance(fix, next_fix)
+        inter_fix_dist, _ = calculate_distance_bearing(fix, next_fix)
+        distance += inter_fix_dist
 
     return distance
 

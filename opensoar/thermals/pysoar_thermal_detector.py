@@ -1,4 +1,4 @@
-from opensoar.utilities.helper_functions import triple_iterator, calculate_bearing_change, calculate_distance, \
+from opensoar.utilities.helper_functions import triple_iterator, calculate_bearing_change, calculate_distance_bearing, \
     seconds_time_difference
 
 
@@ -102,7 +102,7 @@ class PySoarThermalDetector:
                         total_bearing_change += bearing_change
 
                     delta_t = seconds_time_difference(possible_cruise_fixes[0]['time'], time)
-                    cruise_distance = calculate_distance(possible_cruise_fixes[0], fix)
+                    cruise_distance, _ = calculate_distance_bearing(possible_cruise_fixes[0], fix)
                     temp_bearing_rate_avg = 0 if delta_t == 0 else total_bearing_change / delta_t
 
                     if (cruise_distance > self.THERMAL_THRESHOLD_DISTANCE and

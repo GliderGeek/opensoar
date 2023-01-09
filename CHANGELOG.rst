@@ -8,6 +8,7 @@ Added
 Changed
 ~~~~~~~~
 * Introduce github actions for tests instead of TravisCI
+* Replace pygeodesy with pyproj for speed-up (`calculate_distance` and `calculate_bearing` are replaced with `calculate_distance_bearing`, which is based on pyproj)
 Deprecated
 ~~~~~~~~~~~~
 Removed

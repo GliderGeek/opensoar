@@ -2,8 +2,8 @@ import datetime
 from copy import deepcopy
 
 from opensoar.task.task import Task
-from opensoar.utilities.helper_functions import double_iterator, calculate_distance, \
-    calculate_bearing, calculate_destination, seconds_time_difference_fixes, add_times
+from opensoar.utilities.helper_functions import double_iterator, calculate_distance_bearing, calculate_destination, \
+    seconds_time_difference_fixes, add_times
 
 
 class AAT(Task):
@@ -39,7 +39,7 @@ class AAT(Task):
     def _calculate_nominal_distances(self):
         distances = list()
         for start_waypoint, end_waypoint in double_iterator(self.waypoints):
-            distance = calculate_distance(start_waypoint.fix, end_waypoint.fix)
+            distance, _ = calculate_distance_bearing(start_waypoint.fix, end_waypoint.fix)
             distances.append(distance)
         return distances
 
@@ -302,45 +302,44 @@ class AAT(Task):
         if leg == 0:
             tp1 = self.waypoints[leg + 1]
 
-            bearing = calculate_bearing(start_tp_fix, outlanding_fix)
+            _, bearing = calculate_distance_bearing(start_tp_fix, outlanding_fix)
             closest_area_fix = calculate_destination(start_tp_fix, tp1.r_max, bearing)
 
-            distance = calculate_distance(self.start.fix, closest_area_fix)
-            distance -= calculate_distance(outlanding_fix, closest_area_fix)
-
+            distance, _ = calculate_distance_bearing(self.start.fix, closest_area_fix)
+            distance -= calculate_distance_bearing(outlanding_fix, closest_area_fix)[0]
         elif leg == self.no_legs - 1:  # take finish-point of task
-            distance = calculate_distance(start_tp_fix, self.finish.fix)
-            distance -= calculate_distance(self.finish.fix, outlanding_fix)
+            distance, _ = calculate_distance_bearing(start_tp_fix, self.finish.fix)
+            distance -= calculate_distance_bearing(self.finish.fix, outlanding_fix)[0]
 
         else:
             tp1 = self.waypoints[leg + 1]
 
-            bearing = calculate_bearing(tp1.fix, outlanding_fix)
+            _, bearing = calculate_distance_bearing(tp1.fix, outlanding_fix)
             closest_area_fix = calculate_destination(tp1.fix, tp1.r_max, bearing)
 
             if leg == 0:
-                distance = calculate_distance(self.start.fix, closest_area_fix)
+                distance, _ = calculate_distance_bearing(self.start.fix, closest_area_fix)
             else:
-                distance = calculate_distance(start_tp_fix, closest_area_fix)
-            distance -= calculate_distance(outlanding_fix, closest_area_fix)
+                distance, _ = calculate_distance_bearing(start_tp_fix, closest_area_fix)
+            distance -= calculate_distance_bearing(outlanding_fix, closest_area_fix)[0]
 
         return distance
 
     def _calculate_distance_completed_leg(self, leg, start_tp_fix, end_tp_fix):
         if leg == 0:  # take start-point of task
             start = self.waypoints[0]
-            distance = calculate_distance(start.fix, end_tp_fix)
+            distance, _ = calculate_distance_bearing(start.fix, end_tp_fix)
 
             if start.distance_correction == 'shorten_legs':
                 distance -= start.r_max
         elif leg == self.no_legs - 1:  # take finish-point of task
             finish = self.waypoints[-1]
-            distance = calculate_distance(start_tp_fix, finish.fix)
+            distance, _ = calculate_distance_bearing(start_tp_fix, finish.fix)
 
             if finish.distance_correction == 'shorten_legs':
                 distance -= finish.r_max
         else:
-            distance = calculate_distance(start_tp_fix, end_tp_fix)
+            distance, _ = calculate_distance_bearing(start_tp_fix, end_tp_fix)
 
         return distance
 

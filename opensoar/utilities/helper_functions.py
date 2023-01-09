@@ -4,7 +4,9 @@ from math import isclose, pi, sin, cos, atan2
 import datetime
 from typing import List
 
-from pygeodesy.ellipsoidalVincenty import LatLon
+from pyproj import Geod
+
+g = Geod(ellps='WGS84')
 
 
 def double_iterator(lst):
@@ -29,38 +31,23 @@ def triple_iterator(lst):
     return zip(a, b, c)
 
 
-def calculate_distance(fix1, fix2):
-    """
-    Calculate distance between fix1 and fix2 using WGS84
-    :param fix1: b-record from IGC file (dict with keys 'lat' and 'lon')
-    :param fix2: b-record from IGC file (dict with keys 'lat' and 'lon')
-    :return: distance in m
-    """
-    loc1_lat_lon = LatLon(fix1['lat'], fix1['lon'])
-    loc2_lat_lon = LatLon(fix2['lat'], fix2['lon'])
-
-    # pygeodesy raises exception when same locations are used
-    if isclose(fix1['lat'], fix2['lat']) and isclose(fix1['lon'], fix2['lon']):
-        return 0
-
-    return loc1_lat_lon.distanceTo(loc2_lat_lon)
-
-
-def calculate_bearing(fix1, fix2, final_bearing=False):
+def calculate_distance_bearing(fix1, fix2, final_bearing=False):
     """
     Calculate bearing between fix1 and fix. By default the bearing is taking tangent to the great circle at fix1.
     :param final_bearing: switch to True results in taking the tangent at fix2.
     :param fix1: b-record from IGC file (dict with keys 'lat' and 'lon')
     :param fix2: b-record from IGC file (dict with keys 'lat' and 'lon')
-    :return: bearing in degrees
+    :return: distance in meters, bearing in degrees
     """
-    loc1_lat_lon = LatLon(fix1['lat'], fix1['lon'])
-    loc2_lat_lon = LatLon(fix2['lat'], fix2['lon'])
+    fw_bearing, bw_bearing, dist = g.inv(fix1['lon'], fix1['lat'], fix2['lon'], fix2['lat'])
+    if fw_bearing < 0:
+        fw_bearing += 360
+    bw_bearing += 180
 
     if not final_bearing:
-        return loc1_lat_lon.initialBearingTo(loc2_lat_lon)
+        return dist, fw_bearing
     else:
-        return loc1_lat_lon.finalBearingTo(loc2_lat_lon)
+        return dist, bw_bearing
 
 
 def calculate_bearing_difference(bearing1, bearing2):
@@ -90,14 +77,8 @@ def calculate_bearing_change(fix_minus2, fix_minus1, fix):
     Return 0 when two of the of the fixes are the same.
     """
 
-    # pygeodesy raises an exception when same locations are used
-    if (isclose(fix_minus1['lat'], fix_minus2['lat']) and isclose(fix_minus1['lon'], fix_minus2['lon']) or
-            isclose(fix_minus1['lat'], fix['lat']) and isclose(fix_minus1['lon'], fix['lon']) or
-            isclose(fix_minus2['lat'], fix['lat']) and isclose(fix_minus2['lon'], fix['lon'])):
-        return 0
-
-    bearing1 = calculate_bearing(fix_minus2, fix_minus1)
-    bearing2 = calculate_bearing(fix_minus1, fix)
+    _, bearing1 = calculate_distance_bearing(fix_minus2, fix_minus1)
+    _, bearing2 = calculate_distance_bearing(fix_minus1, fix)
 
     return calculate_bearing_difference(bearing1, bearing2)
 
@@ -151,7 +132,8 @@ def total_distance_travelled(fixes: List[dict]):
     """Calculates the total distance, summing over the inter fix distances"""
     distance = 0
     for fix, next_fix in double_iterator(fixes):
-        distance += calculate_distance(fix, next_fix)
+        inter_fix_dist, _ = calculate_distance_bearing(fix, next_fix)
+        distance += inter_fix_dist
 
     return distance
 
@@ -254,8 +236,10 @@ def interpolate_fixes(fix1, fix2, interval=1):
 
 
 def calculate_destination(start_fix, distance, bearing):
-    destination_latlon = LatLon(start_fix['lat'], start_fix['lon']).destination(distance, bearing)
-    return dict(lat=destination_latlon.lat, lon=destination_latlon.lon)
+    if bearing > 180:
+        bearing -= 360
+    endlon, endlat, _ = g.fwd(start_fix['lon'], start_fix['lat'], bearing, distance)
+    return dict(lat=endlat, lon=endlon)
 
 
 def dms2dd(degrees, minutes, seconds, cardinal):

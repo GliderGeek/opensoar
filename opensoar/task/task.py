@@ -2,7 +2,7 @@ import datetime
 from typing import List
 
 from opensoar.task.waypoint import Waypoint
-from opensoar.utilities.helper_functions import calculate_bearing, calculate_distance, calculate_bearing_difference, \
+from opensoar.utilities.helper_functions import calculate_distance_bearing, calculate_bearing_difference, \
     interpolate_fixes, double_iterator
 
 
@@ -72,15 +72,19 @@ class Task:
         for index in range(len(waypoints)):
 
             if index == 0:  # necessary for index out of bounds
-                angle = calculate_bearing(waypoints[index + 1].fix,  waypoints[index].fix, final_bearing=True)
+                _, angle = calculate_distance_bearing(waypoints[index + 1].fix, waypoints[index].fix,
+                                                      final_bearing=True)
                 waypoints[index].set_orientation_angle(angle_next=angle)
             elif index == len(waypoints) - 1:  # necessary for index out of bounds
-                angle = calculate_bearing(waypoints[index - 1].fix, waypoints[index].fix, final_bearing=True)
+                _, angle = calculate_distance_bearing(waypoints[index - 1].fix, waypoints[index].fix,
+                                                      final_bearing=True)
                 waypoints[index].set_orientation_angle(angle_previous=angle)
             else:
-                angle_start = calculate_bearing(waypoints[0].fix, waypoints[index].fix, final_bearing=True)
-                angle_previous = calculate_bearing(waypoints[index - 1].fix, waypoints[index].fix, final_bearing=True)
-                angle_next = calculate_bearing(waypoints[index + 1].fix, waypoints[index].fix, final_bearing=True)
+                _, angle_start = calculate_distance_bearing(waypoints[0].fix, waypoints[index].fix, final_bearing=True)
+                _, angle_previous = calculate_distance_bearing(waypoints[index - 1].fix, waypoints[index].fix,
+                                                               final_bearing=True)
+                _, angle_next = calculate_distance_bearing(waypoints[index + 1].fix, waypoints[index].fix,
+                                                           final_bearing=True)
                 waypoints[index].set_orientation_angle(angle_start=angle_start,
                                                        angle_previous=angle_previous,
                                                        angle_next=angle_next)
@@ -111,7 +115,7 @@ class Task:
         elif moved_point == "both_end":
             moved = end
             other = begin
-            original_distance = calculate_distance(begin.fix, end.fix)
+            original_distance, _ = calculate_distance_bearing(begin.fix, end.fix)
 
             distance_moved_current = begin.r_max if begin.angle_max == 180 else begin.r_min
             angle_reduction = abs(acos((distance_moved_current ** 2 - distance ** 2 - original_distance ** 2) / (-2 * distance * original_distance))) * 180 / pi
@@ -120,7 +124,7 @@ class Task:
 
         displacement_dist = moved.r_max if moved.angle_max == 180 else moved.r_min
         bearing1 = moved.orientation_angle
-        bearing2 = calculate_bearing(other.fix, moved.fix, final_bearing=True)
+        _, bearing2 = calculate_distance_bearing(other.fix, moved.fix, final_bearing=True)
 
         if move_direction == 'increase':
             angle = 180 - abs(calculate_bearing_difference(bearing1, bearing2)) - angle_reduction

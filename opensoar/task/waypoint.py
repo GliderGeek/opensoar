@@ -1,7 +1,7 @@
 from math import isclose
 
-from opensoar.utilities.helper_functions import calculate_distance, both_none_or_same_float, both_none_or_same_str
-from opensoar.utilities.helper_functions import calculate_bearing
+from opensoar.utilities.helper_functions import both_none_or_same_float, both_none_or_same_str
+from opensoar.utilities.helper_functions import calculate_distance_bearing
 from opensoar.utilities.helper_functions import calculate_bearing_difference
 from opensoar.utilities.helper_functions import calculate_average_bearing
 
@@ -84,8 +84,7 @@ class Waypoint(object):
 
     def inside_sector(self, fix):
 
-        distance = calculate_distance(fix, self.fix)
-        bearing = calculate_bearing(self.fix, fix)
+        distance, bearing = calculate_distance_bearing(self.fix, fix)
 
         angle_wrt_orientation = abs(calculate_bearing_difference(self.orientation_angle, bearing))
 
@@ -103,8 +102,8 @@ class Waypoint(object):
 
     def crossed_line(self, fix1, fix2):
 
-        distance1 = calculate_distance(fix1, self.fix)
-        distance2 = calculate_distance(fix2, self.fix)
+        distance1, _ = calculate_distance_bearing(fix1, self.fix)
+        distance2, _ = calculate_distance_bearing(fix2, self.fix)
 
         if not self.is_line:
             raise ValueError('Calling crossed_line on a sector!')
@@ -112,8 +111,8 @@ class Waypoint(object):
             if distance2 > self.r_max and distance1 > self.r_max:
                 return False
             else:  # either both within circle or only one, leading to small amount of false positives
-                bearing1 = calculate_bearing(self.fix, fix1)
-                bearing2 = calculate_bearing(self.fix, fix2)
+                _, bearing1 = calculate_distance_bearing(self.fix, fix1)
+                _, bearing2 = calculate_distance_bearing(self.fix, fix2)
 
                 angle_wrt_orientation1 = abs(calculate_bearing_difference(self.orientation_angle, bearing1))
                 angle_wrt_orientation2 = abs(calculate_bearing_difference(self.orientation_angle, bearing2))

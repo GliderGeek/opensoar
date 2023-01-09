@@ -1,5 +1,5 @@
 from opensoar.task.task import Task
-from opensoar.utilities.helper_functions import calculate_distance, double_iterator, \
+from opensoar.utilities.helper_functions import calculate_distance_bearing, double_iterator, \
     seconds_time_difference_fixes, add_seconds
 
 
@@ -34,7 +34,7 @@ class RaceTask(Task):
 
             begin = self.waypoints[leg]
             end = self.waypoints[leg+1]  # next is built in name
-            distance = calculate_distance(begin.fix, end.fix)
+            distance, _ = calculate_distance_bearing(begin.fix, end.fix)
 
             if begin.distance_correction == "shorten_legs":
                 if end.distance_correction == "shorten_legs":
@@ -173,8 +173,8 @@ class RaceTask(Task):
         next_waypoint = self.waypoints[outlanding_leg + 1]
 
         # outlanding distance = distance between tps minus distance from next tp to outlanding
-        outlanding_dist = calculate_distance(previous_waypoint.fix, next_waypoint.fix)
-        outlanding_dist -= calculate_distance(next_waypoint.fix, fix)
+        outlanding_dist, _ = calculate_distance_bearing(previous_waypoint.fix, next_waypoint.fix)
+        outlanding_dist -= calculate_distance_bearing(next_waypoint.fix, fix)[0]
 
         return outlanding_dist if outlanding_dist > 0 else 0
 

@@ -15,7 +15,7 @@ setup(
     long_description=long_description,
     install_requires=[
         'aerofiles>=0.4.1',
-        'beautifulsoup4>=4.6.0'
-        'pyproj>=3.4.1'
+        'beautifulsoup4>=4.6.0',
+        'pyproj>=3.4.1',
     ]
 )

@@ -46,3 +46,11 @@ Example race task
     trip = Trip(task, trace)
     task_distance_covered = sum(trip.distances)
     
+
+Releasing
+==========
+
+- add version number in changelog
+- change `__version__` in opensoar/version.py
+- merge to master
+- push tag, ci publishes to pypi

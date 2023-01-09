@@ -7,18 +7,28 @@ Added
 ~~~~~~
 Changed
 ~~~~~~~~
-* Introduce github actions for tests instead of TravisCI
-* Replace pygeodesy with pyproj for speed-up (`calculate_distance` and `calculate_bearing` are replaced with `calculate_distance_bearing`, which is based on pyproj)
 Deprecated
 ~~~~~~~~~~~~
 Removed
 ~~~~~~~~~
+Fixed
+~~~~~~~~
+Security
+~~~~~~~~~
+
+v1.0.0
+------------------------
+Changed
+~~~~~~~~
+* Replace TravisCI with github actions for automated tests and publish
+* Replace pygeodesy with pyproj for speed-up
+Removed
+~~~~~~~~~
 * StreplaDaily support: site no longer online
+* `calculate_distance` and `calculate_bearing` (replaced by `calculate_distance_bearing`)
 Fixed
 ~~~~~~~~
 * is -> == on literals
-Security
-~~~~~~~~~
 
 v0.1.7
 ------------------------

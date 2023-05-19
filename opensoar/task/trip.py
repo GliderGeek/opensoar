@@ -15,6 +15,7 @@ class Trip:
         self.outlanding_fix = task_result[2]
         self.distances = task_result[3]
         self.finish_time = task_result[4]
+        self.sector_fixes = task_result[5]
 
     def completed_legs(self):
         return len(self.fixes) - 1

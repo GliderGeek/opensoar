@@ -44,11 +44,11 @@ class AAT(Task):
         return distances
 
     def apply_rules(self, trace):
-        fixes, outlanding_fix = self._calculate_trip_fixes(trace)
+        fixes, outlanding_fix, sector_fixes = self._calculate_trip_fixes(trace)
         start_time = self.determine_refined_start(trace, fixes)
         distances = self._determine_trip_distances(fixes, outlanding_fix)
         finish_time = self._determine_finish_time(fixes, outlanding_fix)
-        return fixes, start_time, outlanding_fix, distances, finish_time
+        return fixes, start_time, outlanding_fix, distances, finish_time, sector_fixes
 
     def _determine_finish_time(self, fixes, outlanding_fix):
         total_trip_time = seconds_time_difference_fixes(fixes[0], fixes[-1])
@@ -88,7 +88,7 @@ class AAT(Task):
             trip_fixes = max_distance_fixes
             outlanding_fix = None
 
-        return trip_fixes, outlanding_fix
+        return trip_fixes, outlanding_fix, sector_fixes
 
     def _determine_trip_distances(self, fixes, outlanding_fix):
 

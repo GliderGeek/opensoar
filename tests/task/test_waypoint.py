@@ -22,6 +22,8 @@ class TestWaypoint(unittest.TestCase):
         fix = {'lat': 51.5, 'lon': -1.0}
         self.assertFalse(waypoint.inside_sector(fix))
 
+    # TODO: add inside sector with r_min not None
+
     def test_equal_waypoints(self):
         waypoint1 = Waypoint('test_waypoint', latitude=51.7509, longitude=-0.981, r_min=None, angle_min=180,
                              r_max=50000, angle_max=20, is_line=False, sector_orientation='fixed',

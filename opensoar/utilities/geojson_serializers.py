@@ -1,9 +1,7 @@
 from typing import List
 
-from geojson import GeometryCollection, Point, LineString, Polygon, Feature, FeatureCollection
+from geojson import Point, LineString, Polygon, Feature, FeatureCollection
 from opensoar.utilities.helper_functions import calculate_destination
-
-RED_HEX = "#dd1843"
 
 
 def circle_polygon(lat, lng, radius):
@@ -22,13 +20,13 @@ def circle_polygon(lat, lng, radius):
     buffer = point_transformed.buffer(radius)
     circle = transform(aeqd_to_wgs84.transform, buffer)
 
-    # todo: find out why nested list necessary
+    # todo: why nested list necessary?
     circle_coordinates = [[(lon, lat) for lon, lat in circle.exterior.coords]]
-    return Feature(geometry=Polygon(circle_coordinates))
+    polygon_feature = Feature(geometry=Polygon(circle_coordinates))
+    return polygon_feature
 
 
 def task_to_geojson_features(task) -> List[dict]:
-    # TODO: plot waypoint lines as lines
     # TODO: have proper cutouts from sectors
 
     features = []
@@ -38,21 +36,36 @@ def task_to_geojson_features(task) -> List[dict]:
         lat = waypoint.latitude
         task_line_coords.append((lon, lat))
 
-        features.append(circle_polygon(lat, lon, waypoint.r_max))
+        if waypoint.is_line:
+            angle1 = (waypoint.orientation_angle + 90) % 360
+            angle2 = (waypoint.orientation_angle - 90 + 360) % 360
+            waypoint_fix = {"lon": waypoint.longitude, "lat": waypoint.latitude}
+            end_of_line1 = calculate_destination(waypoint_fix, waypoint.r_max, angle1)
+            end_of_line2 = calculate_destination(waypoint_fix, waypoint.r_max, angle2)
+            line1 = LineString([(waypoint_fix['lon'], waypoint_fix['lat']), (end_of_line1['lon'], end_of_line1['lat'])])
+            line2 = LineString([(waypoint_fix['lon'], waypoint_fix['lat']), (end_of_line2['lon'], end_of_line2['lat'])])
+            features.append(Feature(geometry=line1))
+            features.append(Feature(geometry=line2))
+        else:
+            features.append(circle_polygon(lat, lon, waypoint.r_max))
+            if waypoint.r_min is not None:
+                features.append(circle_polygon(lat, lon, waypoint.r_min))
 
-        # + 180 because orientation is outward
-        angle1 = (waypoint.orientation_angle + 180 - waypoint.angle_max + 360) % 360
-        angle2 = (waypoint.orientation_angle + 180 + waypoint.angle_max) % 360
-        waypoint_fix = {"lon": waypoint.longitude, "lat": waypoint.latitude}
-        end_of_line1 = calculate_destination(waypoint_fix, waypoint.r_max, angle1)
-        end_of_line2 = calculate_destination(waypoint_fix, waypoint.r_max, angle2)
+            if waypoint.angle_max == 180:
+                # do not plot lines when full circle
+                continue
 
-        line1 = LineString([(waypoint_fix['lon'], waypoint_fix['lat']), (end_of_line1['lon'], end_of_line1['lat'])])
-        line2 = LineString([(waypoint_fix['lon'], waypoint_fix['lat']), (end_of_line2['lon'], end_of_line2['lat'])])
-        features.append(Feature(geometry=line1))
-        features.append(Feature(geometry=line2))
-        if waypoint.r_min is not None:
-            features.append(circle_polygon(lat, lon, waypoint.r_min))
+            # + 180 because orientation is outward
+            angle1 = (waypoint.orientation_angle + 180 - waypoint.angle_max + 360) % 360
+            angle2 = (waypoint.orientation_angle + 180 + waypoint.angle_max) % 360
+            waypoint_fix = {"lon": waypoint.longitude, "lat": waypoint.latitude}
+            end_of_line1 = calculate_destination(waypoint_fix, waypoint.r_max, angle1)
+            end_of_line2 = calculate_destination(waypoint_fix, waypoint.r_max, angle2)
+
+            line1 = LineString([(waypoint_fix['lon'], waypoint_fix['lat']), (end_of_line1['lon'], end_of_line1['lat'])])
+            line2 = LineString([(waypoint_fix['lon'], waypoint_fix['lat']), (end_of_line2['lon'], end_of_line2['lat'])])
+            features.append(Feature(geometry=line1))
+            features.append(Feature(geometry=line2))
 
     # task polyline
     features.append(Feature(geometry=LineString(task_line_coords)))
@@ -83,5 +96,6 @@ def trace_to_geojson_features(trace) -> List[dict]:
     return [trace_line]
 
 
-def generate_geojson_feature_collection(features) -> dict:
+def generate_geojson(features) -> dict:
+    """This dict can be written to .json file"""
     return FeatureCollection(features)

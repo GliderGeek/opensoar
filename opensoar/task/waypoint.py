@@ -91,11 +91,11 @@ class Waypoint(object):
         if self.is_line:
             raise ValueError('Calling inside_sector on a line')
         elif self.r_min is not None:
-            inside_outer_sector = self.r_min - self.SEEYOU_SECTOR_MARGIN < distance < self.r_max + self.SEEYOU_SECTOR_MARGIN and angle_wrt_orientation < self.angle_max
-            inside_inner_sector = distance < self.r_min and angle_wrt_orientation < self.angle_min
+            inside_outer_sector = self.r_min - self.SEEYOU_SECTOR_MARGIN < distance < self.r_max + self.SEEYOU_SECTOR_MARGIN and (180 - angle_wrt_orientation) < self.angle_max
+            inside_inner_sector = distance < self.r_min and (180 - angle_wrt_orientation) < self.angle_min
             return inside_outer_sector or inside_inner_sector
         else:  # self.r_min is None
-            return distance < self.r_max + self.SEEYOU_SECTOR_MARGIN and (180 - angle_wrt_orientation) < self.angle_max
+            return distance < (self.r_max + self.SEEYOU_SECTOR_MARGIN) and (180 - angle_wrt_orientation) < self.angle_max
 
     def outside_sector(self, fix):
         return not self.inside_sector(fix)

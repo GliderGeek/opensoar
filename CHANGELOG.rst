@@ -5,6 +5,7 @@ unreleased
 ------------------------
 Added
 ~~~~~~
+* geojson serializers
 Changed
 ~~~~~~~~
 Deprecated
@@ -13,6 +14,7 @@ Removed
 ~~~~~~~~~
 Fixed
 ~~~~~~~~
+* AAT inside sector determination
 Security
 ~~~~~~~~~
 

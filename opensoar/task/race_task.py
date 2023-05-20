@@ -83,8 +83,8 @@ class RaceTask(Task):
         distances = self.determine_trip_distances(fixes, outlanding_fix)
         refined_start = self.determine_refined_start(trace, fixes)
         finish_time = fixes[-1]['time']
-
-        return fixes, refined_start, outlanding_fix, distances, finish_time
+        sector_fixes = []  # not applicable for race tasks
+        return fixes, refined_start, outlanding_fix, distances, finish_time, sector_fixes
 
     def determine_trip_fixes(self, trace):
 

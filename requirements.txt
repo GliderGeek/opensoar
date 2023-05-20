@@ -2,3 +2,4 @@ pyproj
 aerofiles
 beautifulsoup4
 geojson
+shapely

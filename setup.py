@@ -17,6 +17,7 @@ setup(
         'aerofiles>=0.4.1',
         'beautifulsoup4>=4.6.0',
         'pyproj>=3.4.1',
-        'geojson>=3.0.0'
+        'geojson>=3.0.0',
+        'shapely>2.0.0',
     ]
 )

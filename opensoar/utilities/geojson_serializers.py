@@ -72,7 +72,13 @@ def task_to_geojson_features(task) -> List[dict]:
     return features
 
 
-def trip_to_geojson_features(trip, color) -> List[dict]:
+def trip_to_geojson_features(trip, color: str) -> List[dict]:
+    """
+    :param trip:
+    :param color: hex string with leading hashtag (e.g. "#062123")
+    :return:
+    """
+
     features = []
 
     for sector in trip.sector_fixes:

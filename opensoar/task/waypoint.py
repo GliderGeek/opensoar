@@ -118,8 +118,8 @@ class Waypoint(object):
                 angle_wrt_orientation2 = abs(calculate_bearing_difference(self.orientation_angle, bearing2))
 
                 if self.sector_orientation == "next":  # start line
-                    return angle_wrt_orientation1 < 90 < angle_wrt_orientation2
-                elif self.sector_orientation == "previous":  # finish line
                     return angle_wrt_orientation2 < 90 < angle_wrt_orientation1
+                elif self.sector_orientation == "previous":  # finish line
+                    return angle_wrt_orientation1 < 90 < angle_wrt_orientation2
                 else:
                     raise ValueError("A line with this orientation is not implemented!")

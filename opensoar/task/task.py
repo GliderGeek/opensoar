@@ -30,8 +30,6 @@ class Task:
         self.start_time_buffer = start_time_buffer
         self.multistart = multistart
 
-        # TODO: wouldn't this be better set in waypoint initialization?
-        # reason could be line cross logic depending on "next" and "previous"
         self.set_orientation_angles(self.waypoints)
 
     def __eq__(self, other):

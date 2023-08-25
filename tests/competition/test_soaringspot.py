@@ -118,6 +118,9 @@ class TestSoaringspot(unittest.TestCase):
             ("SALLAND FL", 84, False),
         ]
 
+        wp = waypoints[0]
+        print(wp.r_min, wp.angle_min, wp.r_max, wp.angle_max)
+
         for w, expected_w in zip(waypoints, expected):
             name, orientation_angle, is_line = expected_w
             self.assertEqual(w.name, name)

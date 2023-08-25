@@ -40,6 +40,10 @@ class Waypoint(object):
         self.orientation_angle = orientation_angle
 
         self.is_line = is_line
+
+        if sector_orientation not in {'fixed', 'symmetrical', 'next', 'previous', 'start'}:
+            raise ValueError('sector_orientation value not supported')
+
         self.sector_orientation = sector_orientation
         self.distance_correction = distance_correction
 

@@ -5,6 +5,7 @@ import datetime
 from opensoar.competition.soaringspot import get_lat_long, get_fixed_orientation_angle, get_sector_orientation, \
     get_sector_dimensions, get_waypoint, get_waypoints, SoaringSpotDaily, get_task_rules
 from opensoar.task.waypoint import Waypoint
+from opensoar.task.task import Task
 
 
 class TestSoaringspot(unittest.TestCase):
@@ -104,12 +105,24 @@ class TestSoaringspot(unittest.TestCase):
         ]
 
         waypoints = get_waypoints(lcu_lines, lseeyou_lines)
+        Task.set_orientation_angles(waypoints)
+
         self.assertEqual(len(waypoints), 5)
 
-        for waypoint in waypoints:
-            self.assertTrue(isinstance(waypoint, Waypoint))
+        # name, orientation_angle, is_line
+        expected = [
+            ("SALLAND AF1", 209, True),
+            ("Deventer", 81, False),
+            ("Ruurlo", 335, False),
+            ("Archemerberg", 220, False),
+            ("SALLAND FL", 84, False),
+        ]
 
-        self.assertEqual(waypoints[2].name, 'Ruurlo')
+        for w, expected_w in zip(waypoints, expected):
+            name, orientation_angle, is_line = expected_w
+            self.assertEqual(w.name, name)
+            self.assertEqual(int(w.orientation_angle), orientation_angle)
+            self.assertEqual(w.is_line, is_line)
 
     def test_get_competitors(self):
         soaringspot_page = SoaringSpotDaily(

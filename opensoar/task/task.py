@@ -72,19 +72,15 @@ class Task:
         for index in range(len(waypoints)):
 
             if index == 0:  # necessary for index out of bounds
-                _, angle = calculate_distance_bearing(waypoints[index + 1].fix, waypoints[index].fix,
-                                                      final_bearing=True)
+                _, angle = calculate_distance_bearing(waypoints[index].fix, waypoints[index + 1].fix)
                 waypoints[index].set_orientation_angle(angle_next=angle)
             elif index == len(waypoints) - 1:  # necessary for index out of bounds
-                _, angle = calculate_distance_bearing(waypoints[index - 1].fix, waypoints[index].fix,
-                                                      final_bearing=True)
+                _, angle = calculate_distance_bearing(waypoints[index].fix, waypoints[index - 1].fix)
                 waypoints[index].set_orientation_angle(angle_previous=angle)
             else:
-                _, angle_start = calculate_distance_bearing(waypoints[0].fix, waypoints[index].fix, final_bearing=True)
-                _, angle_previous = calculate_distance_bearing(waypoints[index - 1].fix, waypoints[index].fix,
-                                                               final_bearing=True)
-                _, angle_next = calculate_distance_bearing(waypoints[index + 1].fix, waypoints[index].fix,
-                                                           final_bearing=True)
+                _, angle_start = calculate_distance_bearing(waypoints[index].fix, waypoints[0].fix)
+                _, angle_previous = calculate_distance_bearing(waypoints[index].fix, waypoints[index - 1].fix)
+                _, angle_next = calculate_distance_bearing(waypoints[index].fix, waypoints[index + 1].fix)
                 waypoints[index].set_orientation_angle(angle_start=angle_start,
                                                        angle_previous=angle_previous,
                                                        angle_next=angle_next)

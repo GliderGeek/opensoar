@@ -40,6 +40,10 @@ class Waypoint(object):
         self.orientation_angle = orientation_angle
 
         self.is_line = is_line
+
+        if sector_orientation not in {'fixed', 'symmetrical', 'next', 'previous', 'start'}:
+            raise ValueError('sector_orientation value not supported')
+
         self.sector_orientation = sector_orientation
         self.distance_correction = distance_correction
 
@@ -118,8 +122,8 @@ class Waypoint(object):
                 angle_wrt_orientation2 = abs(calculate_bearing_difference(self.orientation_angle, bearing2))
 
                 if self.sector_orientation == "next":  # start line
-                    return angle_wrt_orientation1 < 90 < angle_wrt_orientation2
-                elif self.sector_orientation == "previous":  # finish line
                     return angle_wrt_orientation2 < 90 < angle_wrt_orientation1
+                elif self.sector_orientation == "previous":  # finish line
+                    return angle_wrt_orientation1 < 90 < angle_wrt_orientation2
                 else:
                     raise ValueError("A line with this orientation is not implemented!")

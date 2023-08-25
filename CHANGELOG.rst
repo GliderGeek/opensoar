@@ -5,6 +5,7 @@ unreleased
 ------------------------
 Added
 ~~~~~~
+* extra geojson serializer for trip
 Changed
 ~~~~~~~~
 Deprecated
@@ -13,6 +14,7 @@ Removed
 ~~~~~~~~~
 Fixed
 ~~~~~~~~
+* automatic sector orientations should point inward
 Security
 ~~~~~~~~~
 

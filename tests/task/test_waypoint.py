@@ -23,7 +23,7 @@ class TestWaypoint(unittest.TestCase):
         # - outer quarter circle segment (angle_min=45)
 
         wp = Waypoint('testwaypoint', latitude=52, longitude=1, r_min=5000, angle_min=90, r_max=10000,
-                      angle_max=45, is_line=False, sector_orientation='fixes', distance_correction=None,
+                      angle_max=45, is_line=False, sector_orientation='fixed', distance_correction=None,
                       orientation_angle=180)
 
         point_in_inner_sector = calculate_destination(wp.fix, 3000, 80)
@@ -78,3 +78,57 @@ class TestWaypoint(unittest.TestCase):
 
         for waypoint in waypoints:
             self.assertFalse(waypoint == waypoint1)
+
+    def test_crossed_start_line(self):
+        """
+        Test whether points in correct order trigger line crossing
+        Start line is W-E oriented, with a point north first and then a point south should be a start
+        """
+        # start line is pointing sout
+
+        start_line = Waypoint('testwaypoint', latitude=52, longitude=1, r_min=None, angle_min=None, r_max=1000,
+                      angle_max=45, is_line=True, sector_orientation='next', distance_correction=None,
+                      orientation_angle=180)
+
+        # test direction of crossing
+        point_north = calculate_destination(start_line.fix, 1000, 0)
+        point_south = calculate_destination(start_line.fix, 1000, 180)
+        self.assertTrue(start_line.crossed_line(point_north, point_south))
+        self.assertFalse(start_line.crossed_line(point_south, point_north))
+
+        # test within radius of line
+        point_north_close = calculate_destination(start_line.fix, 500, 45)
+        point_south_close = calculate_destination(start_line.fix, 500, 135)
+        self.assertTrue(start_line.crossed_line(point_north_close, point_south_close))
+
+        # test outside radius of line
+        point_north_far = calculate_destination(start_line.fix, 2000, 45)
+        point_south_far = calculate_destination(start_line.fix, 2000, 135)
+        self.assertFalse(start_line.crossed_line(point_north_far, point_south_far))
+
+    def test_crossed_finish_line(self):
+        """
+        Test whether points in correct order trigger line crossing
+        Finish line is W-E oriented, with a point north first and then a point south should be a finish
+        """
+        # start line is pointing sout
+
+        finish_line = Waypoint('testwaypoint', latitude=52, longitude=1, r_min=None, angle_min=None, r_max=1000,
+                      angle_max=45, is_line=True, sector_orientation='previous', distance_correction=None,
+                      orientation_angle=0)
+
+        # test direction of crossing
+        point_north = calculate_destination(finish_line.fix, 1000, 0)
+        point_south = calculate_destination(finish_line.fix, 1000, 180)
+        self.assertTrue(finish_line.crossed_line(point_north, point_south))
+        self.assertFalse(finish_line.crossed_line(point_south, point_north))
+
+        # test within radius of line
+        point_north_close = calculate_destination(finish_line.fix, 500, 45)
+        point_south_close = calculate_destination(finish_line.fix, 500, 135)
+        self.assertTrue(finish_line.crossed_line(point_north_close, point_south_close))
+
+        # test outside radius of line
+        point_north_far = calculate_destination(finish_line.fix, 2000, 45)
+        point_south_far = calculate_destination(finish_line.fix, 2000, 135)
+        self.assertFalse(finish_line.crossed_line(point_north_far, point_south_far))

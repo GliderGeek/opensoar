@@ -5,7 +5,6 @@ unreleased
 ------------------------
 Added
 ~~~~~~
-* extra geojson serializer for trip
 Changed
 ~~~~~~~~
 Deprecated
@@ -14,9 +13,17 @@ Removed
 ~~~~~~~~~
 Fixed
 ~~~~~~~~
-* automatic sector orientations should point inward
 Security
 ~~~~~~~~~
+
+v1.1.1 - 2023/08/25
+------------------------
+Added
+~~~~~~
+* extra geojson serializer for trip
+Fixed
+~~~~~~~~
+* automatic sector orientations should point inward
 
 v1.1.0 - 2023/05/20
 ------------------------

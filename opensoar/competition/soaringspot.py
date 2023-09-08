@@ -64,6 +64,7 @@ def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0)
     t_min = None
     start_opening = None
     multi_start = False
+    takeoff_elevation = None
 
     for line in comment_lines:
         if line.startswith('LCU::C'):
@@ -82,21 +83,24 @@ def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0)
             start_opening, t_min, multi_start = get_task_rules(line)
         elif line.startswith('LCU::HPTZNTIMEZONE:'):
             timezone = int(line.split(':')[3])
+        elif line.startswith('LCU::HPELVELEVATION:'):
+            takeoff_elevation = int(line.split(':')[3])
 
     if start_opening is not None:
         # convert start opening to UTC time
         start_opening = subtract_times(start_opening, datetime.timedelta(hours=timezone))
+
 
     if len(lcu_lines) == 0 or len(lseeyou_lines) == 0:
         # somehow some IGC files do not contain the LCU or LSEEYOU lines with task information
         task = None
     else:
         waypoints = get_waypoints(lcu_lines, lseeyou_lines)
-
         if t_min is None:
-            task = RaceTask(waypoints, timezone, start_opening, start_time_buffer, multi_start)
+            task = RaceTask(waypoints, timezone, start_opening, start_time_buffer, multi_start, takeoff_elevation)
         else:
-            task = AAT(waypoints, t_min, timezone, start_opening, start_time_buffer, multi_start)
+            task = AAT(waypoints, t_min, timezone, start_opening, start_time_buffer, multi_start, takeoff_elevation)
+
 
     return task, contest_information, competitor_information
 

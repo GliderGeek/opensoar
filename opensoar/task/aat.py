@@ -12,7 +12,7 @@ class AAT(Task):
     """
 
     def __init__(self, waypoints, t_min: datetime.timedelta, timezone: int=None, start_opening: datetime.time=None,
-                 start_time_buffer: int=0, multistart: bool=False):
+                 start_time_buffer: int=0, multistart: bool=False, takeoff_elevation: int=None):
         """
         :param waypoints:           see super()
         :param t_min:               minimal time to complete task
@@ -20,8 +20,9 @@ class AAT(Task):
         :param start_opening:       see super()
         :param start_time_buffer:   see super()
         :param multistart:          see super()
+        :param takeoff_elevation:   see super()
         """
-        super().__init__(waypoints, timezone, start_opening, start_time_buffer, multistart)
+        super().__init__(waypoints, timezone, start_opening, start_time_buffer, multistart, takeoff_elevation)
 
         self._t_min = t_min
         self._nominal_distances = self._calculate_nominal_distances()

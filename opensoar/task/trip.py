@@ -1,4 +1,4 @@
-from opensoar.utilities.helper_functions import seconds_time_difference
+from opensoar.utilities.helper_functions import seconds_time_difference, apply_takeoff_elevation_delta
 
 
 class Trip:
@@ -9,6 +9,10 @@ class Trip:
     def __init__(self, task, trace):
 
         task_result = task.apply_rules(trace)
+
+        if task.takeoff_elevation is not None:
+            max_ground_fixes = 1000
+            task_result = apply_takeoff_elevation_delta(trace[0:max_ground_fixes], task_result, task.takeoff_elevation)
 
         self.fixes = task_result[0]
         self.refined_start_time = task_result[1]

@@ -15,13 +15,14 @@ class Task:
     ENL_TIME_THRESHOLD = 30
 
     def __init__(self, waypoints: List[Waypoint], timezone: int, start_opening: datetime.time, start_time_buffer: int,
-                 multistart: bool):
+                 multistart: bool, takeoff_elevation: int):
         """
         :param waypoints:
         :param timezone: time difference wrt UTC in hours
         :param start_opening: in UTC
         :param start_time_buffer: in seconds
         :param multistart: flag whether multistart takes place
+        :param takeoff_elevation: elevation of takeoff airfield
         """
 
         self._waypoints = waypoints
@@ -29,6 +30,7 @@ class Task:
         self.start_opening = start_opening
         self.start_time_buffer = start_time_buffer
         self.multistart = multistart
+        self.takeoff_elevation = takeoff_elevation
 
         self.set_orientation_angles(self.waypoints)
 

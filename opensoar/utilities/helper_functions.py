@@ -1,6 +1,6 @@
 from copy import copy
 from math import isclose, pi, sin, cos, atan2
-from statistics import mean
+from statistics import median
 
 import datetime
 from typing import List
@@ -287,7 +287,7 @@ def takeoff_elevation_delta(trace, takeoff_elevation):
         if dist/delta_t < takeoff_speed_thres:
             alt_ground.append(trace[n]['pressure_alt'])
 
-    return takeoff_elevation - int(mean(alt_ground))
+    return takeoff_elevation - int(median(alt_ground))
 
 
 def apply_takeoff_elevation_delta(trace, task_result, takeoff_elevation):

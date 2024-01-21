@@ -1,11 +1,13 @@
 import unittest
-
+import os
 import datetime
 
 from opensoar.competition.soaringspot import get_lat_long, get_fixed_orientation_angle, get_sector_orientation, \
-    get_sector_dimensions, get_waypoint, get_waypoints, SoaringSpotDaily, get_task_rules
+    get_sector_dimensions, get_waypoint, get_waypoints, SoaringSpotDaily, get_task_rules, get_info_from_comment_lines
 from opensoar.task.waypoint import Waypoint
 from opensoar.task.task import Task
+
+from aerofiles.igc import Reader
 
 
 class TestSoaringspot(unittest.TestCase):
@@ -178,3 +180,19 @@ class TestSoaringspot(unittest.TestCase):
 
         self.assertEqual(start_opening, datetime.time(13, 29, 0))
         self.assertEqual(t_min, datetime.timedelta(hours=3, minutes=30, seconds=0))
+
+    def test_get_info_from_comment_lines_no_lcu_no_lseeyou(self):
+        """
+        Some IGC files from soaringspot seem to miss the task information written in LCU and LSEEYOU lines
+        This test checks that the function then return a None task.
+        """
+
+        cwd = os.path.dirname(__file__)
+        igc_path = os.path.join(cwd, '..', 'igc_files', 'missing_lcu_lseeyou_lines.igc')
+
+        # try:  # try utf-8
+        with open(igc_path, 'r', encoding='latin1') as f:
+            parsed_igc_file = Reader().read(f)
+
+        task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file)
+        self.assertIsNone(task, None)

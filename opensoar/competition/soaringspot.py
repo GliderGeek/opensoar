@@ -4,7 +4,7 @@ The files from SoaringSpot always contain task information, which can be used fo
 """
 import datetime
 import re
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Optional
 from urllib.error import URLError
 from urllib.parse import urljoin
 
@@ -46,7 +46,7 @@ def get_task_rules(lseeyou_tsk_line: str) -> Tuple[datetime.time, datetime.timed
     return start_opening, t_min, multi_start
 
 
-def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0) -> Tuple[Task, dict, dict]:
+def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0) -> Tuple[Optional[Task], dict, dict]:
     """
     There is specific contest information stored in the comment lines of the IGC files.
     This function extracts this information
@@ -87,12 +87,16 @@ def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0)
         # convert start opening to UTC time
         start_opening = subtract_times(start_opening, datetime.time(hour=timezone))
 
-    waypoints = get_waypoints(lcu_lines, lseeyou_lines)
-
-    if t_min is None:
-        task = RaceTask(waypoints, timezone, start_opening, start_time_buffer, multi_start)
+    if len(lcu_lines) == 0 or len(lseeyou_lines) == 0:
+        # somehow some IGC files do not contain the LCU or LSEEYOU lines with task information
+        task = None
     else:
-        task = AAT(waypoints, t_min, timezone, start_opening, start_time_buffer, multi_start)
+        waypoints = get_waypoints(lcu_lines, lseeyou_lines)
+
+        if t_min is None:
+            task = RaceTask(waypoints, timezone, start_opening, start_time_buffer, multi_start)
+        else:
+            task = AAT(waypoints, t_min, timezone, start_opening, start_time_buffer, multi_start)
 
     return task, contest_information, competitor_information
 
@@ -324,7 +328,7 @@ class SoaringSpotDaily(DailyResultsPage):
             # download files. skip if not valid
             try:
                 file_path = self.download_flight(igc_url, competition_id)
-            except URLError:
+            except URLError as e:
                 print('{} is skipped because of invalid URL'.format(competition_id))
                 continue
 
@@ -356,7 +360,8 @@ class SoaringSpotDaily(DailyResultsPage):
             competitor = Competitor(trace, competition_id, plane_model, ranking, pilot_name)
 
             competitors.append(competitor)
-            tasks.append(task)
+            if task is not None:
+                tasks.append(task)
 
         # Select task from tasks list
         task = self._select_task(tasks)

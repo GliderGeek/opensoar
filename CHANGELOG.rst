@@ -13,6 +13,7 @@ Removed
 ~~~~~~~~~
 Fixed
 ~~~~~~~~
+* allow for soaringspot files without task info
 Security
 ~~~~~~~~~
 

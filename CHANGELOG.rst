@@ -13,11 +13,15 @@ Removed
 ~~~~~~~~~
 Fixed
 ~~~~~~~~
-* allow for soaringspot files without task info
-* allow for competitors with empty competition ID
-
 Security
 ~~~~~~~~~
+
+v1.1.2 - 2024/02/04
+------------------------
+Fixed
+~~~~~~~~
+* allow for soaringspot files without task info
+* allow for soaring competitors with empty competition ID
 
 v1.1.1 - 2023/08/25
 ------------------------

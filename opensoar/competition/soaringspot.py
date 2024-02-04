@@ -320,8 +320,14 @@ class SoaringSpotDaily(DailyResultsPage):
         competitors = list()
         tasks = list()
         files_downloaded = 0
+        unknown_number = 1  # number for empty competition IDs
         for competitor_info in competitors_info:
             competition_id = competitor_info['competition_id']
+            if competition_id == '':
+                # come up with comp ID when empty. entries on soaring can have empty comp ID but valid download link
+                competition_id = f'unknown{unknown_number}'
+                unknown_number += 1
+
             igc_url = competitor_info['igc_url']
             ranking = competitor_info['ranking']
 

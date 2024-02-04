@@ -14,6 +14,8 @@ Removed
 Fixed
 ~~~~~~~~
 * allow for soaringspot files without task info
+* allow for competitors with empty competition ID
+
 Security
 ~~~~~~~~~
 

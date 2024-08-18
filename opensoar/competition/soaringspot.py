@@ -85,7 +85,7 @@ def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0)
 
     if start_opening is not None:
         # convert start opening to UTC time
-        start_opening = subtract_times(start_opening, datetime.time(hour=timezone))
+        start_opening = subtract_times(start_opening, datetime.timedelta(hours=timezone))
 
     if len(lcu_lines) == 0 or len(lseeyou_lines) == 0:
         # somehow some IGC files do not contain the LCU or LSEEYOU lines with task information

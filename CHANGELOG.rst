@@ -13,6 +13,7 @@ Removed
 ~~~~~~~~~
 Fixed
 ~~~~~~~~
+* Fixed starttime UTC correction with negative timezone values
 Security
 ~~~~~~~~~
 

@@ -61,7 +61,7 @@ class TestHelperFunctions(unittest.TestCase):
 
     def test_subtract_times(self):
         time1 = datetime.time(12, 20, 10)
-        time2 = datetime.time(1, 10, 5)
+        time2 = datetime.timedelta(hours=1, minutes=10, seconds=5)
 
         result = subtract_times(time1, time2)
         expected_result = datetime.time(11, 10, 5)

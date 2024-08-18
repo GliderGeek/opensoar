@@ -13,9 +13,14 @@ Removed
 ~~~~~~~~~
 Fixed
 ~~~~~~~~
-* Fixed starttime UTC correction with negative timezone values
 Security
 ~~~~~~~~~
+
+v1.1.3 - 2024/08/18
+------------------------
+Fixed
+~~~~~~~~
+* Fixed starttime UTC correction with negative timezone values
 
 v1.1.2 - 2024/02/04
 ------------------------

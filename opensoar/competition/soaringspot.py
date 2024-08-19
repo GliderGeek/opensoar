@@ -19,6 +19,8 @@ from opensoar.task.task import Task
 from opensoar.task.waypoint import Waypoint
 from opensoar.utilities.helper_functions import dm2dd, subtract_times
 from opensoar.competition.daily_results_page import DailyResultsPage
+from opensoar.utilities.helper_functions import double_iterator
+from opensoar.utilities.helper_functions import seconds_time_difference
 
 
 def get_comment_lines_from_parsed_file(parsed_igc_file: dict) -> List[str]:
@@ -357,6 +359,11 @@ class SoaringSpotDaily(DailyResultsPage):
             if len(trace_errors) != 0:
                 print('{} is skipped because of invalid trace'.format(competition_id))
                 continue
+
+            # Remove double time entries. Remove the latest one if double entries exist
+            for index_to_check, index_base in double_iterator(range(len(trace) - 1, -1, -1)):
+                if abs(seconds_time_difference(trace[index_to_check]["time"], trace[index_base]["time"])) < 1e-1:
+                    trace.pop(index_to_check)
 
             # get info from file
             task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file, start_time_buffer)

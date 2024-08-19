@@ -165,12 +165,9 @@ def add_times(start_time: datetime.time, delta_time: datetime.timedelta):
     return full_datetime_result.time()
 
 
-def subtract_times(start_time: datetime.time, delta_time: datetime.time):
+def subtract_times(start_time: datetime.time, delta_time: datetime.timedelta):
     full_datetime_start = datetime.datetime.combine(datetime.date.today(), start_time)
-
-    full_datetime_result = full_datetime_start - datetime.timedelta(
-        hours=delta_time.hour, minutes=delta_time.minute, seconds=delta_time.second)
-
+    full_datetime_result = full_datetime_start - delta_time
     return full_datetime_result.time()
 
 

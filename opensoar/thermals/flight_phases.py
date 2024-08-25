@@ -165,8 +165,10 @@ class FlightPhases:
         else:
             end_fix = phase.fixes[-1]
 
+
         phase_start_index = phase.fixes.index(start_fix)
         phase_end_index = phase.fixes.index(end_fix)
+
         return Phase(phase.is_cruise, phase.fixes[phase_start_index:phase_end_index + 1])
 
     def _get_phase_within_trip(self, phase):

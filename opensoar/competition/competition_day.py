@@ -53,7 +53,7 @@ class CompetitionDay:
             if skip_failed_analyses:
                 try:
                     competitor.analyse(self.task, classification_method)
-                except Exception:
+                except Exception as e:
                     failed_comp_ids.append(competitor.competition_id)
             else:
                 competitor.analyse(self.task, classification_method)

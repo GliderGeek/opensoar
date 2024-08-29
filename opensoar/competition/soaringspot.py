@@ -84,9 +84,8 @@ def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0)
             timezone = int(line.split(':')[3])
 
     if start_opening is not None:
-        pass
-        # not converting start opening to UTC
-        # start_opening = subtract_times(start_opening, datetime.timedelta(hours=timezone))
+        # converting start opening to UTC
+        start_opening = subtract_times(start_opening, datetime.timedelta(hours=timezone))
 
     if len(lcu_lines) == 0 or len(lseeyou_lines) == 0:
         # somehow some IGC files do not contain the LCU or LSEEYOU lines with task information
@@ -359,16 +358,10 @@ class SoaringSpotDaily(DailyResultsPage):
                 print('{} is skipped because of invalid trace'.format(competition_id))
                 continue
 
-
-
             # get info from file
             task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file, start_time_buffer)
             plane_model = competitor_information.get('plane_model', None)
-            pilot_name = competitor_information.get('pilot_name', None)
-
-            tz = task.timezone
-            for fix in trace:
-                fix['time'] = add_times(fix['time'], datetime.timedelta(hours=tz))
+            pilot_name = competitor_information.get('pilot_name', None)                
 
             competitor = Competitor(trace, competition_id, plane_model, ranking, pilot_name)
 

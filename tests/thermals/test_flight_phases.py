@@ -5,7 +5,7 @@ from copy import deepcopy
 
 from opensoar.task.trip import Trip
 from opensoar.thermals.flight_phases import FlightPhases
-from opensoar.utilities.helper_functions import double_iterator, seconds_time_difference
+from opensoar.utilities.helper_functions import double_iterator
 
 from tests.task.helper_functions import get_trace, get_task
 
@@ -47,7 +47,7 @@ class TestFlightPhases(unittest.TestCase):
 
         # check if start times of phases are within 2 seconds
         for phase, pysoar_phase_start_time in zip(all_phases, self.pysoar_phase_start_times):
-            time_diff = seconds_time_difference(phase.fixes[0]['time'], pysoar_phase_start_time)
+            time_diff = (pysoar_phase_start_time - phase.fixes[0]['time']).seconds
             self.assertLessEqual(abs(time_diff), 2)
 
     def test_thermals(self):
@@ -60,7 +60,7 @@ class TestFlightPhases(unittest.TestCase):
 
         # check if correct phases are classified as thermals
         for thermal, pysoar_start_time in zip(thermals, self.pysoar_phase_start_times[1::2]):
-            time_diff = seconds_time_difference(thermal.fixes[0]['time'], pysoar_start_time)
+            time_diff = (pysoar_start_time - thermal.fixes[0]['time']).seconds
             self.assertLessEqual(abs(time_diff), 2)
 
     def test_cruises(self):
@@ -73,7 +73,7 @@ class TestFlightPhases(unittest.TestCase):
 
         # check if correct phases are classified as cruises
         for cruise, pysoar_start_time in zip(cruises, self.pysoar_phase_start_times[0::2]):
-            time_diff = seconds_time_difference(cruise.fixes[0]['time'], pysoar_start_time)
+            time_diff = (pysoar_start_time - cruise.fixes[0]['time']).seconds
             self.assertLessEqual(abs(time_diff), 2)
 
     def test_thermals_on_leg(self):
@@ -92,11 +92,13 @@ class TestFlightPhases(unittest.TestCase):
 
         # check starttime of first thermal
         start_time = thermals_leg2[0].fixes[0]['time']
-        self.assertEqual(seconds_time_difference(start_time, leg_start_time), 0)
+        diff = (leg_start_time - start_time).seconds
+        self.assertEqual(diff, 0)
 
         # check endtime of last thermal
         end_time = thermals_leg2[-1].fixes[-1]['time']
-        self.assertEqual(seconds_time_difference(end_time, leg_end_time), 0)
+        diff = (leg_end_time - end_time).seconds
+        self.assertEqual(diff, 0)
 
     def test_cruises_on_leg(self):
 

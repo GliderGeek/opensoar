@@ -1,7 +1,7 @@
-from opensoar.task.task import Task
-from opensoar.utilities.helper_functions import calculate_distance_bearing, double_iterator, \
-    seconds_time_difference_fixes, add_seconds
+import datetime
 
+from opensoar.task.task import Task
+from opensoar.utilities.helper_functions import calculate_distance_bearing, double_iterator
 
 class RaceTask(Task):
     """
@@ -100,7 +100,7 @@ class RaceTask(Task):
                 if enl_first_fix is None:
                     enl_first_fix = fix_minus1
 
-                enl_time = seconds_time_difference_fixes(enl_first_fix, fix)
+                enl_time = (fix['time'] - enl_first_fix['time']).seconds
                 enl_registered = enl_registered or self.enl_time_exceeded(enl_time)
             elif not enl_registered:
                 enl_first_fix = None
@@ -108,7 +108,7 @@ class RaceTask(Task):
             if self.start_opening is None:
                 after_start_opening = True
             else:
-                after_start_opening = add_seconds(fix['time'], self.start_time_buffer) > self.start_opening
+                after_start_opening = self.start_opening + datetime.timedelta(seconds=self.start_time_buffer) < fix['time']
 
             if leg == -1 and after_start_opening:
                 if self.started(fix_minus1, fix):

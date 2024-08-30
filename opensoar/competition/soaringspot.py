@@ -108,7 +108,7 @@ def get_info_from_comment_lines(parsed_igc_file: dict, date: datetime.date, star
             hour=start_opening.hour,
             minute=start_opening.minute,
             second=start_opening.second,
-            tzinfo=datetime.tzinfo.utcoffset(timezone)
+            tzinfo=datetime.timezone(datetime.timedelta(hours=timezone))
         )
 
     if len(lcu_lines) == 0 or len(lseeyou_lines) == 0:

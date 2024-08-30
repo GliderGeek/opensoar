@@ -14,8 +14,8 @@ class Task:
     ENL_VALUE_THRESHOLD = 500
     ENL_TIME_THRESHOLD = 30
 
-    def __init__(self, waypoints: List[Waypoint], timezone: int, start_opening: datetime.time, start_time_buffer: int,
-                 multistart: bool):
+    def __init__(self, waypoints: List[Waypoint], timezone: int, start_opening: datetime.datetime,
+                 start_time_buffer: int, multistart: bool):
         """
         :param waypoints:
         :param timezone: time difference wrt UTC in hours

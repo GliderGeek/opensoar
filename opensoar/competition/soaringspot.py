@@ -390,13 +390,14 @@ class SoaringSpotDaily(DailyResultsPage):
                     # Add date to datetime object
                     trace[index_right]["time"] = datetime.datetime.combine(
                         date=date,
-                        time=trace[index_right]["time"]
+                        time=trace[index_right]["time"],
+                        tzinfo=datetime.timezone.utc
                     ) + (
                         datetime.timedelta(days=1)
                         if trace[0]["time"] > trace[index_right]["time"]
                         else datetime.timedelta(days=0)
                     )
-            trace[0]["time"] = datetime.datetime.combine(date=date, time=trace[0]["time"])
+            trace[0]["time"] = datetime.datetime.combine(date=date, time=trace[0]["time"], tzinfo=datetime.timezone.utc)
 
             # get info from file
             task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file, date, start_time_buffer)

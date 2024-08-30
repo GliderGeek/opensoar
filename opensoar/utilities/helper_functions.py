@@ -3,6 +3,7 @@ from math import isclose, pi, sin, cos, atan2
 
 import datetime
 from typing import List
+from typing import Union
 
 from pyproj import Geod
 
@@ -138,7 +139,7 @@ def total_distance_travelled(fixes: List[dict]):
     return distance
 
 
-def seconds_time_difference(time1: datetime.time, time2: datetime.time):
+def seconds_time_difference(time1: Union[datetime.datetime, datetime.time], time2: Union[datetime.datetime, datetime.time]):
     """
     Determines the time difference between to datetime.time instances, mocking the operation time2 - time1
     It is assumed that both take place at the same day.
@@ -148,49 +149,18 @@ def seconds_time_difference(time1: datetime.time, time2: datetime.time):
     """
 
     today = datetime.date.today()
-    time_diff = datetime.datetime.combine(today, time2) - datetime.datetime.combine(today, time1)
+    if not isinstance(time1, datetime.datetime):
+        time1 = datetime.datetime.combine(today, time1)
+    if not isinstance(time2, datetime.datetime):
+        time2 = datetime.datetime.combine(today, time2)
+    time_diff = time2 - time1
     return time_diff.total_seconds()
-
-
-def add_times(start_time: datetime.time, delta_time: datetime.timedelta):
-    """
-    Helper to circumvent problem that normal datetime.time instances can not be added.
-    :param start_time:
-    :param delta_time:
-    :return:
-    """
-    full_datetime_start = datetime.datetime.combine(datetime.date.today(), start_time)
-
-    full_datetime_result = full_datetime_start + delta_time
-    return full_datetime_result.time()
 
 
 def subtract_times(start_time: datetime.time, delta_time: datetime.timedelta):
     full_datetime_start = datetime.datetime.combine(datetime.date.today(), start_time)
     full_datetime_result = full_datetime_start - delta_time
     return full_datetime_result.time()
-
-
-def add_seconds(time: datetime.time, seconds: int) -> datetime.time:
-    """
-    Add seconds to datetime.time object and return resulting datetime.time object.
-
-    :param time:
-    :param seconds: not limited to 0-59.
-    :return:
-    """
-
-    additional_seconds = seconds
-
-    additional_hours = additional_seconds // 3600
-    additional_seconds -= additional_hours * 3600
-
-    additional_minutes = additional_seconds // 60
-    additional_seconds -= additional_minutes * 60
-
-    return add_times(time, datetime.timedelta(hours=additional_hours,
-                                              minutes=additional_minutes,
-                                              seconds=additional_seconds))
 
 
 def range_with_bounds(start: int, stop: int, interval: int) -> List[int]:
@@ -225,7 +195,7 @@ def interpolate_fixes(fix1, fix2, interval=1):
 
         lat = fix1['lat'] + fraction * (fix2['lat'] - fix1['lat'])
         lon = fix1['lon'] + fraction * (fix2['lon'] - fix1['lon'])
-        time = add_seconds(fix1['time'], difference)
+        time = fix1["time"] + datetime.timedelta(seconds=difference)
 
         fixes.append(dict(time=time, lat=lat, lon=lon))
 

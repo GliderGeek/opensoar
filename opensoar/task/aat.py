@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from opensoar.task.task import Task
 from opensoar.utilities.helper_functions import double_iterator, calculate_distance_bearing, calculate_destination, \
-    seconds_time_difference_fixes, add_times
+    seconds_time_difference_fixes
 
 
 class AAT(Task):
@@ -54,7 +54,7 @@ class AAT(Task):
         total_trip_time = seconds_time_difference_fixes(fixes[0], fixes[-1])
         minimum_trip_time = self._t_min.total_seconds()
         if outlanding_fix is None and total_trip_time < minimum_trip_time:
-            finish_time = add_times(fixes[0]['time'], self._t_min)
+            finish_time = fixes[0]['time'] + self._t_min
         else:
             finish_time = fixes[-1]['time']
         return finish_time

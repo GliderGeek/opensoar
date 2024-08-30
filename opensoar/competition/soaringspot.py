@@ -360,10 +360,21 @@ class SoaringSpotDaily(DailyResultsPage):
                 print('{} is skipped because of invalid trace'.format(competition_id))
                 continue
 
-            # Remove double time entries. Remove the latest one if double entries exist
-            for index_to_check, index_base in double_iterator(range(len(trace) - 1, -1, -1)):
-                if abs(seconds_time_difference(trace[index_to_check]["time"], trace[index_base]["time"])) < 1e-1:
-                    trace.pop(index_to_check)
+            # Remove double time entries. Remove the latest one if double entries exist.
+            for index_right, index_left in double_iterator(range(len(trace) - 1, -1, -1)):  # Reversed order
+                if abs(seconds_time_difference(trace[index_right]["time"], trace[index_left]["time"])) < 1e-1:
+                    trace.pop(index_right)
+                else:
+                    # Add date to datetime object
+                    trace[index_right]["time"] = datetime.datetime.combine(
+                        date=date,
+                        time=trace[index_right]["time"]
+                    ) + (
+                        datetime.timedelta(days=1)
+                        if trace[0]["time"] > trace[index_right]["time"]
+                        else datetime.timedelta(days=0)
+                    )
+            trace[0]["time"] = datetime.datetime.combine(date=date, time=trace[0]["time"])
 
             # get info from file
             task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file, start_time_buffer)

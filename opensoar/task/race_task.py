@@ -1,6 +1,8 @@
+import datetime
+
 from opensoar.task.task import Task
 from opensoar.utilities.helper_functions import calculate_distance_bearing, double_iterator, \
-    seconds_time_difference_fixes, add_seconds
+    seconds_time_difference_fixes
 
 
 class RaceTask(Task):
@@ -108,7 +110,7 @@ class RaceTask(Task):
             if self.start_opening is None:
                 after_start_opening = True
             else:
-                after_start_opening = add_seconds(fix['time'], self.start_time_buffer) > self.start_opening
+                after_start_opening = fix['time'] + datetime.timedelta(self.start_time_buffer) > self.start_opening
 
             if leg == -1 and after_start_opening:
                 if self.started(fix_minus1, fix):

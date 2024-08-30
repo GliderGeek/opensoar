@@ -2,8 +2,7 @@ import datetime
 from copy import deepcopy
 
 from opensoar.task.task import Task
-from opensoar.utilities.helper_functions import double_iterator, calculate_distance_bearing, calculate_destination, \
-    seconds_time_difference_fixes
+from opensoar.utilities.helper_functions import double_iterator, calculate_distance_bearing, calculate_destination
 
 
 class AAT(Task):
@@ -51,7 +50,7 @@ class AAT(Task):
         return fixes, start_time, outlanding_fix, distances, finish_time, sector_fixes
 
     def _determine_finish_time(self, fixes, outlanding_fix):
-        total_trip_time = seconds_time_difference_fixes(fixes[0], fixes[-1])
+        total_trip_time = (fixes[-1]['time'] - fixes[0]['time']).seconds
         minimum_trip_time = self._t_min.total_seconds()
         if outlanding_fix is None and total_trip_time < minimum_trip_time:
             finish_time = fixes[0]['time'] + self._t_min
@@ -118,7 +117,7 @@ class AAT(Task):
                 if enl_first_fix is None:
                     enl_first_fix = fix
 
-                enl_time = seconds_time_difference_fixes(enl_first_fix, fix)
+                enl_time = (fix['time'] - enl_first_fix['time']).seconds
                 if self.enl_time_exceeded(enl_time):
                     enl_registered = True
                     if current_leg > 0:

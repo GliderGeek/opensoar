@@ -3,7 +3,6 @@ from math import isclose, pi, sin, cos, atan2
 
 import datetime
 from typing import List
-from typing import Union
 
 from pyproj import Geod
 
@@ -125,10 +124,6 @@ def altitude_gain_and_loss(fixes: List[dict], gps_altitude=True):
     return gain, loss
 
 
-def seconds_time_difference_fixes(fix1, fix2):
-    return seconds_time_difference(fix1['time'], fix2['time'])
-
-
 def total_distance_travelled(fixes: List[dict]):
     """Calculates the total distance, summing over the inter fix distances"""
     distance = 0
@@ -137,30 +132,6 @@ def total_distance_travelled(fixes: List[dict]):
         distance += inter_fix_dist
 
     return distance
-
-
-def seconds_time_difference(time1: Union[datetime.datetime, datetime.time], time2: Union[datetime.datetime, datetime.time]):
-    """
-    Determines the time difference between to datetime.time instances, mocking the operation time2 - time1
-    It is assumed that both take place at the same day.
-    :param time1: 
-    :param time2: 
-    :return: time difference in seconds
-    """
-
-    today = datetime.date.today()
-    if not isinstance(time1, datetime.datetime):
-        time1 = datetime.datetime.combine(today, time1)
-    if not isinstance(time2, datetime.datetime):
-        time2 = datetime.datetime.combine(today, time2)
-    time_diff = time2 - time1
-    return time_diff.total_seconds()
-
-
-def subtract_times(start_time: datetime.time, delta_time: datetime.timedelta):
-    full_datetime_start = datetime.datetime.combine(datetime.date.today(), start_time)
-    full_datetime_result = full_datetime_start - delta_time
-    return full_datetime_result.time()
 
 
 def range_with_bounds(start: int, stop: int, interval: int) -> List[int]:
@@ -172,7 +143,7 @@ def range_with_bounds(start: int, stop: int, interval: int) -> List[int]:
 
 
 def calculate_time_differences(time1, time2, interval):
-    total_difference = int(seconds_time_difference(time1, time2))
+    total_difference = (time2 - time1).seconds
     differences = range_with_bounds(0, total_difference, interval)
     return differences
 
@@ -195,8 +166,7 @@ def interpolate_fixes(fix1, fix2, interval=1):
 
         lat = fix1['lat'] + fraction * (fix2['lat'] - fix1['lat'])
         lon = fix1['lon'] + fraction * (fix2['lon'] - fix1['lon'])
-        time = fix1["time"] + datetime.timedelta(seconds=difference)
-
+        time = fix1['time'] + datetime.timedelta(seconds=difference)
         fixes.append(dict(time=time, lat=lat, lon=lon))
 
     return fixes

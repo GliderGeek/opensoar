@@ -17,7 +17,7 @@ from opensoar.task.aat import AAT
 from opensoar.task.race_task import RaceTask
 from opensoar.task.task import Task
 from opensoar.task.waypoint import Waypoint
-from opensoar.utilities.helper_functions import dm2dd, subtract_times
+from opensoar.utilities.helper_functions import dm2dd
 from opensoar.competition.daily_results_page import DailyResultsPage
 from opensoar.utilities.helper_functions import double_iterator
 from opensoar.utilities.helper_functions import seconds_time_difference
@@ -48,7 +48,7 @@ def get_task_rules(lseeyou_tsk_line: str) -> Tuple[datetime.time, datetime.timed
     return start_opening, t_min, multi_start
 
 
-def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0) -> Tuple[Optional[Task], dict, dict]:
+def get_info_from_comment_lines(parsed_igc_file: dict, date: datetime.date, start_time_buffer: int=0) -> Tuple[Optional[Task], dict, dict]:
     """
     There is specific contest information stored in the comment lines of the IGC files.
     This function extracts this information
@@ -86,8 +86,16 @@ def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0)
             timezone = int(line.split(':')[3])
 
     if start_opening is not None:
-        # convert start opening to UTC time
-        start_opening = subtract_times(start_opening, datetime.timedelta(hours=timezone))
+        # make timezone aware datetime object
+        start_opening = datetime.datetime(
+            year=date.year, 
+            month=date.month, 
+            day=date.day, 
+            hour=start_opening.hour,
+            minute=start_opening.minute,
+            second=start_opening.second,
+            tzinfo=datetime.tzinfo.utcoffset(timezone)
+        )
 
     if len(lcu_lines) == 0 or len(lseeyou_lines) == 0:
         # somehow some IGC files do not contain the LCU or LSEEYOU lines with task information
@@ -377,9 +385,30 @@ class SoaringSpotDaily(DailyResultsPage):
             trace[0]["time"] = datetime.datetime.combine(date=date, time=trace[0]["time"])
 
             # get info from file
-            task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file, start_time_buffer)
+            task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file, date, start_time_buffer)
             plane_model = competitor_information.get('plane_model', None)
             pilot_name = competitor_information.get('pilot_name', None)
+
+            # convert trace into timezone aware fixes
+            # first fix (specified in UTC) should be on specified date (local)
+            hour_local_time = trace[0].hour + task.timezone
+            if hour_local_time < 0:
+                day_diff = 1  # UTC is one day later than local
+            elif hour_local_time >= 24:
+                day_diff = -1  # UTC is one day prior to local
+            else:
+                day_diff = 0  # UTC is same day
+
+            for fix in trace:
+                fix['time'] = datetime.datetime(
+                    year=date.year,
+                    month=date.month,
+                    day=date.day + day_diff,
+                    hour= fix['time'].hour,
+                    hour= fix['time'].minute,
+                    second= fix['time'].second,
+                    tzinfo=datetime.tzinfo.utcoffset(0),
+                )
 
             competitor = Competitor(trace, competition_id, plane_model, ranking, pilot_name)
 

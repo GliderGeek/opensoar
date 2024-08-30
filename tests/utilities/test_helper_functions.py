@@ -2,8 +2,8 @@ import unittest
 
 import datetime
 
-from opensoar.utilities.helper_functions import seconds_time_difference, interpolate_fixes, dm2dd, dms2dd, \
-    both_none_or_same_float, both_none_or_same_str, subtract_times
+from opensoar.utilities.helper_functions import interpolate_fixes, dm2dd, dms2dd, \
+    both_none_or_same_float, both_none_or_same_str
 from opensoar.utilities.helper_functions import double_iterator
 from opensoar.utilities.helper_functions import triple_iterator
 from opensoar.utilities.helper_functions import calculate_distance_bearing
@@ -29,25 +29,6 @@ class TestHelperFunctions(unittest.TestCase):
         fix2 = dict(lat=52.331783333333334, lon=6.249083333333333)
 
         self.assertEqual(calculate_distance_bearing(fix1, fix2)[0], 0)
-
-    def test_seconds_time_difference(self):
-
-        time1 = datetime.time(0, 0, 10)
-        time2 = datetime.time(0, 0, 15)
-
-        result = seconds_time_difference(time1, time2)
-        expected_result = 5
-
-        self.assertEqual(result, expected_result)
-
-    def test_subtract_times(self):
-        time1 = datetime.time(12, 20, 10)
-        time2 = datetime.timedelta(hours=1, minutes=10, seconds=5)
-
-        result = subtract_times(time1, time2)
-        expected_result = datetime.time(11, 10, 5)
-
-        self.assertEqual(result, expected_result)
 
     def test_range_with_bounds(self):
         self.assertListEqual(range_with_bounds(start=2, stop=4, interval=2), [2, 4])

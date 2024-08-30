@@ -20,7 +20,21 @@ from opensoar.task.waypoint import Waypoint
 from opensoar.utilities.helper_functions import dm2dd
 from opensoar.competition.daily_results_page import DailyResultsPage
 from opensoar.utilities.helper_functions import double_iterator
-from opensoar.utilities.helper_functions import seconds_time_difference
+
+
+def _time_difference_in_seconds_across_midnight(time1: datetime.time, time2: datetime.time) -> float:
+    # Combine with datetime.min and assume time2 is always after time1 or can be rolled over midnight
+    datetime1 = datetime.datetime.combine(datetime.datetime.min, time1)
+    datetime2 = datetime.datetime.combine(datetime.datetime.min, time2)
+
+    # If datetime2 is earlier than datetime1, add 1 day to datetime2
+    if datetime2 < datetime1:
+        datetime2 += datetime.timedelta(days=1)
+
+    # Calculate the difference in seconds
+    difference = abs((datetime2 - datetime1).total_seconds())
+
+    return difference
 
 
 def get_comment_lines_from_parsed_file(parsed_igc_file: dict) -> List[str]:
@@ -88,9 +102,9 @@ def get_info_from_comment_lines(parsed_igc_file: dict, date: datetime.date, star
     if start_opening is not None:
         # make timezone aware datetime object
         start_opening = datetime.datetime(
-            year=date.year, 
-            month=date.month, 
-            day=date.day, 
+            year=date.year,
+            month=date.month,
+            day=date.day,
             hour=start_opening.hour,
             minute=start_opening.minute,
             second=start_opening.second,
@@ -370,7 +384,7 @@ class SoaringSpotDaily(DailyResultsPage):
 
             # Remove double time entries. Remove the latest one if double entries exist.
             for index_right, index_left in double_iterator(range(len(trace) - 1, -1, -1)):  # Reversed order
-                if abs(seconds_time_difference(trace[index_right]["time"], trace[index_left]["time"])) < 1e-1:
+                if abs(_time_difference_in_seconds_across_midnight(trace[index_right]["time"], trace[index_left]["time"])) < 1e-1:
                     trace.pop(index_right)
                 else:
                     # Add date to datetime object
@@ -388,27 +402,6 @@ class SoaringSpotDaily(DailyResultsPage):
             task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file, date, start_time_buffer)
             plane_model = competitor_information.get('plane_model', None)
             pilot_name = competitor_information.get('pilot_name', None)
-
-            # convert trace into timezone aware fixes
-            # first fix (specified in UTC) should be on specified date (local)
-            hour_local_time = trace[0].hour + task.timezone
-            if hour_local_time < 0:
-                day_diff = 1  # UTC is one day later than local
-            elif hour_local_time >= 24:
-                day_diff = -1  # UTC is one day prior to local
-            else:
-                day_diff = 0  # UTC is same day
-
-            for fix in trace:
-                fix['time'] = datetime.datetime(
-                    year=date.year,
-                    month=date.month,
-                    day=date.day + day_diff,
-                    hour= fix['time'].hour,
-                    hour= fix['time'].minute,
-                    second= fix['time'].second,
-                    tzinfo=datetime.tzinfo.utcoffset(0),
-                )
 
             competitor = Competitor(trace, competition_id, plane_model, ranking, pilot_name)
 

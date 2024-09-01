@@ -13,17 +13,17 @@ from tests.task.helper_functions import get_trace, get_task
 class TestFlightPhases(unittest.TestCase):
 
     pysoar_phase_start_times = [
-        datetime.time(12, 12, 52),
-        datetime.time(12, 20, 22),
-        datetime.time(12, 24, 14),
-        datetime.time(12, 29, 22),
-        datetime.time(12, 33, 6),
-        datetime.time(12, 34, 50),
-        datetime.time(12, 37, 42),
-        datetime.time(12, 47, 14),
-        datetime.time(12, 52, 42),
-        datetime.time(13, 1, 0),
-        datetime.time(13, 4, 52),
+        datetime.datetime(2014, 6, 21, 12, 12, 52, tzinfo=datetime.timezone.utc),
+        datetime.datetime(2014, 6, 21, 12, 20, 22, tzinfo=datetime.timezone.utc),
+        datetime.datetime(2014, 6, 21, 12, 24, 14, tzinfo=datetime.timezone.utc),
+        datetime.datetime(2014, 6, 21, 12, 29, 22, tzinfo=datetime.timezone.utc),
+        datetime.datetime(2014, 6, 21, 12, 33, 6, tzinfo=datetime.timezone.utc),
+        datetime.datetime(2014, 6, 21, 12, 34, 50, tzinfo=datetime.timezone.utc),
+        datetime.datetime(2014, 6, 21, 12, 37, 42, tzinfo=datetime.timezone.utc),
+        datetime.datetime(2014, 6, 21, 12, 47, 14, tzinfo=datetime.timezone.utc),
+        datetime.datetime(2014, 6, 21, 12, 52, 42, tzinfo=datetime.timezone.utc),
+        datetime.datetime(2014, 6, 21, 13, 1, 0, tzinfo=datetime.timezone.utc),
+        datetime.datetime(2014, 6, 21, 13, 4, 52, tzinfo=datetime.timezone.utc),
     ]
 
     cwd = os.path.dirname(__file__)
@@ -92,12 +92,12 @@ class TestFlightPhases(unittest.TestCase):
 
         # check starttime of first thermal
         start_time = thermals_leg2[0].fixes[0]['time']
-        diff = (leg_start_time - start_time).seconds
+        diff = (leg_start_time - start_time).total_seconds()
         self.assertEqual(diff, 0)
 
         # check endtime of last thermal
         end_time = thermals_leg2[-1].fixes[-1]['time']
-        diff = (leg_end_time - end_time).seconds
+        diff = (leg_end_time - end_time).total_seconds()
         self.assertEqual(diff, 0)
 
     def test_cruises_on_leg(self):
@@ -116,17 +116,17 @@ class TestFlightPhases(unittest.TestCase):
         the end of the leg."""
 
         trace = [
-            {'time': datetime.time(11, 33, 26), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
+            {'time': datetime.datetime(2012, 5, 26, 11, 33, 26, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
              'pressure_alt': -37, 'gps_alt': 47, 'FXA': 2, 'SIU': 1},
-            {'time': datetime.time(11, 33, 34), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
+            {'time': datetime.datetime(2012, 5, 26, 11, 33, 34, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
              'pressure_alt': -37, 'gps_alt': 47, 'FXA': 2, 'SIU': 1},
-            {'time': datetime.time(11, 33, 42), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
+            {'time': datetime.datetime(2012, 5, 26, 11, 33, 42, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
              'pressure_alt': -37, 'gps_alt': 47, 'FXA': 2, 'SIU': 1},
-            {'time': datetime.time(11, 33, 50), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
+            {'time': datetime.datetime(2012, 5, 26, 11, 33, 50, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
              'pressure_alt': -37, 'gps_alt': 48, 'FXA': 1, 'SIU': 1},
-            {'time': datetime.time(11, 33, 58), 'lat': 52.468183333333336, 'lon': 6.340216666666667, 'validity': 'A',
+            {'time': datetime.datetime(2012, 5, 26, 11, 33, 58, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.340216666666667, 'validity': 'A',
              'pressure_alt': -37, 'gps_alt': 48, 'FXA': 1, 'SIU': 1},
-            {'time': datetime.time(11, 34, 6), 'lat': 52.46816666666667, 'lon': 6.339666666666667, 'validity': 'A',
+            {'time': datetime.datetime(2012, 5, 26, 11, 34, 6, tzinfo=datetime.timezone.utc), 'lat': 52.46816666666667, 'lon': 6.339666666666667, 'validity': 'A',
              'pressure_alt': -38, 'gps_alt': 49, 'FXA': 1, 'SIU': 1},
         ]
 

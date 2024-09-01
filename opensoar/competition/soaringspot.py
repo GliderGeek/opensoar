@@ -22,21 +22,6 @@ from opensoar.competition.daily_results_page import DailyResultsPage
 from opensoar.utilities.helper_functions import double_iterator
 
 
-def _time_difference_in_seconds_across_midnight(time1: datetime.time, time2: datetime.time) -> float:
-    # Combine with datetime.min and assume time2 is always after time1 or can be rolled over midnight
-    datetime1 = datetime.datetime.combine(datetime.datetime.min, time1)
-    datetime2 = datetime.datetime.combine(datetime.datetime.min, time2)
-
-    # If datetime2 is earlier than datetime1, add 1 day to datetime2
-    if datetime2 < datetime1:
-        datetime2 += datetime.timedelta(days=1)
-
-    # Calculate the difference in seconds
-    difference = abs((datetime2 - datetime1).total_seconds())
-
-    return difference
-
-
 def get_comment_lines_from_parsed_file(parsed_igc_file: dict) -> List[str]:
     """In the parsed file, lines are split into source and comment. This function stiches them back together"""
     records = parsed_igc_file['comment_records'][1]
@@ -101,15 +86,7 @@ def get_info_from_comment_lines(parsed_igc_file: dict, date: datetime.date, star
 
     if start_opening is not None:
         # make timezone aware datetime object
-        start_opening = datetime.datetime(
-            year=date.year,
-            month=date.month,
-            day=date.day,
-            hour=start_opening.hour,
-            minute=start_opening.minute,
-            second=start_opening.second,
-            tzinfo=datetime.timezone(datetime.timedelta(hours=timezone))
-        )
+        start_opening = datetime.datetime.combine(date=date, time=start_opening, tzinfo=datetime.timezone(datetime.timedelta(hours=timezone)))
 
     if len(lcu_lines) == 0 or len(lseeyou_lines) == 0:
         # somehow some IGC files do not contain the LCU or LSEEYOU lines with task information
@@ -384,20 +361,8 @@ class SoaringSpotDaily(DailyResultsPage):
 
             # Remove double time entries. Remove the latest one if double entries exist.
             for index_right, index_left in double_iterator(range(len(trace) - 1, -1, -1)):  # Reversed order
-                if abs(_time_difference_in_seconds_across_midnight(trace[index_right]["time"], trace[index_left]["time"])) < 1e-1:
+                if abs((trace[index_right]["time"] - trace[index_left]["time"]).total_seconds() < 1e-1):
                     trace.pop(index_right)
-                else:
-                    # Add date to datetime object
-                    trace[index_right]["time"] = datetime.datetime.combine(
-                        date=date,
-                        time=trace[index_right]["time"],
-                        tzinfo=datetime.timezone.utc
-                    ) + (
-                        datetime.timedelta(days=1)
-                        if trace[0]["time"] > trace[index_right]["time"]
-                        else datetime.timedelta(days=0)
-                    )
-            trace[0]["time"] = datetime.datetime.combine(date=date, time=trace[0]["time"], tzinfo=datetime.timezone.utc)
 
             # get info from file
             task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file, date, start_time_buffer)

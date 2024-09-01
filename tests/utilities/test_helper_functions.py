@@ -38,16 +38,16 @@ class TestHelperFunctions(unittest.TestCase):
 
     def test_calculate_time_differences(self):
 
-        time1 = datetime.time(12, 0, 50)
-        time2 = datetime.time(12, 0, 55)
-        time3 = datetime.time(12, 1, 2)
+        time1 = datetime.datetime(2012, 5, 26, 12, 0, 50, tzinfo=datetime.timezone.utc)
+        time2 = datetime.datetime(2012, 5, 26, 12, 0, 55, tzinfo=datetime.timezone.utc)
+        time3 = datetime.datetime(2012, 5, 26, 12, 1, 2, tzinfo=datetime.timezone.utc)
 
         self.assertListEqual(calculate_time_differences(time1, time2, 2), [0, 2, 4, 5])
         self.assertListEqual(calculate_time_differences(time2, time3, 2), [0, 2, 4, 6, 7])
 
     def test_interpolate_fixes(self):
-        fix1 = dict(time=datetime.time(12, 0, 10), lat=50, lon=6)
-        fix2 = dict(time=datetime.time(12, 0, 14), lat=58, lon=8)
+        fix1 = dict(time=datetime.datetime(2012, 5, 26, 12, 0, 10, tzinfo=datetime.timezone.utc), lat=50, lon=6)
+        fix2 = dict(time=datetime.datetime(2012, 5, 26, 12, 0, 14, tzinfo=datetime.timezone.utc), lat=58, lon=8)
 
         interpolated_fixes = interpolate_fixes(fix1, fix2)
 
@@ -55,11 +55,11 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertEqual(len(interpolated_fixes), 5)
 
         times = [
-            datetime.time(12, 0, 10),
-            datetime.time(12, 0, 11),
-            datetime.time(12, 0, 12),
-            datetime.time(12, 0, 13),
-            datetime.time(12, 0, 14)
+            datetime.datetime(2012, 5, 26, 12, 0, 10, tzinfo=datetime.timezone.utc),
+            datetime.datetime(2012, 5, 26, 12, 0, 11, tzinfo=datetime.timezone.utc),
+            datetime.datetime(2012, 5, 26, 12, 0, 12, tzinfo=datetime.timezone.utc),
+            datetime.datetime(2012, 5, 26, 12, 0, 13, tzinfo=datetime.timezone.utc),
+            datetime.datetime(2012, 5, 26, 12, 0, 14, tzinfo=datetime.timezone.utc)
         ]
         lats = [50, 52, 54, 56, 58]
         lons = [6, 6.5, 7.0, 7.5, 8.0]

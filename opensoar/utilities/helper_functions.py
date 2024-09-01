@@ -143,8 +143,7 @@ def range_with_bounds(start: int, stop: int, interval: int) -> List[int]:
 
 
 def calculate_time_differences(time1, time2, interval):
-    total_difference = (time2 - time1).seconds
-    differences = range_with_bounds(0, total_difference, interval)
+    differences = range_with_bounds(0, int((time2 - time1).total_seconds()), interval)
     return differences
 
 

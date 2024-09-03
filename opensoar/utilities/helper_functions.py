@@ -1,5 +1,6 @@
 from copy import copy
 from math import isclose, pi, sin, cos, atan2
+from statistics import median
 
 import datetime
 from typing import List
@@ -269,3 +270,32 @@ def both_none_or_same_str(var1, var2):
         return var2 is None
     else:
         return var2 is not None and var1 == var2
+
+
+def takeoff_elevation_delta(trace, takeoff_elevation):
+    """Determine the difference in pre-takeoff pressure altitude (averaged over before takeoff fixes) to takeoff
+    elevation as given in igc file"""
+
+    # Ground speed threshold in m/s
+    takeoff_speed_thres = 5.
+
+    # Determine points before takeoff
+    alt_ground = []
+    for n in range(len(trace)-1):
+        dist, _ = calculate_distance_bearing(trace[n], trace[n+1])
+        delta_t = int(seconds_time_difference(trace[n]['time'], trace[n+1]['time']))
+        if dist/delta_t < takeoff_speed_thres:
+            alt_ground.append(trace[n]['pressure_alt'])
+
+    return takeoff_elevation - int(median(alt_ground))
+
+
+def apply_takeoff_elevation_delta(trace, task_result, takeoff_elevation):
+    """Apply takeoff elevation delta to all turn point fixes"""
+
+    elevation_delta = takeoff_elevation_delta(trace, takeoff_elevation)
+
+    for n_tp, tp_fix in enumerate(task_result[0]):
+        task_result[0][n_tp]['pressure_alt'] = tp_fix['pressure_alt'] + elevation_delta
+
+    return task_result

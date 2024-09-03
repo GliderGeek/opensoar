@@ -8,15 +8,17 @@ class RaceTask(Task):
     Race task.
     """
 
-    def __init__(self, waypoints, timezone=None, start_opening=None, start_time_buffer=0, multistart=False):
+    def __init__(self, waypoints, timezone=None, start_opening=None, start_time_buffer=0, multistart=False,
+                 takeoff_elevation=None):
         """
         :param waypoints:           see super()
         :param timezone:            see super()
         :param start_opening:       see super()
         :param start_time_buffer:   see super()
         :param multistart:          see super()
+        :param takeoff_elevation:   see super()
         """
-        super().__init__(waypoints, timezone, start_opening, start_time_buffer, multistart)
+        super().__init__(waypoints, timezone, start_opening, start_time_buffer, multistart, takeoff_elevation)
 
         self.distances = self.calculate_task_distances()
 

@@ -38,6 +38,10 @@ class TestTrip(unittest.TestCase):
         finish_fix = self.trip.fixes[-1]
         self.assertEqual(finish_fix['time'], datetime.time(13, 21, 58))
 
+    def test_elevation_correction(self):
+        start_fix = self.trip.fixes[0]
+        self.assertEqual(start_fix['pressure_alt'], 1059)
+
 
 class TestOutlandingTrip(unittest.TestCase):
     """

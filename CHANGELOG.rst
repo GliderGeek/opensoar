@@ -5,6 +5,7 @@ unreleased
 ------------------------
 Added
 ~~~~~~
+* Pressure altitude correction based on takeoff elevation
 Changed
 ~~~~~~~~
 Deprecated

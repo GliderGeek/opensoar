@@ -16,5 +16,5 @@ def get_task(igc_path):
     with open(igc_path, 'r') as f:
         parsed_igc_file = Reader().read(f)
 
-    task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file)
+    task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file, date=parsed_igc_file["header"][1]["utc_date"])
     return task

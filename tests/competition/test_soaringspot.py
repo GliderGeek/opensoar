@@ -194,5 +194,5 @@ class TestSoaringspot(unittest.TestCase):
         with open(igc_path, 'r', encoding='latin1') as f:
             parsed_igc_file = Reader().read(f)
 
-        task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file)
+        task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file, date=datetime.date(2023, 7, 4))
         self.assertIsNone(task, None)

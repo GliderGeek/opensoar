@@ -31,12 +31,12 @@ class TestTrip(unittest.TestCase):
     def test_start_time(self):
         start_fix = self.trip.fixes[0]
         refined_start_time = self.trip.refined_start_time
-        self.assertEqual(start_fix['time'], datetime.time(12, 12, 54))
-        self.assertEqual(refined_start_time, datetime.time(12, 12, 55))
+        self.assertEqual(start_fix['time'], datetime.datetime(2014, 6, 21, 12, 12, 54, tzinfo=datetime.timezone.utc))
+        self.assertEqual(refined_start_time, datetime.datetime(2014, 6, 21, 12, 12, 55, tzinfo=datetime.timezone.utc))
 
     def test_finish_time(self):
         finish_fix = self.trip.fixes[-1]
-        self.assertEqual(finish_fix['time'], datetime.time(13, 21, 58))
+        self.assertEqual(finish_fix['time'], datetime.datetime(2014, 6, 21, 13, 21, 58, tzinfo=datetime.timezone.utc))
 
 
 class TestOutlandingTrip(unittest.TestCase):

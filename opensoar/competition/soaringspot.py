@@ -17,8 +17,9 @@ from opensoar.task.aat import AAT
 from opensoar.task.race_task import RaceTask
 from opensoar.task.task import Task
 from opensoar.task.waypoint import Waypoint
-from opensoar.utilities.helper_functions import dm2dd, subtract_times
+from opensoar.utilities.helper_functions import dm2dd
 from opensoar.competition.daily_results_page import DailyResultsPage
+from opensoar.utilities.helper_functions import double_iterator
 
 
 def get_comment_lines_from_parsed_file(parsed_igc_file: dict) -> List[str]:
@@ -46,7 +47,7 @@ def get_task_rules(lseeyou_tsk_line: str) -> Tuple[datetime.time, datetime.timed
     return start_opening, t_min, multi_start
 
 
-def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0) -> Tuple[Optional[Task], dict, dict]:
+def get_info_from_comment_lines(parsed_igc_file: dict, date: datetime.date, start_time_buffer: int=0) -> Tuple[Optional[Task], dict, dict]:
     """
     There is specific contest information stored in the comment lines of the IGC files.
     This function extracts this information
@@ -84,8 +85,8 @@ def get_info_from_comment_lines(parsed_igc_file: dict, start_time_buffer: int=0)
             timezone = int(line.split(':')[3])
 
     if start_opening is not None:
-        # convert start opening to UTC time
-        start_opening = subtract_times(start_opening, datetime.timedelta(hours=timezone))
+        # make timezone aware datetime object
+        start_opening = datetime.datetime.combine(date=date, time=start_opening, tzinfo=datetime.timezone(datetime.timedelta(hours=timezone)))
 
     if len(lcu_lines) == 0 or len(lseeyou_lines) == 0:
         # somehow some IGC files do not contain the LCU or LSEEYOU lines with task information
@@ -345,10 +346,10 @@ class SoaringSpotDaily(DailyResultsPage):
             try:
                 try:  # try utf-8
                     with open(file_path, 'r', encoding='utf-8') as f:
-                        parsed_igc_file = Reader().read(f)
+                        parsed_igc_file = Reader(skip_duplicates=True).read(f)
                 except UnicodeDecodeError:  # if not utf-8 use latin1
                     with open(file_path, 'r', encoding='latin1') as f:
-                        parsed_igc_file = Reader().read(f)
+                        parsed_igc_file = Reader(skip_duplicates=True).read(f)
             except Exception:
                 print('{} is skipped because the file could not be parsed'.format(competition_id))
                 continue
@@ -359,7 +360,7 @@ class SoaringSpotDaily(DailyResultsPage):
                 continue
 
             # get info from file
-            task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file, start_time_buffer)
+            task, _, competitor_information = get_info_from_comment_lines(parsed_igc_file, date, start_time_buffer)
             plane_model = competitor_information.get('plane_model', None)
             pilot_name = competitor_information.get('pilot_name', None)
 

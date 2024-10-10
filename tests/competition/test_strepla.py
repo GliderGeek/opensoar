@@ -9,7 +9,6 @@ from aerofiles.igc import Reader
 from opensoar.competition.competitor import Competitor
 from opensoar.competition.strepla import get_waypoint_name_lat_long, get_waypoints, get_waypoint, get_task_and_competitor_info, get_info_from_comment_lines
 from opensoar.task.aat import AAT
-from opensoar.utilities.helper_functions import seconds_time_difference
 
 
 class TestStrepla(unittest.TestCase):
@@ -107,8 +106,11 @@ class TestStrepla(unittest.TestCase):
         competitor = Competitor(trace, 'CX', 'Discus2b', 1, 'Karsten Leucker')
         competitor.analyse(task, 'pysoar')
 
-        time_diff = seconds_time_difference(competitor.trip.refined_start_time, datetime.time(13, 22, 40))
+        self.assertEqual(competitor.trip.refined_start_time.hour, 13)
+        self.assertEqual(competitor.trip.refined_start_time.minute, 22)
+        seconds = competitor.trip.refined_start_time.second
+
         dist_diff = sum(competitor.trip.distances) - 283500
-        self.assertLessEqual(abs(time_diff), 1)
+        self.assertLessEqual(abs(seconds-40), 1)
         self.assertEqual(len(competitor.trip.fixes), len(expected_waypoints))
         self.assertLessEqual(abs(dist_diff), 1000)

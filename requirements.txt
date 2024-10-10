@@ -1,5 +1,5 @@
-pyproj
-git+https://github.com/sylvainvdm/aerofiles@299-datetime.datetime-timestamps-tz-aware#egg=aerofiles
-beautifulsoup4
-geojson
-shapely
+pyproj==3.7.0
+aerofiles==1.4.0
+beautifulsoup4==4.12.3
+geojson==3.1.0
+shapely==2.0.6

@@ -2,11 +2,8 @@ OpenSoar
 ========
 
 busy with making everything timezone aware
-- (done) changed start-time and fixes to timezone aware datetimes
-- (done) removed unnecessary helper functionality
-- check .seconds on delta. should it be 'total_seconds'?
-- check date shift `day_diff`
-- run tests on opensoar, does it still work?
+- wait on aerofiles fix for deepcopy
+- decide on dependencies. pinned or not?
 - run test with pysoar, same results?
 - how to keep backwards compatible? add flag?
 

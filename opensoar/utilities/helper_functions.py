@@ -157,7 +157,7 @@ def interpolate_fixes(fix1, fix2, interval=1):
     :return: list of fixes between fix1 and fix2 with given interval
     """
 
-    time_differences = calculate_time_differences(fix1['time'], fix2['time'], interval)
+    time_differences = calculate_time_differences(fix1['datetime'], fix2['datetime'], interval)
 
     fixes = list()
     for difference in time_differences:
@@ -165,8 +165,8 @@ def interpolate_fixes(fix1, fix2, interval=1):
 
         lat = fix1['lat'] + fraction * (fix2['lat'] - fix1['lat'])
         lon = fix1['lon'] + fraction * (fix2['lon'] - fix1['lon'])
-        time = fix1['time'] + datetime.timedelta(seconds=difference)
-        fixes.append(dict(time=time, lat=lat, lon=lon))
+        time = fix1['datetime'] + datetime.timedelta(seconds=difference)
+        fixes.append(dict(datetime=time, lat=lat, lon=lon))
 
     return fixes
 

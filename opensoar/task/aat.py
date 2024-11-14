@@ -50,12 +50,12 @@ class AAT(Task):
         return fixes, start_time, outlanding_fix, distances, finish_time, sector_fixes
 
     def _determine_finish_time(self, fixes, outlanding_fix):
-        total_trip_time = (fixes[-1]['time'] - fixes[0]['time']).seconds
+        total_trip_time = (fixes[-1]['datetime'] - fixes[0]['datetime']).total_seconds()
         minimum_trip_time = self._t_min.total_seconds()
         if outlanding_fix is None and total_trip_time < minimum_trip_time:
-            finish_time = fixes[0]['time'] + self._t_min
+            finish_time = fixes[0]['datetime'] + self._t_min
         else:
-            finish_time = fixes[-1]['time']
+            finish_time = fixes[-1]['datetime']
         return finish_time
 
     def _calculate_trip_fixes(self, trace):
@@ -117,7 +117,7 @@ class AAT(Task):
                 if enl_first_fix is None:
                     enl_first_fix = fix
 
-                enl_time = (fix['time'] - enl_first_fix['time']).seconds
+                enl_time = (fix['datetime'] - enl_first_fix['datetime']).total_seconds()
                 if self.enl_time_exceeded(enl_time):
                     enl_registered = True
                     if current_leg > 0:
@@ -356,6 +356,7 @@ class AAT(Task):
         if outside_sector_fixes is None:
             outside_sector_fixes = list()
 
+        # this doesnt work due to latest aerofiles version
         waypoint_fixes = deepcopy(sector_fixes)
         if outlanded:
             waypoint_fixes.append(sector_fixes[-1])

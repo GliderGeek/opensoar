@@ -1,4 +1,4 @@
-pyproj==3.7.0
+pyproj
 aerofiles==1.4.0
 beautifulsoup4==4.12.3
 geojson==3.1.0

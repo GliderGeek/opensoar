@@ -46,8 +46,8 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertListEqual(calculate_time_differences(time2, time3, 2), [0, 2, 4, 6, 7])
 
     def test_interpolate_fixes(self):
-        fix1 = dict(time=datetime.datetime(2012, 5, 26, 12, 0, 10, tzinfo=datetime.timezone.utc), lat=50, lon=6)
-        fix2 = dict(time=datetime.datetime(2012, 5, 26, 12, 0, 14, tzinfo=datetime.timezone.utc), lat=58, lon=8)
+        fix1 = dict(datetime=datetime.datetime(2012, 5, 26, 12, 0, 10, tzinfo=datetime.timezone.utc), lat=50, lon=6)
+        fix2 = dict(datetime=datetime.datetime(2012, 5, 26, 12, 0, 14, tzinfo=datetime.timezone.utc), lat=58, lon=8)
 
         interpolated_fixes = interpolate_fixes(fix1, fix2)
 
@@ -66,7 +66,7 @@ class TestHelperFunctions(unittest.TestCase):
 
         # check individual entries
         for time, lat, lon, interpolated_fix in zip(times, lats, lons, interpolated_fixes):
-            self.assertEqual(interpolated_fix['time'], time)
+            self.assertEqual(interpolated_fix['datetime'], time)
             self.assertEqual(interpolated_fix['lat'], lat)
             self.assertEqual(interpolated_fix['lon'], lon)
 

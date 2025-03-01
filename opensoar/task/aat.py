@@ -5,6 +5,21 @@ from opensoar.task.task import Task
 from opensoar.utilities.helper_functions import double_iterator, calculate_distance_bearing, calculate_destination
 
 
+# TODO: This is a temporary fix for deepcopy issues with TimeZoneFix
+# Issue reference: https://github.com/Turbo87/aerofiles/issues/318
+# Remove this once aerofiles is updated with a proper fix
+from aerofiles.util.timezone import TimeZoneFix
+
+# TimeZoneFix from aerofiles doesn't support deepcopy properly
+# Add a __deepcopy__ method to fix serialization issues
+def _deepcopy_timezone_fix(self, memo):
+    """Create a proper deep copy of a TimeZoneFix instance."""
+    return TimeZoneFix(self.fix)
+
+# Apply monkeypatch
+TimeZoneFix.__deepcopy__ = _deepcopy_timezone_fix
+
+
 class AAT(Task):
     """
     Assigned Area Task.
@@ -50,12 +65,12 @@ class AAT(Task):
         return fixes, start_time, outlanding_fix, distances, finish_time, sector_fixes
 
     def _determine_finish_time(self, fixes, outlanding_fix):
-        total_trip_time = (fixes[-1]['time'] - fixes[0]['time']).seconds
+        total_trip_time = (fixes[-1]['datetime'] - fixes[0]['datetime']).seconds
         minimum_trip_time = self._t_min.total_seconds()
         if outlanding_fix is None and total_trip_time < minimum_trip_time:
-            finish_time = fixes[0]['time'] + self._t_min
+            finish_time = fixes[0]['datetime'] + self._t_min
         else:
-            finish_time = fixes[-1]['time']
+            finish_time = fixes[-1]['datetime']
         return finish_time
 
     def _calculate_trip_fixes(self, trace):
@@ -117,7 +132,7 @@ class AAT(Task):
                 if enl_first_fix is None:
                     enl_first_fix = fix
 
-                enl_time = (fix['time'] - enl_first_fix['time']).seconds
+                enl_time = (fix['datetime'] - enl_first_fix['datetime']).seconds
                 if self.enl_time_exceeded(enl_time):
                     enl_registered = True
                     if current_leg > 0:

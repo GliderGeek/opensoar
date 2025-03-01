@@ -47,7 +47,7 @@ class TestFlightPhases(unittest.TestCase):
 
         # check if start times of phases are within 2 seconds
         for phase, pysoar_phase_start_time in zip(all_phases, self.pysoar_phase_start_times):
-            time_diff = (pysoar_phase_start_time - phase.fixes[0]['time']).seconds
+            time_diff = (pysoar_phase_start_time - phase.fixes[0]['datetime']).seconds
             self.assertLessEqual(abs(time_diff), 2)
 
     def test_thermals(self):
@@ -60,7 +60,7 @@ class TestFlightPhases(unittest.TestCase):
 
         # check if correct phases are classified as thermals
         for thermal, pysoar_start_time in zip(thermals, self.pysoar_phase_start_times[1::2]):
-            time_diff = (pysoar_start_time - thermal.fixes[0]['time']).seconds
+            time_diff = (pysoar_start_time - thermal.fixes[0]['datetime']).seconds
             self.assertLessEqual(abs(time_diff), 2)
 
     def test_cruises(self):
@@ -73,7 +73,7 @@ class TestFlightPhases(unittest.TestCase):
 
         # check if correct phases are classified as cruises
         for cruise, pysoar_start_time in zip(cruises, self.pysoar_phase_start_times[0::2]):
-            time_diff = (pysoar_start_time - cruise.fixes[0]['time']).seconds
+            time_diff = (pysoar_start_time - cruise.fixes[0]['datetime']).seconds
             self.assertLessEqual(abs(time_diff), 2)
 
     def test_thermals_on_leg(self):
@@ -87,16 +87,16 @@ class TestFlightPhases(unittest.TestCase):
         for thermal in thermals_leg2:
             self.assertFalse(thermal.is_cruise)
 
-        leg_start_time = self.trip.fixes[1]['time']
-        leg_end_time = self.trip.fixes[2]['time']
+        leg_start_time = self.trip.fixes[1]['datetime']
+        leg_end_time = self.trip.fixes[2]['datetime']
 
         # check starttime of first thermal
-        start_time = thermals_leg2[0].fixes[0]['time']
+        start_time = thermals_leg2[0].fixes[0]['datetime']
         diff = (leg_start_time - start_time).total_seconds()
         self.assertEqual(diff, 0)
 
         # check endtime of last thermal
-        end_time = thermals_leg2[-1].fixes[-1]['time']
+        end_time = thermals_leg2[-1].fixes[-1]['datetime']
         diff = (leg_end_time - end_time).total_seconds()
         self.assertEqual(diff, 0)
 
@@ -116,17 +116,17 @@ class TestFlightPhases(unittest.TestCase):
         the end of the leg."""
 
         trace = [
-            {'time': datetime.datetime(2012, 5, 26, 11, 33, 26, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
+            {'datetime': datetime.datetime(2012, 5, 26, 11, 33, 26, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
              'pressure_alt': -37, 'gps_alt': 47, 'FXA': 2, 'SIU': 1},
-            {'time': datetime.datetime(2012, 5, 26, 11, 33, 34, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
+            {'datetime': datetime.datetime(2012, 5, 26, 11, 33, 34, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
              'pressure_alt': -37, 'gps_alt': 47, 'FXA': 2, 'SIU': 1},
-            {'time': datetime.datetime(2012, 5, 26, 11, 33, 42, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
+            {'datetime': datetime.datetime(2012, 5, 26, 11, 33, 42, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
              'pressure_alt': -37, 'gps_alt': 47, 'FXA': 2, 'SIU': 1},
-            {'time': datetime.datetime(2012, 5, 26, 11, 33, 50, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
+            {'datetime': datetime.datetime(2012, 5, 26, 11, 33, 50, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.3402, 'validity': 'A',
              'pressure_alt': -37, 'gps_alt': 48, 'FXA': 1, 'SIU': 1},
-            {'time': datetime.datetime(2012, 5, 26, 11, 33, 58, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.340216666666667, 'validity': 'A',
+            {'datetime': datetime.datetime(2012, 5, 26, 11, 33, 58, tzinfo=datetime.timezone.utc), 'lat': 52.468183333333336, 'lon': 6.340216666666667, 'validity': 'A',
              'pressure_alt': -37, 'gps_alt': 48, 'FXA': 1, 'SIU': 1},
-            {'time': datetime.datetime(2012, 5, 26, 11, 34, 6, tzinfo=datetime.timezone.utc), 'lat': 52.46816666666667, 'lon': 6.339666666666667, 'validity': 'A',
+            {'datetime': datetime.datetime(2012, 5, 26, 11, 34, 6, tzinfo=datetime.timezone.utc), 'lat': 52.46816666666667, 'lon': 6.339666666666667, 'validity': 'A',
              'pressure_alt': -38, 'gps_alt': 49, 'FXA': 1, 'SIU': 1},
         ]
 
@@ -141,8 +141,8 @@ class TestFlightPhases(unittest.TestCase):
         # there should only be one phase: starting at first fix and ending at last fix of trace
         # these are conditions to a correct test setup, therefore no actual tests
         assert len(phases._phases) == 1
-        assert phases._phases[0].fixes[0]['time'] == trace[0]['time']
-        assert phases._phases[0].fixes[-1]['time'] == trace[-1]['time']
+        assert phases._phases[0].fixes[0]['datetime'] == trace[0]['datetime']
+        assert phases._phases[0].fixes[-1]['datetime'] == trace[-1]['datetime']
 
         all_phases_leg0 = phases.all_phases(leg=0)
 
@@ -152,5 +152,5 @@ class TestFlightPhases(unittest.TestCase):
         # check if phase correctly starts and ends at the trip fixes and not the trace fixes
         first_phase_fix = all_phases_leg0[0].fixes[0]
         last_phase_fix = all_phases_leg0[0].fixes[-1]
-        self.assertEqual(first_phase_fix['time'], trip.fixes[0]['time'])
-        self.assertEqual(last_phase_fix['time'], trip.fixes[-1]['time'])
+        self.assertEqual(first_phase_fix['datetime'], trip.fixes[0]['datetime'])
+        self.assertEqual(last_phase_fix['datetime'], trip.fixes[-1]['datetime'])

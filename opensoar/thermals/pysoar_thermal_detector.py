@@ -33,9 +33,9 @@ class PySoarThermalDetector:
 
         for fix_minus2, fix_minus1, fix in triple_iterator(trace):
 
-            time_minus2 = fix_minus2['time']
-            time_minus1 = fix_minus1['time']
-            time = fix['time']
+            time_minus2 = fix_minus2['datetime']
+            time_minus1 = fix_minus1['datetime']
+            time = fix['datetime']
 
             bearing_change = calculate_bearing_change(fix_minus2, fix_minus1, fix)
             delta_t = (0.5 * (time - time_minus1).seconds + 
@@ -100,7 +100,7 @@ class PySoarThermalDetector:
                         possible_cruise_fixes.append(fix)
                         total_bearing_change += bearing_change
 
-                    delta_t = (time - possible_cruise_fixes[0]['time']).seconds
+                    delta_t = (time - possible_cruise_fixes[0]['datetime']).seconds
                     cruise_distance, _ = calculate_distance_bearing(possible_cruise_fixes[0], fix)
                     temp_bearing_rate_avg = 0 if delta_t == 0 else total_bearing_change / delta_t
 

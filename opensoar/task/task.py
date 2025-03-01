@@ -150,7 +150,7 @@ class Task:
 
         for fix, next_fix in double_iterator(interpolated_fixes):
             if self.started(fix, next_fix):
-                return fix['time']
+                return fix['datetime']
 
         raise ValueError('Start should have been determined')
 

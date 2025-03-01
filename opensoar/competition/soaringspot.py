@@ -359,11 +359,6 @@ class SoaringSpotDaily(DailyResultsPage):
                 print('{} is skipped because of invalid trace'.format(competition_id))
                 continue
 
-            # Remove double time entries. Remove the latest one if double entries exist.
-            for index_right, index_left in double_iterator(range(len(trace) - 1, -1, -1)):  # Reversed order
-                if abs((trace[index_right]["time"] - trace[index_left]["time"]).total_seconds() < 1e-1):
-                    trace.pop(index_right)
-
             # get info from file
             task, contest_information, competitor_information = get_info_from_comment_lines(parsed_igc_file, date, start_time_buffer)
             plane_model = competitor_information.get('plane_model', None)

@@ -1,12 +1,6 @@
 OpenSoar
 ========
 
-busy with making everything timezone aware
-- wait on aerofiles fix for deepcopy
-- decide on dependencies. pinned or not?
-- run test with pysoar, same results?
-- how to keep backwards compatible? add flag?
-
 .. image:: https://img.shields.io/pypi/v/opensoar.svg
     :target: https://pypi.org/project/opensoar/
     :alt: pypi version and link

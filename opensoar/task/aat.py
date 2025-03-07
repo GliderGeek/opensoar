@@ -5,21 +5,6 @@ from opensoar.task.task import Task
 from opensoar.utilities.helper_functions import double_iterator, calculate_distance_bearing, calculate_destination
 
 
-# TODO: This is a temporary fix for deepcopy issues with TimeZoneFix
-# Issue reference: https://github.com/Turbo87/aerofiles/issues/318
-# Remove this once aerofiles is updated with a proper fix
-from aerofiles.util.timezone import TimeZoneFix
-
-# TimeZoneFix from aerofiles doesn't support deepcopy properly
-# Add a __deepcopy__ method to fix serialization issues
-def _deepcopy_timezone_fix(self, memo):
-    """Create a proper deep copy of a TimeZoneFix instance."""
-    return TimeZoneFix(self.fix)
-
-# Apply monkeypatch
-TimeZoneFix.__deepcopy__ = _deepcopy_timezone_fix
-
-
 class AAT(Task):
     """
     Assigned Area Task.

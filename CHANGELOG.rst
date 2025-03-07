@@ -16,6 +16,23 @@ Fixed
 Security
 ~~~~~~~~~
 
+v2.0.0 - 2025/03/07
+
+Fixed
+~~~~~~~~
+* IGC files with duplicate fixes no longer cause errors
+
+Changed
+~~~~~~~~
+* Using timezone aware fixes throughout the library
+* Input times are now timezone aware
+* Output times are now timezone aware
+
+Removed
+~~~~~~~~~
+* Several time helper functions `utilities.helper_functions` 
+
+
 v1.1.3 - 2024/08/18
 ------------------------
 Fixed

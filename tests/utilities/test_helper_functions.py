@@ -2,12 +2,11 @@ import unittest
 
 import datetime
 
-from opensoar.utilities.helper_functions import seconds_time_difference, interpolate_fixes, dm2dd, dms2dd, \
-    both_none_or_same_float, both_none_or_same_str, add_times, subtract_times
+from opensoar.utilities.helper_functions import interpolate_fixes, dm2dd, dms2dd, \
+    both_none_or_same_float, both_none_or_same_str
 from opensoar.utilities.helper_functions import double_iterator
 from opensoar.utilities.helper_functions import triple_iterator
 from opensoar.utilities.helper_functions import calculate_distance_bearing
-from opensoar.utilities.helper_functions import add_seconds
 from opensoar.utilities.helper_functions import range_with_bounds
 from opensoar.utilities.helper_functions import calculate_time_differences
 
@@ -31,43 +30,6 @@ class TestHelperFunctions(unittest.TestCase):
 
         self.assertEqual(calculate_distance_bearing(fix1, fix2)[0], 0)
 
-    def test_seconds_time_difference(self):
-
-        time1 = datetime.time(0, 0, 10)
-        time2 = datetime.time(0, 0, 15)
-
-        result = seconds_time_difference(time1, time2)
-        expected_result = 5
-
-        self.assertEqual(result, expected_result)
-
-    def test_add_seconds(self):
-
-        time1 = datetime.time(12, 0, 0)
-        time2 = datetime.time(12, 0, 55)
-
-        self.assertEqual(add_seconds(time1, 20), datetime.time(12, 0, 20))
-        self.assertEqual(add_seconds(time2, 20), datetime.time(12, 1, 15))
-        self.assertEqual(add_seconds(time1, 3665), datetime.time(13, 1, 5))
-
-    def test_add_times(self):
-        time1 = datetime.time(12, 0, 0)
-        time2 = datetime.timedelta(hours=1, minutes=10, seconds=20)
-
-        result = add_times(time1, time2)
-        expected_result = datetime.time(13, 10, 20)
-
-        self.assertEqual(result, expected_result)
-
-    def test_subtract_times(self):
-        time1 = datetime.time(12, 20, 10)
-        time2 = datetime.timedelta(hours=1, minutes=10, seconds=5)
-
-        result = subtract_times(time1, time2)
-        expected_result = datetime.time(11, 10, 5)
-
-        self.assertEqual(result, expected_result)
-
     def test_range_with_bounds(self):
         self.assertListEqual(range_with_bounds(start=2, stop=4, interval=2), [2, 4])
         self.assertListEqual(range_with_bounds(start=2, stop=6, interval=2), [2, 4, 6])
@@ -76,16 +38,16 @@ class TestHelperFunctions(unittest.TestCase):
 
     def test_calculate_time_differences(self):
 
-        time1 = datetime.time(12, 0, 50)
-        time2 = datetime.time(12, 0, 55)
-        time3 = datetime.time(12, 1, 2)
+        time1 = datetime.datetime(2012, 5, 26, 12, 0, 50, tzinfo=datetime.timezone.utc)
+        time2 = datetime.datetime(2012, 5, 26, 12, 0, 55, tzinfo=datetime.timezone.utc)
+        time3 = datetime.datetime(2012, 5, 26, 12, 1, 2, tzinfo=datetime.timezone.utc)
 
         self.assertListEqual(calculate_time_differences(time1, time2, 2), [0, 2, 4, 5])
         self.assertListEqual(calculate_time_differences(time2, time3, 2), [0, 2, 4, 6, 7])
 
     def test_interpolate_fixes(self):
-        fix1 = dict(time=datetime.time(12, 0, 10), lat=50, lon=6)
-        fix2 = dict(time=datetime.time(12, 0, 14), lat=58, lon=8)
+        fix1 = dict(datetime=datetime.datetime(2012, 5, 26, 12, 0, 10, tzinfo=datetime.timezone.utc), lat=50, lon=6)
+        fix2 = dict(datetime=datetime.datetime(2012, 5, 26, 12, 0, 14, tzinfo=datetime.timezone.utc), lat=58, lon=8)
 
         interpolated_fixes = interpolate_fixes(fix1, fix2)
 
@@ -93,18 +55,18 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertEqual(len(interpolated_fixes), 5)
 
         times = [
-            datetime.time(12, 0, 10),
-            datetime.time(12, 0, 11),
-            datetime.time(12, 0, 12),
-            datetime.time(12, 0, 13),
-            datetime.time(12, 0, 14)
+            datetime.datetime(2012, 5, 26, 12, 0, 10, tzinfo=datetime.timezone.utc),
+            datetime.datetime(2012, 5, 26, 12, 0, 11, tzinfo=datetime.timezone.utc),
+            datetime.datetime(2012, 5, 26, 12, 0, 12, tzinfo=datetime.timezone.utc),
+            datetime.datetime(2012, 5, 26, 12, 0, 13, tzinfo=datetime.timezone.utc),
+            datetime.datetime(2012, 5, 26, 12, 0, 14, tzinfo=datetime.timezone.utc)
         ]
         lats = [50, 52, 54, 56, 58]
         lons = [6, 6.5, 7.0, 7.5, 8.0]
 
         # check individual entries
         for time, lat, lon, interpolated_fix in zip(times, lats, lons, interpolated_fixes):
-            self.assertEqual(interpolated_fix['time'], time)
+            self.assertEqual(interpolated_fix['datetime'], time)
             self.assertEqual(interpolated_fix['lat'], lat)
             self.assertEqual(interpolated_fix['lon'], lon)
 

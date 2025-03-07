@@ -2,8 +2,7 @@ import datetime
 from copy import deepcopy
 
 from opensoar.task.task import Task
-from opensoar.utilities.helper_functions import double_iterator, calculate_distance_bearing, calculate_destination, \
-    seconds_time_difference_fixes, add_times
+from opensoar.utilities.helper_functions import double_iterator, calculate_distance_bearing, calculate_destination
 
 
 class AAT(Task):
@@ -51,12 +50,12 @@ class AAT(Task):
         return fixes, start_time, outlanding_fix, distances, finish_time, sector_fixes
 
     def _determine_finish_time(self, fixes, outlanding_fix):
-        total_trip_time = seconds_time_difference_fixes(fixes[0], fixes[-1])
+        total_trip_time = (fixes[-1]['datetime'] - fixes[0]['datetime']).total_seconds()
         minimum_trip_time = self._t_min.total_seconds()
         if outlanding_fix is None and total_trip_time < minimum_trip_time:
-            finish_time = add_times(fixes[0]['time'], self._t_min)
+            finish_time = fixes[0]['datetime'] + self._t_min
         else:
-            finish_time = fixes[-1]['time']
+            finish_time = fixes[-1]['datetime']
         return finish_time
 
     def _calculate_trip_fixes(self, trace):
@@ -118,7 +117,7 @@ class AAT(Task):
                 if enl_first_fix is None:
                     enl_first_fix = fix
 
-                enl_time = seconds_time_difference_fixes(enl_first_fix, fix)
+                enl_time = (fix['datetime'] - enl_first_fix['datetime']).total_seconds()
                 if self.enl_time_exceeded(enl_time):
                     enl_registered = True
                     if current_leg > 0:
@@ -357,6 +356,7 @@ class AAT(Task):
         if outside_sector_fixes is None:
             outside_sector_fixes = list()
 
+        # this doesnt work due to latest aerofiles version
         waypoint_fixes = deepcopy(sector_fixes)
         if outlanded:
             waypoint_fixes.append(sector_fixes[-1])

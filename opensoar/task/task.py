@@ -14,8 +14,8 @@ class Task:
     ENL_VALUE_THRESHOLD = 500
     ENL_TIME_THRESHOLD = 30
 
-    def __init__(self, waypoints: List[Waypoint], timezone: int, start_opening: datetime.time, start_time_buffer: int,
-                 multistart: bool):
+    def __init__(self, waypoints: List[Waypoint], timezone: int, start_opening: datetime.datetime,
+                 start_time_buffer: int, multistart: bool):
         """
         :param waypoints:
         :param timezone: time difference wrt UTC in hours
@@ -150,7 +150,7 @@ class Task:
 
         for fix, next_fix in double_iterator(interpolated_fixes):
             if self.started(fix, next_fix):
-                return fix['time']
+                return fix['datetime']
 
         raise ValueError('Start should have been determined')
 

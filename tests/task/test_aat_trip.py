@@ -23,13 +23,13 @@ class TestAATTrip(unittest.TestCase):
         self.assertAlmostEqual(total_distance / 1e3, 199.42, places=2)
 
     def test_start_time(self):
-        start_time = self.trip.fixes[0]['time']
-        expected_start_time = datetime.time(12, 22, 8)
+        start_time = self.trip.fixes[0]['datetime']
+        expected_start_time = datetime.datetime(2012, 5, 26, 12, 22, 8, tzinfo=datetime.timezone.utc)
         self.assertEqual(expected_start_time, start_time)
 
     def test_finish_time(self):
         finish_time = self.trip.finish_time
-        expected_finish_time = datetime.time(15, 52, 8)
+        expected_finish_time = datetime.datetime(2012, 5, 26, 15, 52, 8, tzinfo=datetime.timezone.utc)
         self.assertEqual(expected_finish_time, finish_time)
 
 
@@ -54,10 +54,10 @@ class TestAATTripOutlandingOutside(unittest.TestCase):
         # assert if opensoar finds same fixes as seeyou, based on time
         fix_times = [
             # tuple with (opensoar time, SeeYou time)
-            (self.trip.refined_start_time, datetime.time(12, 14, 21)),
-            (self.trip.fixes[1]['time'], datetime.time(12, 49, 22)),
-            (self.trip.fixes[2]['time'], datetime.time(13, 26, 14)),
-            (self.trip.outlanding_fix['time'], datetime.time(14, 8, 0)),
+            (self.trip.refined_start_time, datetime.datetime(2012, 5, 26, 12, 14, 21, tzinfo=datetime.timezone.utc)),
+            (self.trip.fixes[1]['datetime'], datetime.datetime(2012, 5, 26, 12, 49, 22, tzinfo=datetime.timezone.utc)),
+            (self.trip.fixes[2]['datetime'], datetime.datetime(2012, 5, 26, 13, 26, 14, tzinfo=datetime.timezone.utc)),
+            (self.trip.outlanding_fix['datetime'], datetime.datetime(2012, 5, 26, 14, 8, 0, tzinfo=datetime.timezone.utc)),
         ]
 
         for opensoar_time, seeyou_time in fix_times:
@@ -90,11 +90,11 @@ class TestAATTripOutlandingInside(unittest.TestCase):
         # assert if opensoar finds same fixes as seeyou, based on time
         fix_times = [
             # tuple with (opensoar time, SeeYou time)
-            (self.trip.refined_start_time, datetime.time(12, 24, 14)),
-            (self.trip.fixes[1]['time'], datetime.time(12, 57, 53)),
-            (self.trip.fixes[2]['time'], datetime.time(13, 42, 31)),
-            (self.trip.fixes[3]['time'], datetime.time(14, 4, 5)),
-            (self.trip.outlanding_fix['time'], datetime.time(14, 5, 49)),
+            (self.trip.refined_start_time, datetime.datetime(2012, 5, 26, 12, 24, 14, tzinfo=datetime.timezone.utc)),
+            (self.trip.fixes[1]['datetime'], datetime.datetime(2012, 5, 26, 12, 57, 53, tzinfo=datetime.timezone.utc)),
+            (self.trip.fixes[2]['datetime'], datetime.datetime(2012, 5, 26, 13, 42, 31, tzinfo=datetime.timezone.utc)),
+            (self.trip.fixes[3]['datetime'], datetime.datetime(2012, 5, 26, 14, 4, 5, tzinfo=datetime.timezone.utc)),
+            (self.trip.outlanding_fix['datetime'], datetime.datetime(2012, 5, 26, 14, 5, 49, tzinfo=datetime.timezone.utc)),
         ]
 
         for opensoar_time, seeyou_time in fix_times:

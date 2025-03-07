@@ -1,6 +1,3 @@
-from opensoar.utilities.helper_functions import seconds_time_difference
-
-
 class Trip:
     """
     Realised
@@ -47,11 +44,11 @@ class Trip:
         return larger_than_minimum and smaller_than_maximum
 
     def fix_before_leg(self, fix, leg):
-        return seconds_time_difference(fix['time'], self.fixes[leg]['time']) >= 0
+        return (self.fixes[leg]['datetime'] - fix['datetime']).total_seconds() >= 0
 
     def fix_after_leg(self, fix, leg):
         if leg + 1 <= self.completed_legs():
-            return seconds_time_difference(self.fixes[leg + 1]['time'], fix['time']) >= 0
+            return (fix['datetime'] - self.fixes[leg + 1]['datetime']).total_seconds() >= 0
         elif self.outlanded() and leg == self.outlanding_leg():
             return False
         else:  # leg > self.completed_legs() + 1

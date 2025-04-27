@@ -16,8 +16,18 @@ Fixed
 Security
 ~~~~~~~~~
 
-v2.0.0 - 2025/03/07
+v2.0.1 - 2025/03/07
+------------------------
+Added
+~~~~~~~~
+* Include pilot name and plane in soaringspot competitor info
 
+Changed
+~~~~~~~~
+* Optionally include DNF and DNS soaringspot competitor info
+
+v2.0.0 - 2025/03/07
+------------------------
 Fixed
 ~~~~~~~~
 * IGC files with duplicate fixes no longer cause errors

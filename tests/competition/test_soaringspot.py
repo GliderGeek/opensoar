@@ -130,16 +130,38 @@ class TestSoaringspot(unittest.TestCase):
             self.assertEqual(w.is_line, is_line)
 
     def test_get_competitors(self):
+        # old format
         soaringspot_page = SoaringSpotDaily(
             'https://www.soaringspot.com/en/sallandse-tweedaagse-2014/results/club/task-1-on-2014-06-21/daily')
 
+        competitors = soaringspot_page._get_competitors_info(include_hc_competitors=False, include_dns_competitors=True)
+        self.assertEqual(len(competitors), 10)
+        competitors = soaringspot_page._get_competitors_info(include_hc_competitors=False, include_dns_competitors=False)
+        self.assertEqual(len(competitors), 8)
         competitor_pk = soaringspot_page._get_competitors_info(include_hc_competitors=False)[2]
 
         self.assertEqual(competitor_pk['competition_id'], 'PK')
         self.assertEqual(competitor_pk['ranking'], 3)
+        self.assertEqual(competitor_pk['pilot_name'], 'Erik Berendes')
+        self.assertEqual(competitor_pk['plane_model'], 'Pik20D')
 
         expected_igc_url = 'https://archive.soaringspot.com/contest/013/1323/flights/2477/2597322754.igc'
         self.assertEqual(competitor_pk['igc_url'], expected_igc_url)
+
+        # new format
+        soaringspot_page = SoaringSpotDaily(
+            'https://www.soaringspot.com/en_gb/pribina-cup-2025-nitra-2025/results/club/task-6-on-2025-04-24/daily')
+
+        competitors = soaringspot_page._get_competitors_info(include_hc_competitors=False, include_dns_competitors=True)
+        self.assertEqual(len(competitors), 15)
+        competitors = soaringspot_page._get_competitors_info(include_hc_competitors=False, include_dns_competitors=False)
+        self.assertEqual(len(competitors), 13)
+        competitor_pk = soaringspot_page._get_competitors_info(include_hc_competitors=False)[1]
+
+        self.assertEqual(competitor_pk['competition_id'], 'X11')
+        self.assertEqual(competitor_pk['ranking'], 2)
+        self.assertEqual(competitor_pk['pilot_name'], 'Kengo Matsumoto')
+        self.assertEqual(competitor_pk['plane_model'], 'ASW-20')
 
     def test_get_competitors_info_relative_downloads(self):
         """relative IGC URLs"""

@@ -24,6 +24,7 @@ class DailyResultsPage(ABC):
             self.url = 'http://{}'.format(url)
 
         self._igc_directory = None  # to be set in subclass
+        self._html_soup = None  # to be set when the page is evaluated
 
     @property
     def igc_directory(self):
@@ -36,20 +37,21 @@ class DailyResultsPage(ABC):
     def _get_html_soup(self) -> BeautifulSoup:
         # fix problem with SSL certificates
         # https://stackoverflow.com/questions/30551400/disable-ssl-certificate-validation-in-mechanize#35960702
-        import ssl
-        try:
-            _create_unverified_https_context = ssl._create_unverified_context
-        except AttributeError:
-            # Legacy Python that doesn't verify HTTPS certificates by default
-            pass
-        else:
-            # Handle target environment that doesn't support HTTPS verification
-            ssl._create_default_https_context = _create_unverified_https_context
+        if not self._html_soup:
+            import ssl
+            try:
+                _create_unverified_https_context = ssl._create_unverified_context
+            except AttributeError:
+                # Legacy Python that doesn't verify HTTPS certificates by default
+                pass
+            else:
+                # Handle target environment that doesn't support HTTPS verification
+                ssl._create_default_https_context = _create_unverified_https_context
 
-        # get entire html of page
-        html = urlopen(self.url).read()
-
-        return BeautifulSoup(html, "html.parser")
+            # get entire html of page
+            html = urlopen(self.url).read()
+            self._html_soup = BeautifulSoup(html, "html.parser")
+        return self._html_soup
 
     def igc_file_name(self, competition_id: str) -> str:
         """

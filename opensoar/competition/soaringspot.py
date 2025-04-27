@@ -257,46 +257,142 @@ class SoaringSpotDaily(DailyResultsPage):
     def __init__(self, url: str):
         super().__init__(url)
 
-    def _get_competitors_info(self, include_hc_competitors: bool) -> List[dict]:
+    def _get_competitors_info(self, include_hc_competitors: bool, include_dns_competitors: bool = False) -> List[dict]:
         """
-        :param include_hc_competitors: include pilots which do not officially compete
-        :return:
-        """
+        Extract competitor information from a SoaringSpot daily results page.
 
-        competitors_info = list()
+        Args:
+            include_hc_competitors: Whether to include pilots competing hors-concours
+            include_dns_competitors: Whether to include pilots who did not start or finish
+
+        Returns:
+            List of dictionaries with competitor information:
+            - ranking: Position in the competition or status (DNF/DNS)
+            - competition_id: Glider ID
+            - igc_url: URL to download the IGC file (None for DNF/DNS)
+            - pilot_name: Name of the pilot
+            - plane_model: Type of glider
+        """
+        competitors_info = []
 
         table = self._get_html_soup().find("table")
-        for row in table.findAll('tr')[1:]:
-            if row.findAll('td')[0].text not in ["DNS", "DNF"]:
+        if not table:
+            raise ValueError(f"Could not find results table in the page at {self.url}")
 
-                ranking = row.findAll('td')[0].text
-                if ranking == 'HC':
-                    if not include_hc_competitors:
-                        continue
-                else:
-                    ranking = int(ranking[:-1])
+        # Default column indices (fallback values)
+        col_indices = {
+            'ranking': 0,  # First column typically has the ranking
+            'cn': 2,       # Third column typically has competition ID
+            'pilot': 3,    # Fourth column typically has pilot name
+            'glider': 4    # Fifth column typically has glider model
+        }
+        
+        # Try to determine accurate column indices from headers
+        headers = table.find('thead').findAll('th') if table.find('thead') else []
+        
+        if headers:
+            for i, header in enumerate(headers):
+                header_text = header.text.strip().lower()
+                
+                # Check for ranking column (could be # or empty for the first column)
+                if header_text == '#' or (i == 0 and header_text == ''):
+                    col_indices['ranking'] = i
+                
+                # Check for CN column (competition number)
+                elif header_text == 'cn' or header_text.startswith('comp'):
+                    col_indices['cn'] = i
+                
+                # Check for pilot/contestant column
+                elif 'contestant' in header_text or 'pilot' in header_text:
+                    col_indices['pilot'] = i
+                
+                # Check for glider column
+                elif 'glider' in header_text or 'plane' in header_text:
+                    col_indices['glider'] = i
+        
+        for row in table.findAll('tr')[1:]:  # Skip header row
+            cells = row.findAll('td')
+            if not cells or len(cells) <= col_indices['cn']:  # Need at least CN column
+                continue
 
-                igc_url = None
-                competition_id = None
-                for link in row.findAll('a'):
-                    data_content = link.get('data-content')
-                    soup = BeautifulSoup(data_content, 'html.parser')
-                    href = None
-                    for a in soup.findAll('a'):
-                        if 'download' in a.text.strip().lower():
+            # Extract status/ranking from ranking column
+            ranking_idx = min(col_indices['ranking'], len(cells) - 1)
+            status = cells[ranking_idx].text.strip()
+            
+            # Skip DNF/DNS if not requested
+            if (status == "DNF" or status == "DNS") and not include_dns_competitors:
+                continue
+
+            # Extract competition ID from CN column
+            cn_idx = min(col_indices['cn'], len(cells) - 1)
+            cn_cell = cells[cn_idx]
+            competition_id = cn_cell.text.strip()
+            
+            # Extract pilot name from pilot/contestant column
+            pilot_idx = min(col_indices['pilot'], len(cells) - 1)
+            contestant_cell = cells[pilot_idx]
+            pilot_name = contestant_cell.text.strip()
+            
+            # Try to find a div with flag inside contestant cell and remove it from pilot name
+            flag_div = contestant_cell.find('div', class_='flag')
+            if flag_div:
+                pilot_name = pilot_name.replace(flag_div.text, '').strip()
+            
+            # Extract plane model from glider column
+            plane_model = None
+            glider_idx = col_indices['glider']
+            if glider_idx < len(cells):
+                plane_model = cells[glider_idx].text.strip()
+
+            # Handle HC competitors
+            if status == "HC":
+                if not include_hc_competitors:
+                    continue
+                ranking = status
+            # Handle DNF/DNS
+            elif status == "DNF" or status == "DNS":
+                ranking = status
+                competitors_info.append({
+                    "ranking": ranking,
+                    "competition_id": competition_id,
+                    "igc_url": None,
+                    "pilot_name": pilot_name,
+                    "plane_model": plane_model,
+                })
+                continue
+            else:
+                # Normal competitors - extract numeric ranking
+                try:
+                    ranking = int(status.rstrip("."))
+                except ValueError:
+                    ranking = status
+
+            # Extract IGC URL
+            igc_url = None
+            for link in cn_cell.findAll('a'):
+                data_content = link.get('data-content')
+                if data_content:
+                    popup_soup = BeautifulSoup(data_content, 'html.parser')
+                    for a in popup_soup.findAll('a'):
+                        if 'download' in a.text.lower() or '.igc' in a.text.lower():
                             href = a.get('href')
+                            if href:
+                                if href.startswith("http://") or href.startswith("https://"):
+                                    igc_url = href
+                                else:
+                                    igc_url = urljoin(self.url, href)
+                                break
 
-                    if href.startswith("http://") or href.startswith("https://"):  # absolute URL
-                        igc_url = href
-                    else:  # relative url
-                        igc_url = urljoin(self.url, href)
-
-                    competition_id = link.text.strip()
-
-                competitors_info.append(dict(ranking=ranking, competition_id=competition_id, igc_url=igc_url))
+            competitors_info.append({
+                "ranking": ranking,
+                "competition_id": competition_id,
+                "igc_url": igc_url,
+                "pilot_name": pilot_name,
+                "plane_model": plane_model,
+            })
 
         return competitors_info
-
+   
     def _get_competition_day_info(self) -> Tuple[str, datetime.date, str]:
 
         if self.url.startswith('https://') or self.url.startswith('http://'):

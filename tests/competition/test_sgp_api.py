@@ -8,6 +8,7 @@ NOTE: These tests require internet connectivity and depend on the
 actual SGP API being available.
 """
 import unittest
+import shutil
 import datetime
 import json
 import logging
@@ -57,7 +58,7 @@ class TestSGPApiIntegration(unittest.TestCase):
     def tearDown(self):
         """Clean up any files created during tests."""
         # Keep the output files for manual inspection if needed
-        pass
+        shutil.rmtree(self.output_dir)
     
     def _save_response(self, data, filename):
         """Save response data to a file for manual inspection."""

@@ -19,5 +19,6 @@ setup(
         'pyproj>=3.4.1',
         'geojson>=3.0.0',
         'shapely>2.0.0',
+        'requests~=2.32.3',
     ]
 )

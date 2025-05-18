@@ -1,9 +1,12 @@
+import requests
+from bs4 import BeautifulSoup
+import os
+import time
+import requests
 import operator
 import os
 from abc import ABC, abstractmethod
 from typing import List
-from urllib.request import URLopener
-from urllib.request import urlopen
 import time
 
 from bs4 import BeautifulSoup
@@ -35,22 +38,35 @@ class DailyResultsPage(ABC):
                                            date.strftime('%d-%m-%Y'))
 
     def _get_html_soup(self) -> BeautifulSoup:
-        # fix problem with SSL certificates
-        # https://stackoverflow.com/questions/30551400/disable-ssl-certificate-validation-in-mechanize#35960702
+        """
+        Get a BeautifulSoup object from the URL.
+        
+        Returns:
+            BeautifulSoup object containing the parsed HTML
+        """
+        
         if not self._html_soup:
-            import ssl
             try:
-                _create_unverified_https_context = ssl._create_unverified_context
-            except AttributeError:
-                # Legacy Python that doesn't verify HTTPS certificates by default
-                pass
-            else:
-                # Handle target environment that doesn't support HTTPS verification
-                ssl._create_default_https_context = _create_unverified_https_context
-
-            # get entire html of page
-            html = urlopen(self.url).read()
-            self._html_soup = BeautifulSoup(html, "html.parser")
+                # Use requests with verify=True for secure connections
+                # In production, you should ALWAYS verify SSL certificates
+                response = requests.get(self.url, timeout=30)
+                response.raise_for_status()  # Raise exception for 4XX/5XX status codes
+                
+                # Parse the HTML with BeautifulSoup
+                self._html_soup = BeautifulSoup(response.text, "html.parser")
+                
+            except requests.exceptions.SSLError:
+                # Only if absolutely necessary, you can disable verification
+                # But this should be a last resort and logged as a security concern
+                print("SSL verification failed. Attempting with verification disabled.")
+                response = requests.get(self.url, verify=False, timeout=30)
+                response.raise_for_status()
+                self._html_soup = BeautifulSoup(response.text, "html.parser")
+                
+            except requests.exceptions.RequestException as e:
+                print(f"Error fetching URL {self.url}: {e}")
+                raise
+                
         return self._html_soup
 
     def igc_file_name(self, competition_id: str) -> str:
@@ -75,21 +91,46 @@ class DailyResultsPage(ABC):
     def download_flight(self, igc_url: str, competition_id: str) -> str:
         """
         Download flight and return file_path
-
-        :param igc_url:
-        :param competition_id:
-        :return:
+        
+        Args:
+            igc_url: URL to download the IGC file
+            competition_id: Competition ID used to name the file
+            
+        Returns:
+            str: Path to the downloaded file
         """
-
-        # make directory if necessary
+        
+        # Make directory if necessary
         if not os.path.exists(self._igc_directory):
             os.makedirs(self._igc_directory)
-
+            
         file_path = self.igc_file_path(competition_id)
-        while not os.path.exists(file_path):
-            URLopener().retrieve(igc_url, file_path)
-            time.sleep(0.1)
-
+        
+        # Attempt to download the file
+        max_retries = 3
+        retry_count = 0
+        
+        while not os.path.exists(file_path) and retry_count < max_retries:
+            try:
+                response = requests.get(igc_url, timeout=30)
+                response.raise_for_status()  # Raise an exception for HTTP errors
+                
+                # Write the content to the file
+                with open(file_path, 'wb') as f:
+                    f.write(response.content)
+                    
+                # Verify file was created
+                if not os.path.exists(file_path):
+                    raise FileNotFoundError(f"File was not created at {file_path}")
+                    
+            except (requests.exceptions.RequestException, FileNotFoundError) as e:
+                print(f"Download attempt {retry_count + 1} failed: {e}")
+                retry_count += 1
+                time.sleep(1)  # Longer delay between retries
+        
+        if not os.path.exists(file_path):
+            raise RuntimeError(f"Failed to download file from {igc_url} after {max_retries} attempts")
+        
         return file_path
 
     @abstractmethod

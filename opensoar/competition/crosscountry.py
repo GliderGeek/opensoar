@@ -196,7 +196,7 @@ class CrosscountryDaily(DailyResultsPage):
         
         Args:
             include_hc_competitors: Whether to include hors-concours competitors
-            include_dns_competitors: Whether to include competitors who did not start
+            include_dns_competitors: Whether to include competitors who did not start or did not fly
             
         Returns:
             List of dictionaries with competitor information

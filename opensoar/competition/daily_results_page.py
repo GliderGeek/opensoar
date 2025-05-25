@@ -1,18 +1,17 @@
 import requests
 from bs4 import BeautifulSoup
 import os
-import time
 import requests
 import operator
 import os
 from abc import ABC, abstractmethod
 from typing import List
-import time
 
 from bs4 import BeautifulSoup
 
 from opensoar.competition.competition_day import CompetitionDay
 from opensoar.task.task import Task
+from opensoar.utilities.retry_utils import web_request_retry
 
 
 class DailyResultsPage(ABC):
@@ -37,6 +36,7 @@ class DailyResultsPage(ABC):
         self._igc_directory = os.path.join(target_directory, competition_name, plane_class,
                                            date.strftime('%d-%m-%Y'))
 
+    @web_request_retry(max_attempts=3)
     def _get_html_soup(self) -> BeautifulSoup:
         """
         Get a BeautifulSoup object from the URL.
@@ -88,6 +88,7 @@ class DailyResultsPage(ABC):
         file_name = self.igc_file_name(competition_id)
         return os.path.join(self._igc_directory, file_name)
 
+    @web_request_retry(max_attempts=3)
     def download_flight(self, igc_url: str, competition_id: str) -> str:
         """
         Download flight and return file_path
@@ -106,30 +107,21 @@ class DailyResultsPage(ABC):
             
         file_path = self.igc_file_path(competition_id)
         
-        # Attempt to download the file
-        max_retries = 3
-        retry_count = 0
-        
-        while not os.path.exists(file_path) and retry_count < max_retries:
-            try:
-                response = requests.get(igc_url, timeout=30)
-                response.raise_for_status()  # Raise an exception for HTTP errors
-                
-                # Write the content to the file
-                with open(file_path, 'wb') as f:
-                    f.write(response.content)
-                    
-                # Verify file was created
-                if not os.path.exists(file_path):
-                    raise FileNotFoundError(f"File was not created at {file_path}")
-                    
-            except (requests.exceptions.RequestException, FileNotFoundError) as e:
-                print(f"Download attempt {retry_count + 1} failed: {e}")
-                retry_count += 1
-                time.sleep(1)  # Longer delay between retries
         
         if not os.path.exists(file_path):
-            raise RuntimeError(f"Failed to download file from {igc_url} after {max_retries} attempts")
+            response = requests.get(igc_url, timeout=30)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            
+            # Write the content to the file
+            with open(file_path, 'wb') as f:
+                f.write(response.content)
+                
+            # Verify file was created
+            if not os.path.exists(file_path):
+                raise FileNotFoundError(f"File was not created at {file_path}")
+                    
+        if not os.path.exists(file_path):
+            raise RuntimeError(f"Failed to download file from {igc_url}")
         
         return file_path
 

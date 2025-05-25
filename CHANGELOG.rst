@@ -16,6 +16,13 @@ Fixed
 Security
 ~~~~~~~~~
 
+v2.1.0 - 2025/05/25
+------------------------
+Added
+~~~~~~
+* Add crosscountry analysis for sailplane grand prix
+* Added retry logic on getting web page for enhanced reliability
+
 v2.0.1 - 2025/03/07
 ------------------------
 Added

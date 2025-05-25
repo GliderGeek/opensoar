@@ -100,7 +100,6 @@ class DailyResultsPage(ABC):
         Returns:
             str: Path to the downloaded file
         """
-        
         # Make directory if necessary
         if not os.path.exists(self._igc_directory):
             os.makedirs(self._igc_directory)

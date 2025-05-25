@@ -1,11 +1,11 @@
 """
-Integration tests for SGP API structure verification.
+Integration tests for Crosscountry API structure verification.
 
-These tests make real API calls to the SGP endpoints and verify that the 
+These tests make real API calls to the Crosscountry endpoints and verify that the 
 expected structure is present. These will help detect unexpected API changes.
 
 NOTE: These tests require internet connectivity and depend on the 
-actual SGP API being available.
+actual Crosscountry API being available.
 """
 import unittest
 import shutil
@@ -15,7 +15,8 @@ import logging
 from pathlib import Path
 import re
 
-from opensoar.competition.sgp import SGPDaily
+from opensoar.competition.crosscountry import CrosscountryDaily
+
 
 
 # Configure logging
@@ -23,9 +24,9 @@ logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-class TestSGPApiIntegration(unittest.TestCase):
+class TestCrosscountryApiIntegration(unittest.TestCase):
     """
-    Integration tests that verify the SGP API structure using real API calls.
+    Integration tests that verify the Crosscountry API structure using real API calls.
     
     These tests depend on the actual API and should be run periodically to
     ensure that the API structure hasn't changed unexpectedly.
@@ -42,9 +43,9 @@ class TestSGPApiIntegration(unittest.TestCase):
         self.comp_api_url = f"https://www.crosscountry.aero/c/sgp/rest/comp/{self.comp_id}"
         self.day_api_url = f"https://www.crosscountry.aero/c/sgp/rest/day/{self.comp_id}/{self.day_id}"
         
-        # Create SGP daily instances with the API URLs
-        self.sgp_comp = SGPDaily(self.comp_api_url)
-        self.sgp_day = SGPDaily(self.day_api_url)
+        # Create Crosscountry daily instances with the API URLs
+        self.sgp_comp = CrosscountryDaily(self.comp_api_url)
+        self.sgp_day = CrosscountryDaily(self.day_api_url)
         
         # Verify the URLs were correctly parsed
         self.assertEqual(self.sgp_comp.competition_id, self.comp_id)
@@ -253,8 +254,8 @@ class TestSGPApiIntegration(unittest.TestCase):
             self.fail(f"Error testing competitors info: {str(e)}")
 
 
-class TestSGPUrlHandling(unittest.TestCase):
-    """Test proper URL handling and ID extraction for SGP URLs."""
+class TestCrosscountryUrlHandling(unittest.TestCase):
+    """Test proper URL handling and ID extraction for Crosscountry URLs."""
     
     def test_api_url_pattern(self):
         """Test extraction of IDs from direct API URLs."""
@@ -262,8 +263,8 @@ class TestSGPUrlHandling(unittest.TestCase):
         comp_url = "https://www.crosscountry.aero/c/sgp/rest/comp/86"
         day_url = "https://www.crosscountry.aero/c/sgp/rest/day/86/1547"
         
-        sgp_comp = SGPDaily(comp_url)
-        sgp_day = SGPDaily(day_url)
+        sgp_comp = CrosscountryDaily(comp_url)
+        sgp_day = CrosscountryDaily(day_url)
         
         self.assertEqual(sgp_comp.competition_id, 86)
         self.assertIsNone(sgp_comp.day_id)
@@ -276,7 +277,7 @@ class TestSGPUrlHandling(unittest.TestCase):
         Test extraction of IDs from web URLs.
         
         This test documents the current handling of web URLs and may fail
-        if the SGP class doesn't correctly handle these URL patterns.
+        if the Crosscountry class doesn't correctly handle these URL patterns.
         """
         # Current web URLs (based on error messages)
         web_comp_url = "https://www.crosscountry.aero/c/sgp/overview/127"

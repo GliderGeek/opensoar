@@ -1,7 +1,7 @@
 """
-Unit tests for SGP (Sailplane Grand Prix) module.
+Unit tests for Crosscountry (Sailplane Grand Prix) module.
 
-This module tests the functionality for accessing SGP API endpoints 
+This module tests the functionality for accessing Crosscountry API endpoints 
 and downloading/analyzing IGC files.
 """
 import datetime
@@ -10,7 +10,7 @@ import unittest
 from unittest import mock
 from pathlib import Path
 
-from opensoar.competition.sgp import SGPDaily
+from opensoar.competition.crosscountry import CrosscountryDaily
 from opensoar.task.race_task import RaceTask
 
 
@@ -31,8 +31,8 @@ class MockResponse:
         pass
 
 
-class TestSGPDaily(unittest.TestCase):
-    """Tests for SGPDaily class."""
+class TestCrosscountryDaily(unittest.TestCase):
+    """Tests for CrosscountryDaily class."""
     
     def setUp(self):
         """Set up test fixtures."""
@@ -59,7 +59,7 @@ class TestSGPDaily(unittest.TestCase):
                 }
             },
             "c": {
-                "t": "Test SGP Competition",
+                "t": "Test Crosscountry Competition",
                 "l": "Test Location"
             },
             "i": [
@@ -152,14 +152,14 @@ class TestSGPDaily(unittest.TestCase):
     
     def test_extract_ids_from_url_day(self):
         """Test extraction of competition and day IDs from day URL."""
-        sgp = SGPDaily(self.day_url)
+        sgp = CrosscountryDaily(self.day_url)
         
         self.assertEqual(sgp.competition_id, 86)
         self.assertEqual(sgp.day_id, 1547)
     
     def test_extract_ids_from_url_comp(self):
         """Test extraction of competition ID from competition URL."""
-        sgp = SGPDaily(self.comp_url)
+        sgp = CrosscountryDaily(self.comp_url)
         
         self.assertEqual(sgp.competition_id, 86)
         self.assertIsNone(sgp.day_id)
@@ -169,22 +169,22 @@ class TestSGPDaily(unittest.TestCase):
         """Test fetching competition data from the API."""
         mock_urlopen.return_value = MockResponse(self.comp_data)
         
-        sgp = SGPDaily(self.comp_url)
+        sgp = CrosscountryDaily(self.comp_url)
         data = sgp._get_competition_data()
         
         self.assertEqual(data, self.comp_data)
-        mock_urlopen.assert_called_once_with(f"{SGPDaily.BASE_API_URL}/comp/86")
+        mock_urlopen.assert_called_once_with(f"{CrosscountryDaily.BASE_API_URL}/comp/86")
     
     @mock.patch('urllib.request.urlopen')
     def test_get_day_data(self, mock_urlopen):
         """Test fetching day data from the API."""
         mock_urlopen.return_value = MockResponse(self.day_data)
         
-        sgp = SGPDaily(self.day_url)
+        sgp = CrosscountryDaily(self.day_url)
         data = sgp._get_day_data()
         
         self.assertEqual(data, self.day_data)
-        mock_urlopen.assert_called_once_with(f"{SGPDaily.BASE_API_URL}/day/86/1547")
+        mock_urlopen.assert_called_once_with(f"{CrosscountryDaily.BASE_API_URL}/day/86/1547")
     
     @mock.patch('urllib.request.urlopen')
     def test_get_day_data_without_day_id(self, mock_urlopen):
@@ -194,15 +194,15 @@ class TestSGPDaily(unittest.TestCase):
             MockResponse(self.day_data)
         ]
         
-        sgp = SGPDaily(self.comp_url)
+        sgp = CrosscountryDaily(self.comp_url)
         data = sgp._get_day_data()
         
         self.assertEqual(data, self.day_data)
         self.assertEqual(sgp.day_id, 1547)  # Should select the latest day with a winner
         
         expected_calls = [
-            mock.call(f"{SGPDaily.BASE_API_URL}/comp/86"),
-            mock.call(f"{SGPDaily.BASE_API_URL}/day/86/1547")
+            mock.call(f"{CrosscountryDaily.BASE_API_URL}/comp/86"),
+            mock.call(f"{CrosscountryDaily.BASE_API_URL}/day/86/1547")
         ]
         mock_urlopen.assert_has_calls(expected_calls)
     
@@ -214,12 +214,12 @@ class TestSGPDaily(unittest.TestCase):
             MockResponse(self.day_data)
         ]
         
-        sgp = SGPDaily(self.day_url)
+        sgp = CrosscountryDaily(self.day_url)
         name, date, class_name = sgp._get_competition_day_info()
         
-        self.assertEqual(name, "Test SGP Competition")
+        self.assertEqual(name, "Test Crosscountry Competition")
         self.assertEqual(date, datetime.date(2021, 4, 10))
-        self.assertEqual(class_name, "SGP")
+        self.assertEqual(class_name, "Default")
     
     @mock.patch('urllib.request.urlopen')
     def test_get_competitors_info(self, mock_urlopen):
@@ -230,7 +230,7 @@ class TestSGPDaily(unittest.TestCase):
             MockResponse(self.day_data)    # For _get_day_data call
         ]
         
-        sgp = SGPDaily(self.day_url)
+        sgp = CrosscountryDaily(self.day_url)
         # Force caching of competition data
         sgp._competition_data = self.comp_data
         # Force caching of day data
@@ -244,7 +244,7 @@ class TestSGPDaily(unittest.TestCase):
         self.assertEqual(competitors[0]['pilot_name'], "John Doe")
         self.assertEqual(competitors[0]['plane_model'], "LS8")
         self.assertEqual(competitors[0]['ranking'], 1)
-        self.assertEqual(competitors[0]['igc_url'], f"{SGPDaily.FLIGHT_DOWNLOAD_URL}/456")
+        self.assertEqual(competitors[0]['igc_url'], f"{CrosscountryDaily.FLIGHT_DOWNLOAD_URL}/456")
         
         # Test including DNS competitors
         competitors = sgp._get_competitors_info(include_dns_competitors=True)
@@ -255,7 +255,7 @@ class TestSGPDaily(unittest.TestCase):
         """Test retrieving available competition days."""
         mock_urlopen.return_value = MockResponse(self.comp_data)
         
-        sgp = SGPDaily(self.comp_url)
+        sgp = CrosscountryDaily(self.comp_url)
         days = sgp.get_available_days()
         
         self.assertEqual(len(days), 2)
@@ -266,7 +266,7 @@ class TestSGPDaily(unittest.TestCase):
         """Test extracting waypoints from task data."""
         task_data = self.day_data['k']['data']
         
-        sgp = SGPDaily(self.day_url)
+        sgp = CrosscountryDaily(self.day_url)
         waypoints = sgp._extract_waypoints(task_data)
         
         self.assertEqual(len(waypoints), 3)
@@ -296,7 +296,7 @@ class TestSGPDaily(unittest.TestCase):
     
     def test_extract_start_opening(self):
         """Test extracting start opening time from day data."""
-        sgp = SGPDaily(self.day_url)
+        sgp = CrosscountryDaily(self.day_url)
         start_opening = sgp._extract_start_opening(self.day_data)
         
         expected_datetime = datetime.datetime(
@@ -306,11 +306,11 @@ class TestSGPDaily(unittest.TestCase):
         self.assertEqual(start_opening, expected_datetime)
     
     @mock.patch('urllib.request.urlopen')
-    @mock.patch('opensoar.competition.sgp.SGPDaily.download_flight')
-    @mock.patch('opensoar.competition.sgp.Reader')
+    @mock.patch('opensoar.competition.crosscountry.CrosscountryDaily.download_flight')
+    @mock.patch('opensoar.competition.crosscountry.Reader')
     @mock.patch('builtins.open', new_callable=mock.mock_open)
     def test_generate_competition_day(self, mock_open, mock_reader, mock_download, mock_urlopen):
-        """Test generating a CompetitionDay object from SGP data."""
+        """Test generating a CompetitionDay object from Crosscountry data."""
         # Setup mocks
         mock_urlopen.side_effect = [
             MockResponse(self.comp_data),  # For _get_competition_data call
@@ -323,7 +323,7 @@ class TestSGPDaily(unittest.TestCase):
         ]
         
         # Cache data to prevent too many API calls
-        sgp = SGPDaily(self.day_url)
+        sgp = CrosscountryDaily(self.day_url)
         sgp._competition_data = self.comp_data
         sgp._day_data = self.day_data
         
@@ -341,13 +341,13 @@ class TestSGPDaily(unittest.TestCase):
         }
         mock_reader.return_value = mock_parser
         
-        # Create SGPDaily instance and generate competition day
+        # Create CrosscountryDaily instance and generate competition day
         competition_day = sgp.generate_competition_day(str(self.temp_dir))
         
         # Verify results
-        self.assertEqual(competition_day.name, "Test SGP Competition")
+        self.assertEqual(competition_day.name, "Test Crosscountry Competition")
         self.assertEqual(competition_day.date, datetime.date(2021, 4, 10))
-        self.assertEqual(competition_day.plane_class, "SGP")
+        self.assertEqual(competition_day.plane_class, "Default")
         
         # Verify competitors were created
         self.assertEqual(len(competition_day.competitors), 2)

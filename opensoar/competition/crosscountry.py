@@ -1,6 +1,6 @@
 """
-Helper functions for SGP (Sailplane Grand Prix) competitions.
-This module provides functionality to access competition data from the SGP API endpoints
+Helper functions for Crosscountry (Sailplane Grand Prix) competitions.
+This module provides functionality to access competition data from the Crosscountry API endpoints
 and download IGC files for analysis.
 """
 import json
@@ -21,10 +21,10 @@ from opensoar.task.race_task import RaceTask
 
 logger = logging.getLogger(__name__)
 
-class SGPDaily(DailyResultsPage):
+class CrosscountryDaily(DailyResultsPage):
     """
-    Helper class for dealing with SGP (Sailplane Grand Prix) daily result pages.
-    This class interfaces with the SGP API to retrieve competition data.
+    Helper class for dealing with Crosscountry (Sailplane Grand Prix) daily result pages.
+    This class interfaces with the Crosscountry API to retrieve competition data.
     """
     
     # API endpoints
@@ -33,10 +33,10 @@ class SGPDaily(DailyResultsPage):
     
     def __init__(self, url: str):
         """
-        Initialize with the URL to the SGP API.
+        Initialize with the URL to the Crosscountry API.
         
         Args:
-            url: URL to the SGP API, in format:
+            url: URL to the Crosscountry API, in format:
                  https://www.crosscountry.aero/c/sgp/rest/day/{comp_id}/{day_id}
                  or
                  https://www.crosscountry.aero/c/sgp/rest/comp/{comp_id}
@@ -57,7 +57,7 @@ class SGPDaily(DailyResultsPage):
         Extract competition ID and day ID from the URL.
         
         Args:
-            url: URL to the SGP API
+            url: URL to the Crosscountry API
         """
         # Try to match day URL pattern
         day_pattern = r'crosscountry\.aero/c/sgp/rest/day/(\d+)/(\d+)'
@@ -84,7 +84,7 @@ class SGPDaily(DailyResultsPage):
         
         if sgp_match:
             self.competition_name = sgp_match.group(1)
-            logger.info(f"Found SGP competition name: {self.competition_name}, will need to discover API endpoints")
+            logger.info(f"Found Crosscountry competition name: {self.competition_name}, will need to discover API endpoints")
             return
             
         # If no patterns match, warn but don't fail yet
@@ -92,7 +92,7 @@ class SGPDaily(DailyResultsPage):
     
     def _get_competition_data(self) -> Dict:
         """
-        Fetch competition data from the SGP API.
+        Fetch competition data from the Crosscountry API.
         
         Returns:
             Dictionary with competition data
@@ -115,7 +115,7 @@ class SGPDaily(DailyResultsPage):
     
     def _get_day_data(self) -> Dict:
         """
-        Fetch day data from the SGP API.
+        Fetch day data from the Crosscountry API.
         
         Returns:
             Dictionary with day data
@@ -186,13 +186,13 @@ class SGPDaily(DailyResultsPage):
             day_date = datetime.date.today()
             
         # Use the class name from competition info
-        class_name = "SGP"  # SGP typically has just one class
+        class_name = "Default"  # Crosscountry typically has just one class
             
         return competition_name, day_date, class_name
     
     def _get_competitors_info(self, include_hc_competitors: bool = True, include_dns_competitors: bool = False) -> List[Dict]:
         """
-        Extract competitor information from the SGP API.
+        Extract competitor information from the Crosscountry API.
         
         Args:
             include_hc_competitors: Whether to include hors-concours competitors
@@ -274,7 +274,7 @@ class SGPDaily(DailyResultsPage):
 
     def generate_competition_day(self, target_directory: str, download_progress=None, start_time_buffer: int = 0):
         """
-        Get competition day with all flights from the SGP API.
+        Get competition day with all flights from the Crosscountry API.
         
         Args:
             target_directory: Directory in which the IGC files are saved
@@ -301,7 +301,7 @@ class SGPDaily(DailyResultsPage):
         # Extract task start time
         start_opening = self._extract_start_opening(day_data)
         
-        # Create task object (assuming Race Task for SGP)
+        # Create task object (assuming Race Task for Crosscountry)
         # Get timezone information if available
         timezone_offset = day_data.get('r', {}).get('z')
         timezone = timezone_offset // 3600000 if timezone_offset else None  # Convert from ms to hours
@@ -482,14 +482,14 @@ if __name__ == "__main__":
 # Direct API URL for the day
     day_url = "https://www.crosscountry.aero/c/sgp/rest/day/86/1547"
 
-# Create a SGPDaily instance
-    sgp_daily = SGPDaily(day_url)
+# Create a CrosscountryDaily instance
+    crosscountry_daily = CrosscountryDaily(day_url)
 
 # Directory to store IGC files
     target_directory = "./bin"
 
 # Generate a CompetitionDay with all flights
-    competition_day = sgp_daily.generate_competition_day(target_directory)
+    competition_day = crosscountry_daily.generate_competition_day(target_directory)
 
 # Now you can analyze flights using the existing OpenSoar framework
     for competitor in competition_day.competitors:

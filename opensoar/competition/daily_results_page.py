@@ -106,7 +106,6 @@ class DailyResultsPage(ABC):
             
         file_path = self.igc_file_path(competition_id)
         
-        
         if not os.path.exists(file_path):
             response = requests.get(igc_url, timeout=30)
             response.raise_for_status()  # Raise an exception for HTTP errors

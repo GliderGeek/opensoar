@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "opensoar"
+version = "2.1.0"
+description = "Open source python library for glider flight analysis"
+readme = "README.rst"
+license = {file = "LICENSE"}
+authors = [{name = "GliderGeek"}]
+urls = {Homepage = "https://github.com/glidergeek/opensoar"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+
+[tool.setuptools]
+packages = {find = {exclude = ["tests"]}}
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}

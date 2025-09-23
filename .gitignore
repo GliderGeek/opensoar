@@ -1,16 +1,21 @@
-# virtual environment folder
-env
-venv
-docs/build
+# Virtual environment folders
+.venv/
+venv/
+env/
 
-# from building package
-dist
-build
+# Build artifacts
+build/
+dist/
 opensoar.egg-info/
 
-# IDE
-.idea
+# Documentation build
+docs/build/
 
+# IDE settings
+.idea/
+
+# Python cache
 *.pyc
 
+# macOS system files
 .DS_Store

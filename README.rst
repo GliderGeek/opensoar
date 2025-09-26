@@ -39,7 +39,7 @@ Example race task
     with open('example.igc', 'r') as f:
         parsed_igc_file = Reader().read(f)
 
-    # example.igc comes from soaringspot and contains task inforamtion
+    # example.igc comes from soaringspot and contains task information
     task, _, _ = get_info_from_comment_lines(parsed_igc_file)
     _, trace = parsed_igc_file['fix_records']
     

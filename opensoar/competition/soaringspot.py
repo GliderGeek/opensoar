@@ -3,6 +3,7 @@ Helper functions for SoaringSpot competitions.
 The files from SoaringSpot always contain task information, which can be used for competition analysis.
 """
 import datetime
+import logging
 import re
 from typing import List, Tuple, Union, Optional
 from urllib.error import URLError
@@ -20,6 +21,8 @@ from opensoar.task.waypoint import Waypoint
 from opensoar.utilities.helper_functions import dm2dd
 from opensoar.competition.daily_results_page import DailyResultsPage
 from opensoar.utilities.helper_functions import double_iterator
+
+logger = logging.getLogger(__name__)
 
 
 def get_comment_lines_from_parsed_file(parsed_igc_file: dict) -> List[str]:
@@ -268,12 +271,18 @@ class SoaringSpotDaily(DailyResultsPage):
         Returns:
             List of dictionaries with competitor information:
             - ranking: Position in the competition or status (DNF/DNS)
-            - competition_id: Glider ID
+            - competition_id: Glider ID (modified with suffix _2, _3, etc. if duplicate)
             - igc_url: URL to download the IGC file (None for DNF/DNS)
             - pilot_name: Name of the pilot
             - plane_model: Type of glider
+            
+        Note:
+            If duplicate competition IDs are found, they will be automatically resolved by
+            appending a suffix (_2, _3, etc.) to ensure unique identification. A warning
+            will be printed to inform the user.
         """
         competitors_info = []
+        seen_competition_ids = {}  # Track competition IDs and their count
 
         table = self._get_html_soup().find("table")
         if not table:
@@ -326,7 +335,7 @@ class SoaringSpotDaily(DailyResultsPage):
             # Extract competition ID from CN column
             cn_idx = min(col_indices['cn'], len(cells) - 1)
             cn_cell = cells[cn_idx]
-            competition_id = cn_cell.text.strip()
+            original_competition_id = cn_cell.text.strip()
             
             # Extract pilot name from pilot/contestant column
             pilot_idx = min(col_indices['pilot'], len(cells) - 1)
@@ -343,6 +352,16 @@ class SoaringSpotDaily(DailyResultsPage):
             glider_idx = col_indices['glider']
             if glider_idx < len(cells):
                 plane_model = cells[glider_idx].text.strip()
+
+            # Handle duplicate competition IDs
+            if original_competition_id in seen_competition_ids:
+                seen_competition_ids[original_competition_id] += 1
+                competition_id = f"{original_competition_id}_{seen_competition_ids[original_competition_id]}"
+                logger.warning(f"Duplicate competition ID '{original_competition_id}' detected for pilot '{pilot_name}'. "
+                               f"Using '{competition_id}' instead.")
+            else:
+                seen_competition_ids[original_competition_id] = 1
+                competition_id = original_competition_id
 
             # Handle HC competitors
             if status == "HC":

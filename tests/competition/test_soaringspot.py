@@ -171,6 +171,50 @@ class TestSoaringspot(unittest.TestCase):
         competitors = soaringspot_page._get_competitors_info(include_hc_competitors=False)
         self.assertEqual(len(competitors), 10)
 
+    def test_get_competitors_with_duplicate_ids(self):
+        """Test handling of duplicate competition IDs"""
+        soaringspot_page = SoaringSpotDaily(
+            'https://www.soaringspot.com/nl/keiheuvelcup2025/results/open-xpdr/task-1-on-2025-08-23/daily'
+        )
+        
+        competitors = soaringspot_page._get_competitors_info(include_hc_competitors=True)
+        
+        # Check that we got all competitors (34 total on this page)
+        self.assertEqual(len(competitors), 34)
+        
+        # Extract all competition IDs
+        competition_ids = [comp['competition_id'] for comp in competitors]
+        
+        # Check that all competition IDs are unique after processing
+        self.assertEqual(len(competition_ids), len(set(competition_ids)), 
+                        "Duplicate competition IDs detected after processing")
+        
+        # Find the pilots who originally had 'FS' as competition ID
+        fs_pilots = [comp for comp in competitors if comp['competition_id'].startswith('FS')]
+        
+        # Should have 2 pilots with FS-based IDs
+        self.assertEqual(len(fs_pilots), 2, 
+                        "Expected 2 pilots with FS competition ID")
+        
+        # Verify the pilots are correct (Daan Spruyt and Flens Piet)
+        pilot_names = {comp['pilot_name'] for comp in fs_pilots}
+        self.assertIn('Daan Spruyt', pilot_names)
+        self.assertIn('Flens Piet', pilot_names)
+        
+        # One should have 'FS' and the other should have 'FS_2'
+        fs_ids = {comp['competition_id'] for comp in fs_pilots}
+        self.assertIn('FS', fs_ids)
+        self.assertIn('FS_2', fs_ids)
+        
+        # Verify rankings are preserved
+        for comp in fs_pilots:
+            if comp['pilot_name'] == 'Daan Spruyt':
+                self.assertEqual(comp['ranking'], 2)
+                self.assertEqual(comp['plane_model'], 'Ventus 2ax')
+            elif comp['pilot_name'] == 'Flens Piet':
+                self.assertEqual(comp['ranking'], 32)
+                self.assertEqual(comp['plane_model'], 'DG 808C Classic 18m')
+
     # disabled because this URL is no longer used. unclear whether all dev urls are cleared
     # def test_get_competitors_dev_url(self):
     #     soaringspot_page = SoaringSpotDaily(

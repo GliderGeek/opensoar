@@ -16,6 +16,12 @@ Fixed
 Security
 ~~~~~~~~~
 
+v2.1.1 - 2025/10/26
+------------------------
+Fixed
+~~~~~~~~
+* Fixed handling of duplicate competition IDs in SoaringSpot competitions
+
 v2.1.0 - 2025/05/25
 ------------------------
 Added

@@ -1,0 +1,9 @@
+name: Test Trigger
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml

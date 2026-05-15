@@ -86,7 +86,7 @@ class RaceTask(Task):
         sector_fixes = []  # not applicable for race tasks
         return fixes, refined_start, outlanding_fix, distances, finish_time, sector_fixes
 
-    def determine_trip_fixes(self, trace):
+    def determine_trip_fixes(self, trace, _allow_late_restart=True):
 
         leg = -1
         enl_first_fix = None
@@ -94,7 +94,9 @@ class RaceTask(Task):
 
         fixes = list()
         start_fixes = list()
-        for fix_minus1, fix in double_iterator(trace):
+        restart_candidates = []  # trace indices where started() fired at leg > 0
+
+        for pair_idx, (fix_minus1, fix) in enumerate(double_iterator(trace)):
 
             if not enl_registered and self.enl_value_exceeded(fix):
                 if enl_first_fix is None:
@@ -127,17 +129,38 @@ class RaceTask(Task):
                     fixes.append(fix)
                     leg += 1
             elif 0 < leg < self.no_legs:
-                if self.finished_leg(leg, fix_minus1, fix) and not enl_registered:
+                if _allow_late_restart and self.started(fix_minus1, fix):
+                    # Collect as challenger candidate; do not reset current attempt.
+                    # pair_idx == index of fix_minus1 in trace (double_iterator pair i → trace[i]).
+                    restart_candidates.append(pair_idx)
+                elif self.finished_leg(leg, fix_minus1, fix) and not enl_registered:
                     fixes.append(fix)
                     leg += 1
 
         enl_fix = enl_first_fix if enl_registered else None
 
-        outlanding_fix = None
-        if len(fixes) is not len(self.waypoints):
-            outlanding_fix = self.determine_outlanding_fix(trace, fixes, start_fixes, enl_fix)
+        orig_outlanding = None
+        if len(fixes) != len(self.waypoints):
+            orig_outlanding = self.determine_outlanding_fix(trace, fixes, start_fixes, enl_fix)
 
-        return fixes, outlanding_fix
+        if not restart_candidates:
+            return fixes, orig_outlanding
+
+        # Compare original attempt with every challenger by total scored distance.
+        orig_distance = sum(self.determine_trip_distances(fixes, orig_outlanding)) if fixes else 0
+        best_fixes, best_outlanding, best_distance = fixes, orig_outlanding, orig_distance
+
+        for restart_idx in restart_candidates:
+            c_fixes, c_outlanding = self.determine_trip_fixes(
+                trace[restart_idx:], _allow_late_restart=False
+            )
+            if not c_fixes:
+                continue
+            c_distance = sum(self.determine_trip_distances(c_fixes, c_outlanding))
+            if c_distance > best_distance:
+                best_fixes, best_outlanding, best_distance = c_fixes, c_outlanding, c_distance
+
+        return best_fixes, best_outlanding
 
     def determine_outlanding_fix(self, trace, fixes, start_fixes, enl_fix):
 

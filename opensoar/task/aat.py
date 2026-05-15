@@ -73,9 +73,9 @@ class AAT(Task):
             finish_time = fixes[-1]['datetime']
         return finish_time
 
-    def _calculate_trip_fixes(self, trace):
+    def _calculate_trip_fixes(self, trace, _allow_late_restart=True):
 
-        sector_fixes, enl_outlanding_fix = self._get_sector_fixes(trace)
+        sector_fixes, enl_outlanding_fix, restart_candidates = self._get_sector_fixes(trace, _allow_late_restart)
         reduced_sector_fixes = self._reduce_sector_fixes(sector_fixes, max_fixes_sector=300)
 
         outlanded = len(sector_fixes) != self.no_legs+1
@@ -102,7 +102,23 @@ class AAT(Task):
             trip_fixes = max_distance_fixes
             outlanding_fix = None
 
-        return trip_fixes, outlanding_fix, sector_fixes
+        if not restart_candidates:
+            return trip_fixes, outlanding_fix, sector_fixes
+
+        orig_distance = sum(self._determine_trip_distances(trip_fixes, outlanding_fix))
+        best = (trip_fixes, outlanding_fix, sector_fixes, orig_distance)
+
+        for restart_idx in restart_candidates:
+            c_trip_fixes, c_outlanding_fix, c_sector_fixes = self._calculate_trip_fixes(
+                trace[restart_idx:], _allow_late_restart=False
+            )
+            if not c_trip_fixes:
+                continue
+            c_distance = sum(self._determine_trip_distances(c_trip_fixes, c_outlanding_fix))
+            if c_distance > best[3]:
+                best = (c_trip_fixes, c_outlanding_fix, c_sector_fixes, c_distance)
+
+        return best[0], best[1], best[2]
 
     def _determine_trip_distances(self, fixes, outlanding_fix):
 
@@ -118,14 +134,15 @@ class AAT(Task):
 
         return distances
 
-    def _get_sector_fixes(self, trace):
+    def _get_sector_fixes(self, trace, _allow_late_restart=True):
 
         current_leg = -1  # not yet started
         sector_fixes = list()
         enl_first_fix = None
         enl_registered = False
+        restart_candidates = []
 
-        for fix_minus1, fix in double_iterator(trace):
+        for pair_idx, (fix_minus1, fix) in enumerate(double_iterator(trace)):
 
             # check ENL when aircraft logs ENL and no ENL outlanding has taken place
             if not enl_registered and self.enl_value_exceeded(fix):
@@ -158,7 +175,9 @@ class AAT(Task):
                     self._add_aat_sector_fix(sector_fixes, 1, fix_minus1)
                     current_leg += 1
             elif 0 < current_leg < self.no_legs - 1:  # at least second leg, no re-start possible
-                if self.waypoints[current_leg].inside_sector(fix_minus1):  # previous waypoint
+                if _allow_late_restart and self.started(fix_minus1, fix):
+                    restart_candidates.append(pair_idx)
+                elif self.waypoints[current_leg].inside_sector(fix_minus1):  # previous waypoint
                     self._add_aat_sector_fix(sector_fixes, current_leg, fix_minus1)
                 elif self.waypoints[current_leg + 1].inside_sector(fix_minus1):  # next waypoint
                     self._add_aat_sector_fix(sector_fixes, current_leg + 1, fix_minus1)
@@ -177,9 +196,9 @@ class AAT(Task):
             sector_fixes[-1].append(last_fix)
 
         if enl_registered:
-            return sector_fixes, enl_first_fix
+            return sector_fixes, enl_first_fix, restart_candidates
         else:
-            return sector_fixes, None
+            return sector_fixes, None, restart_candidates
 
     def _reduce_fixes(self, fixes, max_fixes):
         reduction_factor = len(fixes) // max_fixes + 1

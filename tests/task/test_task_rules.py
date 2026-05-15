@@ -9,12 +9,29 @@ from tests.task.helper_functions import get_task
 class TestRestartAfterTurnpoint(unittest.TestCase):
     """
     FAI SC3A §7.4.3.6: multiple valid starts → scored using the start that yields the best score.
-    A start made after a properly completed task is not valid.
+    A start after a properly completed task is not valid.
 
     Tests call determine_trip_fixes directly with mocked started/finished_leg so that
     the control-flow scenarios can be driven without needing real IGC flight geometry.
-    The side_effect lists are ordered by the exact call sequence produced by the implementation:
-      - main evaluation calls first, then challenger sub-evaluation calls.
+
+    Mock call convention
+    --------------------
+    started(f1, f2) is called once per pair when:
+      - leg == -1: every pair, waiting for the first start
+      - leg == 0:  every pair, checking for a leg-0 restart (unconditional `if`)
+      - 0 < leg < no_legs AND _allow_late_restart=True: checking for a late restart candidate
+
+    finished_leg(leg, f1, f2) is called once per pair when:
+      - leg == 0: always, in a separate `if` block that runs regardless of whether started() fired
+      - 0 < leg < no_legs AND started() returned False: in the `elif` branch, so NOT called
+        when started() returned True on the same pair
+      - Never at leg == -1 (before start) or leg == no_legs (task complete)
+
+    When _allow_late_restart=False (challenger sub-evaluations): started() is not called at
+    leg > 0, so finished_leg() fires at every pair in that range.
+
+    The side_effect lists are ordered by the exact call sequence: main evaluation first,
+    then challenger sub-evaluation (if any).
     """
 
     cwd = os.path.dirname(__file__)
@@ -39,13 +56,31 @@ class TestRestartAfterTurnpoint(unittest.TestCase):
         Case 2: pilot starts, rounds TP1, turns back, restarts, then completes the task.
         The restart attempt scores because it achieves the full task distance.
 
-        Main evaluation (9 pairs over 10 fixes):
-          started calls:  T F F T F F F F F   (True at pair 0 = first start; True at pair 3 = candidate)
-          finished_leg:   T F F F F F F        (True at pair 1 = TP1 in main; rest False → outlanding leg 1)
+        Main evaluation — trace[0:] (9 pairs):
+          pair  leg  started  finished_leg  note
+             0   -1    True        —        first start → fixes=[trace[0]], leg=0
+             1    0   False      True       no restart; TP1 → leg=1
+             2    1   False      False
+             3    1    True        —        late start → candidate at pair_idx=3
+             4    1   False      False
+             5    1   False      False
+             6    1   False      False
+             7    1   False      False
+             8    1   False      False
+          Original result: outlanding on leg 1
 
-        Challenger sub-trace = trace[3:] (6 pairs, _allow_late_restart=False):
-          started calls:  T F                  (True at pair 0 = challenger start; pair 1 = no leg-0 restart)
-          finished_leg:   T T T T              (TP1 TP2 TP3 TP4 → task complete; pair 5 at leg=4 skipped)
+        Challenger — trace[3:] (6 pairs, _allow_late_restart=False):
+          pair  leg  started  finished_leg  note
+             0   -1    True        —        start → leg=0
+             1    0   False      True       no restart; TP1 → leg=1
+             2    1     —        True       TP2 → leg=2  (started not called: _allow_late_restart=False)
+             3    2     —        True       TP3 → leg=3
+             4    3     —        True       TP4 → leg=4=no_legs, task complete
+             5    4     —          —        task done, no branch matches
+          Challenger result: task complete → wins
+
+        → started_values (11): main 9 + challenger 2
+        → finished_leg   (11): main 7 (pairs 0 and 3 skipped) + challenger 4 (pairs 0 and 5 skipped)
         """
         task = self._load_task()
         trace = [self._make_fix(i) for i in range(10)]
@@ -72,13 +107,31 @@ class TestRestartAfterTurnpoint(unittest.TestCase):
         Case 3: pilot starts, rounds TP1 and TP2, restarts, but only reaches mid-leg-1.
         The first attempt scores because it achieved more distance.
 
-        Main evaluation (9 pairs):
-          started:      T F F T F F F F F   (pair 0 = start; pair 3 = candidate at leg 2)
-          finished_leg: T T F F F F F        (pair 1 = TP1, pair 2 = TP2; rest False → outlanding leg 2)
+        Main evaluation — trace[0:] (9 pairs):
+          pair  leg  started  finished_leg  note
+             0   -1    True        —        first start → leg=0
+             1    0   False      True       no restart; TP1 → leg=1
+             2    1   False      True       TP2 → leg=2
+             3    2    True        —        late start → candidate at pair_idx=3
+             4    2   False      False
+             5    2   False      False
+             6    2   False      False
+             7    2   False      False
+             8    2   False      False
+          Original result: outlanding on leg 2 (TP1 + TP2 rounded)
 
-        Challenger trace[3:] (6 pairs, _allow_late_restart=False):
-          started:      T F F F F F          (pair 0 = challenger start; pairs 1-5 = no leg-0 restart)
-          finished_leg: F F F F F            (challenger completes 0 legs → outlanding leg 0)
+        Challenger — trace[3:] (6 pairs, _allow_late_restart=False):
+          pair  leg  started  finished_leg  note
+             0   -1    True        —        start → leg=0
+             1    0   False      False      no restart; no TP1
+             2    0   False      False
+             3    0   False      False
+             4    0   False      False
+             5    0   False      False
+          Challenger result: outlanding on leg 0 (~0 km; all fixes share same lat/lon)
+
+        → started_values (15): main 9 + challenger 6
+        → finished_leg   (12): main 7 (pairs 0 and 3 skipped) + challenger 5 (pair 0 skipped)
         """
         task = self._load_task()
         trace = [self._make_fix(i) for i in range(10)]
@@ -103,13 +156,31 @@ class TestRestartAfterTurnpoint(unittest.TestCase):
         Case 6: pilot crosses the start area incidentally between TP2 and TP3 while flying
         the full task. The full task still completes; the incidental crossing is NOT a reset.
 
-        Main evaluation (9 pairs):
-          started:      T F F T F F             (pair 0 = start; pair 3 = incidental crossing at leg 2)
-          finished_leg: T T T T                  (TP1 TP2 TP3 TP4 → task complete; pairs 6-8 at leg=4 skipped)
+        Main evaluation — trace[0:] (9 pairs):
+          pair  leg  started  finished_leg  note
+             0   -1    True        —        first start → leg=0
+             1    0   False      True       no restart; TP1 → leg=1
+             2    1   False      True       TP2 → leg=2
+             3    2    True        —        incidental crossing → candidate at pair_idx=3
+             4    2   False      True       TP3 → leg=3
+             5    3   False      True       TP4 → leg=4=no_legs, task complete
+             6    4     —          —        task done
+             7    4     —          —
+             8    4     —          —
+          Original result: task complete (outlanding_fix=None)
 
-        Challenger trace[3:] (6 pairs, _allow_late_restart=False):
-          started:      T F                      (pair 0 = challenger start)
-          finished_leg: T T F F F                (challenger only completes TP1+TP2 → outlanding)
+        Challenger — trace[3:] (6 pairs, _allow_late_restart=False):
+          pair  leg  started  finished_leg  note
+             0   -1    True        —        start → leg=0
+             1    0   False      True       no restart; TP1 → leg=1
+             2    1     —        True       TP2 → leg=2
+             3    2     —        False
+             4    2     —        False
+             5    2     —        False
+          Challenger result: outlanding on leg 2 → original (full task) wins
+
+        → started_values (8): main 6 (pairs 6-8 at leg=no_legs skipped) + challenger 2
+        → finished_leg   (9): main 4 (pairs 0, 3, 6, 7, 8 skipped) + challenger 5 (pair 0 skipped)
         """
         task = self._load_task()
         trace = [self._make_fix(i) for i in range(10)]
@@ -133,8 +204,21 @@ class TestRestartAfterTurnpoint(unittest.TestCase):
         `0 < leg < no_legs` is False, so started() is never evaluated and no restart
         candidate is collected. The completed result is returned unchanged.
 
-        Main evaluation: task completed in pairs 0-4 (legs 0-3 each done). Pairs 5-8
-        are at leg=4=no_legs → no calls to started or finished_leg.
+        Main evaluation — trace[0:] (9 pairs):
+          pair  leg  started  finished_leg  note
+             0   -1    True        —        first start → leg=0
+             1    0   False      True       no restart; TP1 → leg=1
+             2    1   False      True       TP2 → leg=2
+             3    2   False      True       TP3 → leg=3
+             4    3   False      True       TP4 → leg=4=no_legs, task complete
+             5    4     —          —        0<4<4 is False → started() never called; no candidates
+             6    4     —          —
+             7    4     —          —
+             8    4     —          —
+          No restart candidates → no challengers.
+
+        → started_values (5): pairs 5-8 at leg=no_legs generate no calls
+        → finished_leg   (4): pair 0 (leg=-1) skipped
         """
         task = self._load_task()
         trace = [self._make_fix(i) for i in range(10)]

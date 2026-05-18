@@ -233,3 +233,51 @@ class TestRestartAfterTurnpoint(unittest.TestCase):
         self.assertEqual(fixes[0], trace[0])
         self.assertEqual(len(fixes), 5)
         self.assertIsNone(outlanding_fix)
+
+    def test_both_complete_later_start_wins(self):
+        """
+        Both the original start and the restart complete all legs with the same total
+        distance (race-task legs are fixed). The later restart must be selected — it
+        achieves the same distance in less time, giving a higher race speed.
+
+        Main evaluation — trace[0:] (9 pairs):
+          pair  leg  started  finished_leg  note
+             0   -1    True        —        first start → fixes=[trace[0]], leg=0
+             1    0   False      True       no restart; TP1 → leg=1
+             2    1    True        —        late start → candidate at pair_idx=2
+             3    1   False      True       TP2 → leg=2
+             4    2   False      True       TP3 → leg=3
+             5    3   False      True       TP4 → leg=4=no_legs, task complete
+             6-8  4     —          —        0<4<4 False → no calls
+          Original result: task complete, distance=D
+
+        Challenger — trace[2:] (8 fixes, 7 pairs, _allow_late_restart=False):
+          pair  leg  started  finished_leg  note
+             0   -1    True        —        start → fixes=[trace[2]], leg=0
+             1    0   False      True       no restart; TP1 → leg=1
+             2    1     —        True       TP2 → leg=2  (started not called)
+             3    2     —        True       TP3 → leg=3
+             4    3     —        True       TP4 → leg=4=no_legs, task complete
+             5-6  4     —          —        no calls
+          Challenger result: task complete, distance=D (same fixed legs)
+
+        c_distance == best_distance → >= picks challenger; > would keep original (bug).
+
+        → started_values (8):   main 6 (pairs 0-5) + challenger 2 (pairs 0-1)
+        → finished_leg   (8):   main 4 (pairs 1,3,4,5) + challenger 4 (pairs 1-4)
+        """
+        task = self._load_task()
+        trace = [self._make_fix(i) for i in range(10)]
+
+        started_values = [True, False, True, False, False, False,
+                          True, False]
+        finished_leg_values = [True, True, True, True,
+                               True, True, True, True]
+
+        with patch.object(task, 'started', side_effect=started_values), \
+             patch.object(task, 'finished_leg', side_effect=finished_leg_values):
+            fixes, outlanding_fix = task.determine_trip_fixes(trace)
+
+        self.assertEqual(fixes[0], trace[2], 'later restart should be used when both complete')
+        self.assertIsNone(outlanding_fix)
+        self.assertEqual(len(fixes), 5)

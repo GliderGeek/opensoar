@@ -157,7 +157,7 @@ class RaceTask(Task):
             if not c_fixes:
                 continue
             c_distance = sum(self.determine_trip_distances(c_fixes, c_outlanding))
-            if c_distance > best_distance:
+            if c_distance >= best_distance:
                 best_fixes, best_outlanding, best_distance = c_fixes, c_outlanding, c_distance
 
         return best_fixes, best_outlanding

@@ -115,7 +115,7 @@ class AAT(Task):
             if not c_trip_fixes:
                 continue
             c_distance = sum(self._determine_trip_distances(c_trip_fixes, c_outlanding_fix))
-            if c_distance > best[3]:
+            if c_distance >= best[3]:
                 best = (c_trip_fixes, c_outlanding_fix, c_sector_fixes, c_distance)
 
         return best[0], best[1], best[2]

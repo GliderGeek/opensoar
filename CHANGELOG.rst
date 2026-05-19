@@ -16,6 +16,12 @@ Fixed
 Security
 ~~~~~~~~~
 
+v2.1.3 - 2026/05/19
+------------------------
+Fixed
+~~~~~~~~
+* Prefer later restart when scored distances are equal (FAI SC3A §7.4.3.6)
+
 v2.1.2 - 2026/05/15
 ------------------------
 Fixed
